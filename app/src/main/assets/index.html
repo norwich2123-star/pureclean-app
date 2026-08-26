@@ -5,289 +5,209 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PureClean</title>
 
-<link rel="stylesheet"
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-
-<script
-src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <style>
 *{box-sizing:border-box}
-
 body{
-margin:0;
-background:#050505;
-color:white;
-font-family:Arial,sans-serif;
-font-size:14px;
+  margin:0;
+  background:#050505;
+  color:#fff;
+  font-family:Arial,sans-serif;
+  font-size:14px;
 }
-
 header{
-background:#111;
-padding:12px;
-display:flex;
-align-items:center;
-gap:12px;
-border-bottom:1px solid #222;
+  background:#111;
+  padding:14px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  border-bottom:1px solid #222;
 }
-
 .logo{
-width:58px;
-height:58px;
-border-radius:50%;
-object-fit:cover;
-flex-shrink:0;
+  width:52px;
+  height:52px;
+  border:2px solid #94d600;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  color:#94d600;
+  font-size:9px;
+  font-weight:bold;
+  flex-shrink:0;
 }
-
 .brand h1{
-margin:0;
-font-size:18px;
-line-height:1.15;
-color:#a6df32;
+  margin:0;
+  font-size:18px;
+  color:#a6df32;
 }
-
 .brand p{
-margin:4px 0 0;
-font-size:12px;
-color:#8b8f9d;
+  margin:4px 0 0;
+  color:#888e9b;
+  font-size:12px;
 }
-
 nav{
-display:flex;
-overflow-x:auto;
-background:#0d0d0d;
-border-bottom:1px solid #222;
-padding:7px;
-gap:4px;
+  display:flex;
+  overflow-x:auto;
+  background:#0d0d0d;
+  border-bottom:1px solid #222;
+  padding:7px;
+  gap:4px;
 }
-
 nav button{
-min-width:88px;
-border:0;
-background:transparent;
-color:#9bd400;
-padding:10px;
-border-radius:8px;
-font-size:13px;
-font-weight:bold;
+  min-width:90px;
+  border:0;
+  background:transparent;
+  color:#9bd400;
+  padding:10px;
+  border-radius:8px;
+  font-size:13px;
+  font-weight:bold;
 }
-
 nav button.active{
-background:#94d600;
-color:#000;
+  background:#93d500;
+  color:#000;
 }
-
 main{
-padding:12px;
+  padding:12px;
 }
-
 .screen{display:none}
 .screen.active{display:block}
-
 h2{
-color:#9bd400;
-font-size:21px;
-margin:8px 0 14px;
+  color:#9bd400;
+  font-size:21px;
+  margin:8px 0 14px;
 }
-
 .grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:9px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
 }
-
 .card{
-background:#111;
-border:1px solid #292929;
-border-radius:13px;
-padding:12px;
-margin-bottom:10px;
+  background:#111;
+  border:1px solid #292929;
+  border-radius:13px;
+  padding:12px;
+  margin-bottom:10px;
 }
-
 .stat{
-min-height:92px;
+  min-height:92px;
 }
-
 .label{
-color:#a1cc3a;
-font-size:11px;
+  color:#a1cc3a;
+  font-size:11px;
 }
-
 .value{
-margin-top:12px;
-font-size:25px;
-font-weight:bold;
-color:#a6df32;
+  margin-top:12px;
+  font-size:25px;
+  font-weight:bold;
+  color:#a6df32;
 }
-
 .orange{color:#ffc33d}
 .green{color:#39dc80}
 .red{color:#ff5570}
-
 .action{
-width:100%;
-border:0;
-background:#95d900;
-color:#000;
-border-radius:8px;
-padding:11px;
-font-weight:bold;
-font-size:14px;
-margin-top:7px;
+  width:100%;
+  border:0;
+  background:#95d900;
+  color:#000;
+  border-radius:8px;
+  padding:11px;
+  font-weight:bold;
+  font-size:14px;
+  margin-top:7px;
 }
-
 .small{
-width:auto;
-padding:7px 10px;
-font-size:12px;
-margin-right:4px;
+  width:auto;
+  padding:7px 10px;
+  font-size:12px;
+  margin-right:4px;
 }
-
 .secondary{
-background:#292929;
-color:white;
+  background:#292929;
+  color:#fff;
 }
-
 .danger{
-background:#a52b3d;
-color:white;
+  background:#a52b3d;
+  color:#fff;
 }
-
 .blue{
-background:#356fa7;
-color:white;
+  background:#356fa7;
+  color:#fff;
 }
-
 input,textarea,select{
-width:100%;
-background:#1b1b1b;
-color:white;
-border:1px solid #3d3d3d;
-border-radius:8px;
-padding:10px;
-margin:5px 0 10px;
-font-size:14px;
+  width:100%;
+  background:#1b1b1b;
+  color:#fff;
+  border:1px solid #3d3d3d;
+  border-radius:8px;
+  padding:10px;
+  margin:5px 0 10px;
+  font-size:14px;
 }
-
 textarea{min-height:65px}
-
 label{
-display:block;
-color:#aaa;
-font-size:12px;
-margin-top:4px;
+  display:block;
+  color:#aaa;
+  font-size:12px;
+  margin-top:4px;
 }
-
 .item{
-background:#111;
-border:1px solid #292929;
-border-radius:12px;
-padding:11px;
-margin-bottom:9px;
+  background:#111;
+  border:1px solid #292929;
+  border-radius:12px;
+  padding:11px;
+  margin-bottom:9px;
 }
-
 .item strong{
-color:#a6df32;
-font-size:15px;
+  color:#a6df32;
+  font-size:15px;
 }
-
 .muted{
-color:#999;
-font-size:12px;
-line-height:1.5;
+  color:#999;
+  font-size:12px;
+  line-height:1.5;
 }
-
 .price{
-color:#40df83;
-font-weight:bold;
+  color:#40df83;
+  font-weight:bold;
 }
-
 .row{
-display:flex;
-justify-content:space-between;
-gap:8px;
-align-items:center;
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  align-items:center;
 }
-
 .badge{
-display:inline-block;
-padding:4px 8px;
-border-radius:20px;
-font-size:11px;
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:20px;
+  font-size:11px;
 }
-
-.paid{
-background:#183c27;
-color:#64e99d;
-}
-
-.unpaid{
-background:#4d2b10;
-color:#ffc55e;
-}
-
-#customerMap{
-width:100%;
-height:430px;
-border-radius:12px;
-border:1px solid #333;
-background:#111;
-}
-
-.mapStatus{
-color:#aaa;
-font-size:12px;
-margin-bottom:8px;
-}
+.paid{background:#183c27;color:#64e99d}
+.unpaid{background:#4d2b10;color:#ffc55e}
 </style>
 </head>
 
 <body>
 
 <header>
-
-<img src="logo.jpg" class="logo">
-
-<div class="brand">
-<h1>Steven's Pure Clean Exteriors</h1>
-<p>Pure Results • Clean Exteriors</p>
-</div>
-
+  <div class="logo">PURE<br>CLEAN</div>
+  <div class="brand">
+    <h1>Steven's Pure Clean Exteriors</h1>
+    <p>Customer & Invoice Tracker</p>
+  </div>
 </header>
 
 <nav>
-
-<button class="active"
-id="tabDashboard"
-onclick="openPage('dashboard')">
-Dashboard
-</button>
-
-<button id="tabCustomers"
-onclick="openPage('customers')">
-Customers
-</button>
-
-<button id="tabPlanner"
-onclick="openPage('planner')">
-Planner
-</button>
-
-<button id="tabInvoices"
-onclick="openPage('invoices')">
-Invoices
-</button>
-
-<button id="tabMap"
-onclick="openPage('map')">
-Map
-</button>
-
+  <button class="active" id="tabDashboard" onclick="openPage('dashboard')">Dashboard</button>
+  <button id="tabCustomers" onclick="openPage('customers')">Customers</button>
+  <button id="tabPlanner" onclick="openPage('planner')">Planner</button>
+  <button id="tabInvoices" onclick="openPage('invoices')">Invoices</button>
+  <button id="tabMap" onclick="openPage('map')">Map</button>
 </nav>
 
 <main>
-
-<!-- DASHBOARD -->
 
 <section id="dashboard" class="screen active">
 
@@ -295,92 +215,58 @@ Map
 
 <div class="grid">
 
-<div class="card stat">
-<div class="label">CUSTOMERS</div>
-<div class="value" id="dashCustomers">0</div>
-</div>
+  <div class="card stat">
+    <div class="label">CUSTOMERS</div>
+    <div class="value" id="dashCustomers">0</div>
+  </div>
 
-<div class="card stat">
-<div class="label">UNPAID</div>
-<div class="value orange" id="dashUnpaid">£0.00</div>
-</div>
+  <div class="card stat">
+    <div class="label">UNPAID</div>
+    <div class="value orange" id="dashUnpaid">£0.00</div>
+  </div>
 
-<div class="card stat">
-<div class="label">PAID THIS MONTH</div>
-<div class="value green" id="dashPaid">£0.00</div>
-</div>
+  <div class="card stat">
+    <div class="label">PAID THIS MONTH</div>
+    <div class="value green" id="dashPaid">£0.00</div>
+  </div>
 
-<div class="card stat">
-<div class="label">DUE SOON</div>
-<div class="value red" id="dashDue">0</div>
-</div>
-
-</div>
-
-<div class="card">
-
-<div class="row">
-<h3 style="color:#9bd400;margin:0">Today's Round</h3>
-
-<button
-class="action small secondary"
-onclick="openPage('planner')">
-View all
-</button>
-</div>
-
-<div id="dashJobs"
-class="muted"
-style="margin-top:10px">
-</div>
+  <div class="card stat">
+    <div class="label">DUE SOON</div>
+    <div class="value red" id="dashDue">0</div>
+  </div>
 
 </div>
 
 <div class="card">
-
-<div class="row">
-<h3 style="color:#9bd400;margin:0">Unpaid Invoices</h3>
-
-<button
-class="action small secondary"
-onclick="openPage('invoices')">
-View all
-</button>
+  <div class="row">
+    <h3 style="color:#9bd400;margin:0">Today's Round</h3>
+    <button class="action small secondary" onclick="openPage('planner')">View all</button>
+  </div>
+  <div id="dashJobs" class="muted" style="margin-top:10px"></div>
 </div>
 
-<div id="dashInvoices"
-class="muted"
-style="margin-top:10px">
-</div>
-
+<div class="card">
+  <div class="row">
+    <h3 style="color:#9bd400;margin:0">Unpaid Invoices</h3>
+    <button class="action small secondary" onclick="openPage('invoices')">View all</button>
+  </div>
+  <div id="dashInvoices" class="muted" style="margin-top:10px"></div>
 </div>
 
 </section>
 
 
-<!-- CUSTOMERS -->
-
 <section id="customers" class="screen">
 
 <h2>Customers</h2>
 
-<input
-id="searchCustomer"
-placeholder="Search customers..."
-oninput="renderCustomers()">
+<input id="searchCustomer" placeholder="Search customers..." oninput="renderCustomers()">
 
-<button class="action"
-onclick="newCustomer()">
-+ Add Customer
-</button>
+<button class="action" onclick="newCustomer()">+ Add Customer</button>
 
-<div class="card"
-id="customerForm"
-style="display:none">
+<div class="card" id="customerForm" style="display:none">
 
-<h3 id="customerFormTitle">
-Add Customer
-</h3>
+<h3 id="customerFormTitle">Add Customer</h3>
 
 <input type="hidden" id="editId">
 
@@ -400,33 +286,23 @@ Add Customer
 <input id="cEmail">
 
 <label>Price (£)</label>
-<input id="cPrice"
-type="number"
-step="0.01">
+<input id="cPrice" type="number" step="0.01">
 
 <label>Frequency</label>
-
 <select id="cFrequency">
 <option value="1">Weekly</option>
 <option value="2">Every 2 weeks</option>
-<option value="3">Every 3 weeks</option>
 <option value="4" selected>Every 4 weeks</option>
-<option value="5">Every 5 weeks</option>
 <option value="6">Every 6 weeks</option>
-<option value="7">Every 7 weeks</option>
 <option value="8">Every 8 weeks</option>
-<option value="9">Every 9 weeks</option>
 <option value="10">Every 10 weeks</option>
-<option value="11">Every 11 weeks</option>
 <option value="12">Every 12 weeks</option>
 </select>
 
 <label>Next Clean</label>
-<input id="cNextClean"
-type="date">
+<input id="cNextClean" type="date">
 
 <label>Service</label>
-
 <select id="cService">
 <option>Window Cleaning</option>
 <option>Gutter Cleaning</option>
@@ -438,16 +314,8 @@ type="date">
 <label>Notes / Access</label>
 <textarea id="cNotes"></textarea>
 
-<button class="action"
-onclick="saveCustomer()">
-Save Customer
-</button>
-
-<button
-class="action secondary"
-onclick="closeCustomerForm()">
-Cancel
-</button>
+<button class="action" onclick="saveCustomer()">Save Customer</button>
+<button class="action secondary" onclick="closeCustomerForm()">Cancel</button>
 
 </div>
 
@@ -456,35 +324,20 @@ Cancel
 </section>
 
 
-<!-- PLANNER -->
-
 <section id="planner" class="screen">
 
 <h2>Round Planner</h2>
 
 <div class="card">
-
 <label>Date</label>
-
-<input
-type="date"
-id="plannerDate"
-onchange="renderPlanner()">
-
-<button
-class="action secondary"
-onclick="setToday()">
-Today
-</button>
-
+<input type="date" id="plannerDate" onchange="renderPlanner()">
+<button class="action secondary" onclick="setToday()">Today</button>
 </div>
 
 <div id="plannerList"></div>
 
 </section>
 
-
-<!-- INVOICES -->
 
 <section id="invoices" class="screen">
 
@@ -494,55 +347,31 @@ Today
 
 <div class="card">
 <div class="label">OUTSTANDING</div>
-<div class="value orange"
-id="invoiceOutstanding">
-£0.00
-</div>
+<div class="value orange" id="invoiceOutstanding">£0.00</div>
 </div>
 
 <div class="card">
 <div class="label">PAID</div>
-<div class="value green"
-id="invoicePaid">
-£0.00
-</div>
+<div class="value green" id="invoicePaid">£0.00</div>
 </div>
 
 </div>
 
-<button class="action"
-onclick="openInvoiceForm()">
-+ Create Invoice
-</button>
+<button class="action" onclick="openInvoiceForm()">+ Create Invoice</button>
 
-<div class="card"
-id="invoiceForm"
-style="display:none">
+<div class="card" id="invoiceForm" style="display:none">
 
 <label>Customer</label>
 <select id="invoiceCustomer"></select>
 
 <label>Amount (£)</label>
-<input
-id="invoiceAmount"
-type="number"
-step="0.01">
+<input id="invoiceAmount" type="number" step="0.01">
 
 <label>Description</label>
-<input
-id="invoiceDescription"
-value="Window Cleaning">
+<input id="invoiceDescription" value="Window Cleaning">
 
-<button class="action"
-onclick="saveInvoice()">
-Save Invoice
-</button>
-
-<button
-class="action secondary"
-onclick="closeInvoiceForm()">
-Cancel
-</button>
+<button class="action" onclick="saveInvoice()">Save Invoice</button>
+<button class="action secondary" onclick="closeInvoiceForm()">Cancel</button>
 
 </div>
 
@@ -551,27 +380,15 @@ Cancel
 </section>
 
 
-<!-- LIVE MAP -->
-
 <section id="map" class="screen">
 
 <h2>Customer Map</h2>
 
-<div class="card">
-
-<div id="mapStatus" class="mapStatus">
-Open the map to locate your customers.
+<div class="card muted">
+Tap a customer to open their address in Google Maps.
 </div>
 
-<div id="customerMap"></div>
-
-<button
-class="action"
-onclick="refreshCustomerMap()">
-Refresh Customer Pins
-</button>
-
-</div>
+<div id="mapList"></div>
 
 </section>
 
@@ -580,546 +397,482 @@ Refresh Customer Pins
 
 <script>
 
-let customers =
-JSON.parse(localStorage.getItem("pcCustomers") || "[]");
-
-let invoices =
-JSON.parse(localStorage.getItem("pcInvoices") || "[]");
-
-let map = null;
-
-let mapMarkers = [];
-
+let customers = JSON.parse(localStorage.getItem("pcCustomers") || "[]");
+let invoices = JSON.parse(localStorage.getItem("pcInvoices") || "[]");
 
 function today(){
-
-let d=new Date();
-
-return d.getFullYear()
-+"-"+
-String(d.getMonth()+1).padStart(2,"0")
-+"-"+
-String(d.getDate()).padStart(2,"0");
-
+  let d=new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 }
-
 
 function openPage(page){
 
-document.querySelectorAll(".screen")
-.forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));
+  document.getElementById(page).classList.add("active");
 
-document.getElementById(page)
-.classList.add("active");
+  document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
 
-document.querySelectorAll("nav button")
-.forEach(x=>x.classList.remove("active"));
+  let id="tab"+page.charAt(0).toUpperCase()+page.slice(1);
+  let tab=document.getElementById(id);
+  if(tab) tab.classList.add("active");
 
-let id=
-"tab"+
-page.charAt(0).toUpperCase()+
-page.slice(1);
+  if(page==="customers") renderCustomers();
+  if(page==="planner") renderPlanner();
+  if(page==="invoices") renderInvoices();
+  if(page==="map") renderMap();
 
-let tab=document.getElementById(id);
-
-if(tab) tab.classList.add("active");
-
-if(page==="customers")
-renderCustomers();
-
-if(page==="planner")
-renderPlanner();
-
-if(page==="invoices")
-renderInvoices();
-
-if(page==="map"){
-
-setTimeout(function(){
-
-initMap();
-
-refreshCustomerMap();
-
-},200);
-
+  updateDashboard();
+  window.scrollTo(0,0);
 }
-
-updateDashboard();
-
-window.scrollTo(0,0);
-
-}
-
 
 function newCustomer(){
 
-document.getElementById("customerForm")
-.style.display="block";
+  document.getElementById("customerForm").style.display="block";
+  document.getElementById("customerFormTitle").textContent="Add Customer";
 
-document.getElementById("customerFormTitle")
-.textContent="Add Customer";
-
-document.getElementById("editId").value="";
-
-document.getElementById("cName").value="";
-document.getElementById("cAddress").value="";
-document.getElementById("cPostcode").value="";
-document.getElementById("cPhone").value="";
-document.getElementById("cEmail").value="";
-document.getElementById("cPrice").value="";
-document.getElementById("cFrequency").value="4";
-document.getElementById("cNextClean").value=today();
-document.getElementById("cService").value="Window Cleaning";
-document.getElementById("cNotes").value="";
-
+  document.getElementById("editId").value="";
+  document.getElementById("cName").value="";
+  document.getElementById("cAddress").value="";
+  document.getElementById("cPostcode").value="";
+  document.getElementById("cPhone").value="";
+  document.getElementById("cEmail").value="";
+  document.getElementById("cPrice").value="";
+  document.getElementById("cFrequency").value="4";
+  document.getElementById("cNextClean").value=today();
+  document.getElementById("cService").value="Window Cleaning";
+  document.getElementById("cNotes").value="";
 }
-
 
 function editCustomer(id){
 
-let c=
-customers.find(x=>x.id===id);
+  let c=customers.find(x=>x.id===id);
+  if(!c) return;
 
-if(!c) return;
+  document.getElementById("customerForm").style.display="block";
+  document.getElementById("customerFormTitle").textContent="Edit Customer";
 
-document.getElementById("customerForm")
-.style.display="block";
+  document.getElementById("editId").value=c.id;
+  document.getElementById("cName").value=c.name||"";
+  document.getElementById("cAddress").value=c.address||"";
+  document.getElementById("cPostcode").value=c.postcode||"";
+  document.getElementById("cPhone").value=c.phone||"";
+  document.getElementById("cEmail").value=c.email||"";
+  document.getElementById("cPrice").value=c.price||"";
+  document.getElementById("cFrequency").value=c.frequency||"4";
+  document.getElementById("cNextClean").value=c.nextClean||today();
+  document.getElementById("cService").value=c.service||"Window Cleaning";
+  document.getElementById("cNotes").value=c.notes||"";
 
-document.getElementById("customerFormTitle")
-.textContent="Edit Customer";
-
-document.getElementById("editId").value=c.id;
-
-document.getElementById("cName").value=c.name||"";
-document.getElementById("cAddress").value=c.address||"";
-document.getElementById("cPostcode").value=c.postcode||"";
-document.getElementById("cPhone").value=c.phone||"";
-document.getElementById("cEmail").value=c.email||"";
-document.getElementById("cPrice").value=c.price||"";
-document.getElementById("cFrequency").value=c.frequency||"4";
-document.getElementById("cNextClean").value=c.nextClean||today();
-document.getElementById("cService").value=c.service||"Window Cleaning";
-document.getElementById("cNotes").value=c.notes||"";
-
-window.scrollTo(0,0);
-
+  window.scrollTo(0,0);
 }
-
 
 function closeCustomerForm(){
-
-document.getElementById("customerForm")
-.style.display="none";
-
+  document.getElementById("customerForm").style.display="none";
 }
-
 
 function saveCustomer(){
 
-let name=
-document.getElementById("cName")
-.value.trim();
+  let name=document.getElementById("cName").value.trim();
 
-if(!name){
+  if(!name){
+    alert("Please enter customer name.");
+    return;
+  }
 
-alert("Please enter customer name.");
+  let id=Number(document.getElementById("editId").value);
 
-return;
+  let c={
+    id:id||Date.now(),
+    name:name,
+    address:document.getElementById("cAddress").value.trim(),
+    postcode:document.getElementById("cPostcode").value.trim(),
+    phone:document.getElementById("cPhone").value.trim(),
+    email:document.getElementById("cEmail").value.trim(),
+    price:Number(document.getElementById("cPrice").value||0),
+    frequency:Number(document.getElementById("cFrequency").value||4),
+    nextClean:document.getElementById("cNextClean").value||today(),
+    service:document.getElementById("cService").value,
+    notes:document.getElementById("cNotes").value.trim()
+  };
 
+  if(id){
+    let index=customers.findIndex(x=>x.id===id);
+    if(index>=0) customers[index]=c;
+  }else{
+    customers.push(c);
+  }
+
+  localStorage.setItem("pcCustomers",JSON.stringify(customers));
+
+  closeCustomerForm();
+  renderCustomers();
+  updateDashboard();
 }
-
-let id=
-Number(
-document.getElementById("editId").value
-);
-
-let oldCustomer=
-customers.find(x=>x.id===id);
-
-let postcode=
-document.getElementById("cPostcode")
-.value.trim()
-.toUpperCase();
-
-let c={
-
-id:id||Date.now(),
-
-name:name,
-
-address:
-document.getElementById("cAddress").value.trim(),
-
-postcode:postcode,
-
-phone:
-document.getElementById("cPhone").value.trim(),
-
-email:
-document.getElementById("cEmail").value.trim(),
-
-price:
-Number(document.getElementById("cPrice").value||0),
-
-frequency:
-Number(document.getElementById("cFrequency").value||4),
-
-nextClean:
-document.getElementById("cNextClean").value||today(),
-
-service:
-document.getElementById("cService").value,
-
-notes:
-document.getElementById("cNotes").value.trim(),
-
-lat:
-oldCustomer && oldCustomer.postcode===postcode
-? oldCustomer.lat
-: null,
-
-lng:
-oldCustomer && oldCustomer.postcode===postcode
-? oldCustomer.lng
-: null
-
-};
-
-if(id){
-
-let index=
-customers.findIndex(x=>x.id===id);
-
-if(index>=0)
-customers[index]=c;
-
-}else{
-
-customers.push(c);
-
-}
-
-saveCustomers();
-
-closeCustomerForm();
-
-renderCustomers();
-
-updateDashboard();
-
-}
-
-
-function saveCustomers(){
-
-localStorage.setItem(
-"pcCustomers",
-JSON.stringify(customers)
-);
-
-}
-
 
 function deleteCustomer(id){
 
-if(!confirm("Delete this customer?"))
-return;
+  if(!confirm("Delete this customer?")) return;
 
-customers=
-customers.filter(x=>x.id!==id);
+  customers=customers.filter(x=>x.id!==id);
 
-saveCustomers();
+  localStorage.setItem("pcCustomers",JSON.stringify(customers));
 
-renderCustomers();
-
-updateDashboard();
-
+  renderCustomers();
+  updateDashboard();
 }
-
 
 function renderCustomers(){
 
-let box=
-document.getElementById("customerList");
+  let box=document.getElementById("customerList");
+  let q=(document.getElementById("searchCustomer").value||"").toLowerCase();
 
-let q=
-(document.getElementById("searchCustomer").value||"")
-.toLowerCase();
+  let list=customers.filter(c=>
+    (c.name+" "+c.address+" "+c.postcode).toLowerCase().includes(q)
+  );
 
-let list=
-customers.filter(c=>
+  if(!list.length){
+    box.innerHTML='<div class="card muted">No customers found.</div>';
+    return;
+  }
 
-(c.name+" "+c.address+" "+c.postcode)
-.toLowerCase()
-.includes(q)
+  box.innerHTML="";
 
-);
+  list.forEach(c=>{
 
-if(!list.length){
+    box.innerHTML+=`
+    <div class="item">
 
-box.innerHTML=
-'<div class="card muted">No customers found.</div>';
+      <div class="row">
+        <strong>${safe(c.name)}</strong>
+        <span class="price">£${Number(c.price||0).toFixed(2)}</span>
+      </div>
 
-return;
+      <p class="muted">
+      ${safe(c.address)}<br>
+      ${safe(c.postcode)}<br>
+      ${safe(c.service||"Window Cleaning")}<br>
+      Every ${c.frequency||4} weeks<br>
+      Next: ${formatDate(c.nextClean)}
+      </p>
 
+      <button class="action small" onclick="editCustomer(${c.id})">Edit</button>
+      <button class="action small blue" onclick="openMap(${c.id})">Map</button>
+      <button class="action small secondary" onclick="quickInvoice(${c.id})">Invoice</button>
+      <button class="action small danger" onclick="deleteCustomer(${c.id})">Delete</button>
+
+    </div>
+    `;
+  });
 }
-
-box.innerHTML="";
-
-list.forEach(c=>{
-
-box.innerHTML+=`
-
-<div class="item">
-
-<div class="row">
-
-<strong>${safe(c.name)}</strong>
-
-<span class="price">
-£${Number(c.price||0).toFixed(2)}
-</span>
-
-</div>
-
-<p class="muted">
-
-${safe(c.address)}<br>
-${safe(c.postcode)}<br>
-${safe(c.service||"Window Cleaning")}<br>
-
-Every ${c.frequency||4} weeks<br>
-
-Next:
-${formatDate(c.nextClean)}
-
-</p>
-
-<button
-class="action small"
-onclick="editCustomer(${c.id})">
-Edit
-</button>
-
-<button
-class="action small blue"
-onclick="showCustomerOnMap(${c.id})">
-Map
-</button>
-
-<button
-class="action small secondary"
-onclick="quickInvoice(${c.id})">
-Invoice
-</button>
-
-<button
-class="action small danger"
-onclick="deleteCustomer(${c.id})">
-Delete
-</button>
-
-</div>
-
-`;
-
-});
-
-}
-
 
 function setToday(){
-
-document.getElementById("plannerDate")
-.value=today();
-
-renderPlanner();
-
+  document.getElementById("plannerDate").value=today();
+  renderPlanner();
 }
-
 
 function renderPlanner(){
 
-let date=
-document.getElementById("plannerDate").value||today();
+  let date=document.getElementById("plannerDate").value||today();
+  document.getElementById("plannerDate").value=date;
 
-document.getElementById("plannerDate").value=date;
+  let box=document.getElementById("plannerList");
 
-let box=
-document.getElementById("plannerList");
+  let jobs=customers.filter(c=>c.nextClean===date);
 
-let jobs=
-customers.filter(c=>c.nextClean===date);
+  if(!jobs.length){
+    box.innerHTML='<div class="card muted">No jobs due on this date.</div>';
+    return;
+  }
 
-if(!jobs.length){
+  box.innerHTML="";
 
-box.innerHTML=
-'<div class="card muted">No jobs due on this date.</div>';
+  jobs.forEach(c=>{
 
-return;
+    box.innerHTML+=`
+    <div class="item">
 
+      <div class="row">
+        <strong>${safe(c.name)}</strong>
+        <span class="price">£${Number(c.price||0).toFixed(2)}</span>
+      </div>
+
+      <p class="muted">
+      ${safe(c.address)}<br>
+      ${safe(c.postcode)}<br>
+      ${safe(c.service)}
+      </p>
+
+      <button class="action" onclick="completeJob(${c.id})">✓ Complete Job</button>
+      <button class="action small blue" onclick="openMap(${c.id})">Directions</button>
+
+    </div>
+    `;
+  });
 }
-
-box.innerHTML="";
-
-let total=0;
-
-jobs.forEach(c=>{
-
-total+=Number(c.price||0);
-
-box.innerHTML+=`
-
-<div class="item">
-
-<div class="row">
-
-<strong>${safe(c.name)}</strong>
-
-<span class="price">
-£${Number(c.price||0).toFixed(2)}
-</span>
-
-</div>
-
-<p class="muted">
-
-${safe(c.address)}<br>
-${safe(c.postcode)}<br>
-${safe(c.service||"Window Cleaning")}
-
-</p>
-
-<button
-class="action"
-onclick="completeJob(${c.id})">
-✓ Complete Job
-</button>
-
-<button
-class="action small blue"
-onclick="showCustomerOnMap(${c.id})">
-Map
-</button>
-
-</div>
-
-`;
-
-});
-
-box.innerHTML+=`
-
-<div class="card">
-
-<div class="row">
-
-<strong>Round Total</strong>
-
-<span class="price">
-£${total.toFixed(2)}
-</span>
-
-</div>
-
-</div>
-
-`;
-
-}
-
 
 function completeJob(id){
 
-let c=
-customers.find(x=>x.id===id);
+  let c=customers.find(x=>x.id===id);
+  if(!c) return;
 
-if(!c) return;
+  let d=new Date((c.nextClean||today())+"T12:00:00");
+  d.setDate(d.getDate()+(Number(c.frequency||4)*7));
 
-let d=
-new Date(
-(c.nextClean||today())+
-"T12:00:00"
-);
+  c.nextClean=
+  d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 
-d.setDate(
-d.getDate()+
-(Number(c.frequency||4)*7)
-);
+  localStorage.setItem("pcCustomers",JSON.stringify(customers));
 
-c.nextClean=
-d.getFullYear()
-+"-"+
-String(d.getMonth()+1).padStart(2,"0")
-+"-"+
-String(d.getDate()).padStart(2,"0");
+  if(confirm("Job complete. Create invoice for £"+Number(c.price||0).toFixed(2)+"?")){
+    createInvoice(c);
+  }
 
-saveCustomers();
-
-if(
-confirm(
-"Job complete.\n\nCreate invoice for £"+
-Number(c.price||0).toFixed(2)+"?"
-)
-){
-
-createInvoice(c);
-
+  renderPlanner();
+  updateDashboard();
 }
-
-renderPlanner();
-
-updateDashboard();
-
-}
-
 
 function openInvoiceForm(){
 
-let select=
-document.getElementById("invoiceCustomer");
+  let select=document.getElementById("invoiceCustomer");
 
-select.innerHTML="";
+  select.innerHTML="";
 
-customers.forEach(c=>{
+  customers.forEach(c=>{
+    select.innerHTML+=`<option value="${c.id}">${safe(c.name)}</option>`;
+  });
 
-select.innerHTML+=
-`<option value="${c.id}">
-${safe(c.name)}
-</option>`;
-
-});
-
-document.getElementById("invoiceAmount")
-.value="";
-
-document.getElementById("invoiceForm")
-.style.display="block";
-
+  document.getElementById("invoiceAmount").value="";
+  document.getElementById("invoiceForm").style.display="block";
 }
-
 
 function closeInvoiceForm(){
-
-document.getElementById("invoiceForm")
-.style.display="none";
-
+  document.getElementById("invoiceForm").style.display="none";
 }
-
 
 function quickInvoice(id){
 
-openPage("invoices");
+  openPage("invoices");
+  openInvoiceForm();
 
-openInvoiceForm();
+  document.getElementById("invoiceCustomer").value=id;
 
-document.getElementById("invoiceCustomer")
-.value=id;
+  let c=customers.find(x=>x.id===id);
 
-let c=
-customers.find(x=>x.id===id);
+  if(c){
+    document.getElementById("invoiceAmount").value=c.price||"";
+  }
+}
 
-if(c){
+function createInvoice(c){
 
-document.getElement
+  invoices.push({
+    id:Date.now(),
+    customerId:c.id,
+    amount:Number(c.price||0),
+    description:c.service||"Window Cleaning",
+    paid:false,
+    date:today(),
+    paidDate:""
+  });
+
+  localStorage.setItem("pcInvoices",JSON.stringify(invoices));
+}
+
+function saveInvoice(){
+
+  let customerId=Number(document.getElementById("invoiceCustomer").value);
+  let amount=Number(document.getElementById("invoiceAmount").value);
+
+  if(!customerId||!amount){
+    alert("Choose a customer and enter an amount.");
+    return;
+  }
+
+  invoices.push({
+    id:Date.now(),
+    customerId:customerId,
+    amount:amount,
+    description:document.getElementById("invoiceDescription").value,
+    paid:false,
+    date:today(),
+    paidDate:""
+  });
+
+  localStorage.setItem("pcInvoices",JSON.stringify(invoices));
+
+  closeInvoiceForm();
+  renderInvoices();
+  updateDashboard();
+}
+
+function markPaid(id){
+
+  let inv=invoices.find(x=>x.id===id);
+  if(!inv) return;
+
+  inv.paid=true;
+  inv.paidDate=today();
+
+  localStorage.setItem("pcInvoices",JSON.stringify(invoices));
+
+  renderInvoices();
+  updateDashboard();
+}
+
+function renderInvoices(){
+
+  let box=document.getElementById("invoiceList");
+
+  let outstanding=invoices
+    .filter(x=>!x.paid)
+    .reduce((a,b)=>a+Number(b.amount||0),0);
+
+  let paid=invoices
+    .filter(x=>x.paid)
+    .reduce((a,b)=>a+Number(b.amount||0),0);
+
+  document.getElementById("invoiceOutstanding").textContent="£"+outstanding.toFixed(2);
+  document.getElementById("invoicePaid").textContent="£"+paid.toFixed(2);
+
+  if(!invoices.length){
+    box.innerHTML='<div class="card muted">No invoices yet.</div>';
+    return;
+  }
+
+  box.innerHTML="";
+
+  [...invoices].reverse().forEach(inv=>{
+
+    let c=customers.find(x=>x.id===inv.customerId);
+
+    box.innerHTML+=`
+    <div class="item">
+
+      <div class="row">
+        <strong>${c?safe(c.name):"Customer"}</strong>
+        <span class="price">£${Number(inv.amount||0).toFixed(2)}</span>
+      </div>
+
+      <p class="muted">
+      ${safe(inv.description)}<br>
+      ${formatDate(inv.date)}
+      </p>
+
+      <span class="badge ${inv.paid?"paid":"unpaid"}">
+      ${inv.paid?"PAID":"UNPAID"}
+      </span>
+
+      ${!inv.paid?
+      `<button class="action small" onclick="markPaid(${inv.id})">Mark Paid</button>`
+      :""}
+
+    </div>
+    `;
+  });
+}
+
+function renderMap(){
+
+  let box=document.getElementById("mapList");
+
+  if(!customers.length){
+    box.innerHTML='<div class="card muted">No customers added yet.</div>';
+    return;
+  }
+
+  box.innerHTML="";
+
+  customers.forEach(c=>{
+
+    box.innerHTML+=`
+    <div class="item">
+      <strong>${safe(c.name)}</strong>
+      <p class="muted">${safe(c.address)}<br>${safe(c.postcode)}</p>
+      <button class="action" onclick="openMap(${c.id})">Open in Google Maps</button>
+    </div>
+    `;
+  });
+}
+
+function openMap(id){
+
+  let c=customers.find(x=>x.id===id);
+  if(!c) return;
+
+  let address=encodeURIComponent((c.address||"")+" "+(c.postcode||""));
+
+  window.location.href=
+  "https://www.google.com/maps/search/?api=1&query="+address;
+}
+
+function updateDashboard(){
+
+  document.getElementById("dashCustomers").textContent=customers.length;
+
+  let outstanding=invoices
+    .filter(x=>!x.paid)
+    .reduce((a,b)=>a+Number(b.amount||0),0);
+
+  document.getElementById("dashUnpaid").textContent="£"+outstanding.toFixed(2);
+
+  let now=new Date();
+
+  let monthPaid=invoices.filter(inv=>{
+    if(!inv.paid||!inv.paidDate) return false;
+
+    let d=new Date(inv.paidDate+"T12:00:00");
+
+    return d.getMonth()===now.getMonth() &&
+           d.getFullYear()===now.getFullYear();
+  })
+  .reduce((a,b)=>a+Number(b.amount||0),0);
+
+  document.getElementById("dashPaid").textContent="£"+monthPaid.toFixed(2);
+
+  let limit=new Date();
+  limit.setDate(limit.getDate()+14);
+
+  let due=customers.filter(c=>{
+    if(!c.nextClean) return false;
+    return new Date(c.nextClean+"T12:00:00")<=limit;
+  });
+
+  document.getElementById("dashDue").textContent=due.length;
+
+  let todayJobs=customers.filter(c=>c.nextClean===today());
+
+  document.getElementById("dashJobs").innerHTML=
+  todayJobs.length
+  ? todayJobs.map(c=>safe(c.name)+" — £"+Number(c.price||0).toFixed(2)).join("<br>")
+  : "No jobs due today";
+
+  let unpaid=invoices.filter(x=>!x.paid);
+
+  document.getElementById("dashInvoices").innerHTML=
+  unpaid.length
+  ? unpaid.slice(0,4).map(inv=>{
+      let c=customers.find(x=>x.id===inv.customerId);
+      return (c?safe(c.name):"Customer")+" — £"+Number(inv.amount||0).toFixed(2);
+    }).join("<br>")
+  : "No unpaid invoices";
+}
+
+function formatDate(v){
+  if(!v) return "-";
+  return new Date(v+"T12:00:00").toLocaleDateString("en-GB");
+}
+
+function safe(v){
+  let d=document.createElement("div");
+  d.textContent=v||"";
+  return d.innerHTML;
+}
+
+document.getElementById("plannerDate").value=today();
+
+updateDashboard();
+
+</script>
+
+</body>
+</html>
