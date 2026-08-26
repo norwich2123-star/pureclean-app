@@ -6,91 +6,173 @@
 <title>PureClean</title>
 
 <style>
+*{box-sizing:border-box}
 body{
   margin:0;
-  background:#000;
-  color:#fff;
+  background:#080808;
+  color:white;
   font-family:Arial,sans-serif;
 }
 
 header{
   background:#111;
-  padding:20px;
+  padding:22px 20px;
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+
+.logo{
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  border:2px solid #8cff00;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#8cff00;
+  font-weight:bold;
+  font-size:12px;
   text-align:center;
 }
 
-h1{
-  color:#8cff00;
+.brand h1{
+  color:#a6df32;
+  font-size:24px;
   margin:0;
 }
 
+.brand p{
+  color:#9095a5;
+  margin:5px 0 0;
+}
+
+nav{
+  display:flex;
+  overflow-x:auto;
+  background:#101010;
+  border-top:1px solid #222;
+  border-bottom:1px solid #222;
+  padding:10px;
+  gap:8px;
+}
+
+nav button{
+  min-width:145px;
+  background:transparent;
+  border:none;
+  color:#a6df32;
+  padding:14px;
+  font-size:17px;
+  font-weight:bold;
+  border-radius:10px;
+}
+
+nav button.active{
+  background:#8acb00;
+  color:#000;
+}
+
 main{
-  padding:16px;
+  padding:18px;
+}
+
+.screen{display:none}
+.screen.active{display:block}
+
+h2{
+  color:#9ddb1d;
+  font-size:28px;
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
 }
 
 .card{
-  background:#151515;
-  padding:16px;
-  border-radius:14px;
-  margin-bottom:14px;
+  background:#111;
+  border:1px solid #292929;
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:16px;
 }
 
-button{
+.stat-title{
+  color:#9ddb1d;
+  font-size:15px;
+}
+
+.stat-number{
+  color:#a6df32;
+  font-size:34px;
+  font-weight:bold;
+  margin-top:16px;
+}
+
+.money{
+  color:#ffc13d;
+}
+
+.greenmoney{
+  color:#38dc80;
+}
+
+.red{
+  color:#ff5572;
+}
+
+.action{
   width:100%;
-  background:#8cff00;
-  color:#000;
   border:none;
-  padding:15px;
-  border-radius:10px;
-  font-size:18px;
-  margin-top:10px;
+  border-radius:12px;
+  background:#91d800;
+  color:black;
+  font-size:17px;
+  font-weight:bold;
+  padding:14px;
+  margin:6px 0;
 }
 
 .secondary{
-  background:#333;
+  background:#292929;
   color:white;
 }
 
 .danger{
-  background:#b00020;
+  background:#a9273b;
   color:white;
 }
 
-input, textarea, select{
+input,textarea,select{
   width:100%;
-  box-sizing:border-box;
-  padding:12px;
-  margin-top:8px;
-  margin-bottom:10px;
-  border-radius:8px;
-  border:1px solid #444;
-  background:#222;
+  background:#1c1c1c;
   color:white;
+  border:1px solid #444;
+  border-radius:9px;
+  padding:13px;
+  margin:6px 0 12px;
   font-size:16px;
 }
 
 label{
+  color:#aaa;
   display:block;
-  margin-top:10px;
-  color:#bbb;
+  margin-top:8px;
 }
 
-.screen{
-  display:none;
-}
-
-.screen.active{
-  display:block;
-}
-
-.customer{
-  background:#1c1c1c;
-  padding:14px;
-  border-radius:10px;
+.item{
+  background:#121212;
+  border:1px solid #282828;
+  border-radius:14px;
+  padding:15px;
   margin-bottom:12px;
 }
-.customer strong{
-  color:#8cff00;
+
+.item strong{
+  color:#9ddb1d;
+  font-size:18px;
 }
 </style>
 </head>
@@ -98,215 +180,595 @@ label{
 <body>
 
 <header>
-  <h1>Steven's Pure Clean Exteriors</h1>
-  <p>Pure Results • Clean Exteriors</p>
+  <div class="logo">
+    PURE<br>CLEAN
+  </div>
+
+  <div class="brand">
+    <h1>Steven's Pure Clean Exteriors</h1>
+    <p>Customer & Invoice Tracker</p>
+  </div>
 </header>
+
+<nav>
+  <button id="tabDashboard" class="active"
+    onclick="openPage('dashboard')">Dashboard</button>
+
+  <button id="tabCustomers"
+    onclick="openPage('customers')">Customers</button>
+
+  <button id="tabInvoices"
+    onclick="openPage('invoices')">Invoices</button>
+
+  <button id="tabPlanner"
+    onclick="openPage('planner')">Planner</button>
+
+  <button id="tabPrices"
+    onclick="openPage('prices')">Price List</button>
+</nav>
 
 <main>
 
-<div id="homeScreen" class="screen active">
+<!-- DASHBOARD -->
+
+<section id="dashboard" class="screen active">
+
+<h2>Dashboard</h2>
+
+<div class="stats">
 
   <div class="card">
-    <h2>PureClean Dashboard</h2>
-    <p>Your window cleaning business app.</p>
+    <div class="stat-title">CUSTOMERS</div>
+    <div id="customerCount" class="stat-number">0</div>
   </div>
 
   <div class="card">
-    <h3>Customers</h3>
-    <button onclick="showScreen('customersScreen')">
-      Open Customers
-    </button>
+    <div class="stat-title">UNPAID</div>
+    <div id="unpaidTotal" class="stat-number money">£0.00</div>
   </div>
 
   <div class="card">
-    <h3>Daily Round</h3>
-    <button disabled>Coming Next</button>
+    <div class="stat-title">THIS MONTH</div>
+    <div id="monthTotal" class="stat-number greenmoney">£0.00</div>
   </div>
 
   <div class="card">
-    <h3>Customer Map</h3>
-    <button disabled>Coming Next</button>
-  </div>
-
-  <div class="card">
-    <h3>Invoices & Payments</h3>
-    <button disabled>Coming Next</button>
-  </div>
-
-</div>
-
-
-<div id="customersScreen" class="screen">
-
-  <button class="secondary" onclick="showScreen('homeScreen')">
-    ← Back to Dashboard
-  </button>
-
-  <div class="card">
-    <h2>Customers</h2>
-
-    <button onclick="showScreen('addCustomerScreen')">
-      + Add Customer
-    </button>
-  </div>
-
-  <div id="customerList"></div>
-
-</div>
-
-
-<div id="addCustomerScreen" class="screen">
-
-  <button class="secondary" onclick="showScreen('customersScreen')">
-    ← Back to Customers
-  </button>
-
-  <div class="card">
-
-    <h2>Add Customer</h2>
-
-    <label>Name</label>
-    <input id="name" placeholder="Customer name">
-
-    <label>Address</label>
-    <textarea id="address" placeholder="Address"></textarea>
-
-    <label>Postcode</label>
-    <input id="postcode" placeholder="Postcode">
-
-    <label>Phone</label>
-    <input id="phone" placeholder="Phone number">
-
-    <label>Email</label>
-    <input id="email" placeholder="Email">
-
-    <label>Price (£)</label>
-    <input id="price" type="number" step="0.01" placeholder="0.00">
-
-    <label>Cleaning Frequency</label>
-    <select id="frequency">
-      <option value="1">Weekly</option>
-      <option value="2">Every 2 weeks</option>
-      <option value="4">Every 4 weeks</option>
-      <option value="6">Every 6 weeks</option>
-      <option value="8">Every 8 weeks</option>
-      <option value="10">Every 10 weeks</option>
-      <option value="12">Every 12 weeks</option>
-    </select>
-
-    <label>Notes</label>
-    <textarea id="notes" placeholder="Access notes, gates, dogs, etc."></textarea>
-
-    <button onclick="saveCustomer()">
-      Save Customer
-    </button>
-
+    <div class="stat-title">DUE SOON</div>
+    <div id="dueSoon" class="stat-number red">0</div>
   </div>
 
 </div>
+
+<div class="card">
+  <h3 style="color:#9ddb1d">Unpaid Invoices</h3>
+  <div id="dashboardInvoices">No unpaid invoices</div>
+</div>
+
+<div class="card">
+  <h3 style="color:#9ddb1d">Upcoming Recurring</h3>
+  <div id="dashboardJobs">Nothing due in the next 2 weeks</div>
+</div>
+
+</section>
+
+
+<!-- CUSTOMERS -->
+
+<section id="customers" class="screen">
+
+<h2>Customers</h2>
+
+<button class="action" onclick="showAddCustomer()">
++ Add Customer
+</button>
+
+<div id="customerForm" class="card" style="display:none">
+
+<h3>Add Customer</h3>
+
+<label>Name</label>
+<input id="customerName">
+
+<label>Address</label>
+<textarea id="customerAddress"></textarea>
+
+<label>Postcode</label>
+<input id="customerPostcode">
+
+<label>Phone</label>
+<input id="customerPhone">
+
+<label>Email</label>
+<input id="customerEmail">
+
+<label>Cleaning Price (£)</label>
+<input id="customerPrice" type="number" step="0.01">
+
+<label>Frequency</label>
+<select id="customerFrequency">
+<option value="1">Weekly</option>
+<option value="2">Every 2 weeks</option>
+<option value="4" selected>Every 4 weeks</option>
+<option value="6">Every 6 weeks</option>
+<option value="8">Every 8 weeks</option>
+<option value="10">Every 10 weeks</option>
+<option value="12">Every 12 weeks</option>
+</select>
+
+<label>Notes / Access</label>
+<textarea id="customerNotes"></textarea>
+
+<button class="action" onclick="saveCustomer()">
+Save Customer
+</button>
+
+<button class="action secondary" onclick="hideAddCustomer()">
+Cancel
+</button>
+
+</div>
+
+<div id="customerList"></div>
+
+</section>
+
+
+<!-- INVOICES -->
+
+<section id="invoices" class="screen">
+
+<h2>Invoices</h2>
+
+<button class="action" onclick="showInvoiceForm()">
++ Create Invoice
+</button>
+
+<div id="invoiceForm" class="card" style="display:none">
+
+<label>Customer</label>
+<select id="invoiceCustomer"></select>
+
+<label>Amount (£)</label>
+<input id="invoiceAmount" type="number" step="0.01">
+
+<button class="action" onclick="saveInvoice()">
+Save Invoice
+</button>
+
+</div>
+
+<div id="invoiceList"></div>
+
+</section>
+
+
+<!-- PLANNER -->
+
+<section id="planner" class="screen">
+
+<h2>Daily Round</h2>
+
+<div class="card">
+  <h3 style="color:#9ddb1d">Today's Jobs</h3>
+  <p>Your scheduled cleaning jobs will appear here.</p>
+</div>
+
+<div id="plannerCustomers"></div>
+
+</section>
+
+
+<!-- PRICE LIST -->
+
+<section id="prices" class="screen">
+
+<h2>Price List</h2>
+
+<div class="card">
+
+<label>Window Cleaning</label>
+<input id="priceWindows" placeholder="Example: £15">
+
+<label>Gutter Cleaning</label>
+<input id="priceGutters" placeholder="Example: £40">
+
+<label>Fascia & Soffit Cleaning</label>
+<input id="priceFascia" placeholder="Example: £50">
+
+<label>Conservatory Cleaning</label>
+<input id="priceConservatory" placeholder="Example: £60">
+
+<button class="action" onclick="savePrices()">
+Save Price List
+</button>
+
+</div>
+
+</section>
 
 </main>
 
-
 <script>
 
-let customers = JSON.parse(localStorage.getItem("purecleanCustomers") || "[]");
+let customers =
+JSON.parse(localStorage.getItem("pcCustomers") || "[]");
 
-function showScreen(id){
-  document.querySelectorAll(".screen").forEach(function(screen){
-    screen.classList.remove("active");
-  });
+let invoices =
+JSON.parse(localStorage.getItem("pcInvoices") || "[]");
 
-  document.getElementById(id).classList.add("active");
 
-  if(id === "customersScreen"){
-    renderCustomers();
-  }
+function openPage(page){
 
-  window.scrollTo(0,0);
+ document.querySelectorAll(".screen").forEach(x=>{
+   x.classList.remove("active");
+ });
+
+ document.getElementById(page).classList.add("active");
+
+ document.querySelectorAll("nav button").forEach(x=>{
+   x.classList.remove("active");
+ });
+
+ let tab =
+ document.getElementById(
+ "tab"+page.charAt(0).toUpperCase()+page.slice(1)
+ );
+
+ if(tab) tab.classList.add("active");
+
+ if(page==="customers") renderCustomers();
+ if(page==="invoices") renderInvoices();
+ if(page==="planner") renderPlanner();
+
+ updateDashboard();
+
+ window.scrollTo(0,0);
 }
+
+
+function showAddCustomer(){
+ document.getElementById("customerForm").style.display="block";
+}
+
+function hideAddCustomer(){
+ document.getElementById("customerForm").style.display="none";
+}
+
 
 function saveCustomer(){
 
-  const customer = {
-    id: Date.now(),
-    name: document.getElementById("name").value.trim(),
-    address: document.getElementById("address").value.trim(),
-    postcode: document.getElementById("postcode").value.trim(),
-    phone: document.getElementById("phone").value.trim(),
-    email: document.getElementById("email").value.trim(),
-    price: document.getElementById("price").value,
-    frequency: document.getElementById("frequency").value,
-    notes: document.getElementById("notes").value.trim()
-  };
+ let name =
+ document.getElementById("customerName").value.trim();
 
-  if(!customer.name){
-    alert("Please enter a customer name.");
-    return;
-  }
+ if(!name){
+   alert("Please enter customer name");
+   return;
+ }
 
-  customers.push(customer);
+ customers.push({
 
-  localStorage.setItem(
-    "purecleanCustomers",
-    JSON.stringify(customers)
-  );
+   id:Date.now(),
 
-  clearForm();
+   name:name,
 
-  showScreen("customersScreen");
+   address:
+   document.getElementById("customerAddress").value,
+
+   postcode:
+   document.getElementById("customerPostcode").value,
+
+   phone:
+   document.getElementById("customerPhone").value,
+
+   email:
+   document.getElementById("customerEmail").value,
+
+   price:
+   parseFloat(
+   document.getElementById("customerPrice").value || 0
+   ),
+
+   frequency:
+   document.getElementById("customerFrequency").value,
+
+   notes:
+   document.getElementById("customerNotes").value
+
+ });
+
+ localStorage.setItem(
+ "pcCustomers",
+ JSON.stringify(customers)
+ );
+
+ document.getElementById("customerName").value="";
+ document.getElementById("customerAddress").value="";
+ document.getElementById("customerPostcode").value="";
+ document.getElementById("customerPhone").value="";
+ document.getElementById("customerEmail").value="";
+ document.getElementById("customerPrice").value="";
+ document.getElementById("customerNotes").value="";
+
+ hideAddCustomer();
+ renderCustomers();
+ updateDashboard();
 }
 
-function clearForm(){
-  document.getElementById("name").value = "";
-  document.getElementById("address").value = "";
-  document.getElementById("postcode").value = "";
-  document.getElementById("phone").value = "";
-  document.getElementById("email").value = "";
-  document.getElementById("price").value = "";
-  document.getElementById("frequency").value = "4";
-  document.getElementById("notes").value = "";
-}
-
-function deleteCustomer(id){
-
-  if(!confirm("Delete this customer?")){
-    return;
-  }
-
-  customers = customers.filter(function(customer){
-    return customer.id !== id;
-  });
-
-  localStorage.setItem(
-    "purecleanCustomers",
-    JSON.stringify(customers)
-  );
-
-  renderCustomers();
-}
 
 function renderCustomers(){
 
-  const list = document.getElementById("customerList");
+ let box=document.getElementById("customerList");
 
-  if(customers.length === 0){
-    list.innerHTML =
-      '<div class="card"><p>No customers added yet.</p></div>';
-    return;
-  }
+ if(customers.length===0){
+   box.innerHTML='<div class="card">No customers yet.</div>';
+   return;
+ }
 
-  let html = "";
+ box.innerHTML="";
 
-  customers.forEach(function(customer){
+ customers.forEach(c=>{
 
-    html += `
-      <div class="customer">
-        <strong>${escapeHtml(customer.name)}</strong><br><br>
+   box.innerHTML+=`
 
-        ${escapeHtml(customer.address)}<br>
-        ${escapeHtml(customer.postcode)}<br><br>
+   <div class="item">
 
-        Phone: ${escapeHtml(customer.phone || "-")}<br>
-        Email: ${escapeHtml(customer.email || "-")}<br>
-        Price: £${escapeHtml(customer
+   <strong>${safe(c.name)}</strong>
+
+   <p>
+   ${safe(c.address)}<br>
+   ${safe(c.postcode)}
+   </p>
+
+   <p>
+   £${Number(c.price).toFixed(2)}
+   • Every ${c.frequency} week(s)
+   </p>
+
+   <p>${safe(c.phone)}</p>
+
+   <button class="action danger"
+   onclick="deleteCustomer(${c.id})">
+   Delete
+   </button>
+
+   </div>
+
+   `;
+ });
+}
+
+
+function deleteCustomer(id){
+
+ if(!confirm("Delete this customer?")) return;
+
+ customers=customers.filter(c=>c.id!==id);
+
+ localStorage.setItem(
+ "pcCustomers",
+ JSON.stringify(customers)
+ );
+
+ renderCustomers();
+ updateDashboard();
+}
+
+
+function showInvoiceForm(){
+
+ let select=document.getElementById("invoiceCustomer");
+
+ select.innerHTML="";
+
+ customers.forEach(c=>{
+   select.innerHTML+=
+   `<option value="${c.id}">${safe(c.name)}</option>`;
+ });
+
+ document.getElementById("invoiceForm").style.display="block";
+}
+
+
+function saveInvoice(){
+
+ let customerId =
+ Number(document.getElementById("invoiceCustomer").value);
+
+ let amount =
+ Number(document.getElementById("invoiceAmount").value);
+
+ if(!customerId || !amount){
+   alert("Choose customer and enter amount.");
+   return;
+ }
+
+ invoices.push({
+
+   id:Date.now(),
+   customerId:customerId,
+   amount:amount,
+   paid:false,
+   date:new Date().toISOString()
+
+ });
+
+ localStorage.setItem(
+ "pcInvoices",
+ JSON.stringify(invoices)
+ );
+
+ document.getElementById("invoiceForm").style.display="none";
+
+ renderInvoices();
+ updateDashboard();
+}
+
+
+function renderInvoices(){
+
+ let box=document.getElementById("invoiceList");
+
+ if(invoices.length===0){
+   box.innerHTML='<div class="card">No invoices yet.</div>';
+   return;
+ }
+
+ box.innerHTML="";
+
+ invoices.forEach(inv=>{
+
+   let customer =
+   customers.find(c=>c.id===inv.customerId);
+
+   box.innerHTML+=`
+
+   <div class="item">
+
+   <strong>
+   ${customer ? safe(customer.name) : "Customer"}
+   </strong>
+
+   <p>£${inv.amount.toFixed(2)}</p>
+
+   <p>${inv.paid ? "PAID" : "UNPAID"}</p>
+
+   ${
+   !inv.paid
+   ? `<button class="action"
+      onclick="markPaid(${inv.id})">
+      Mark Paid
+      </button>`
+   : ""
+   }
+
+   </div>
+
+   `;
+ });
+}
+
+
+function markPaid(id){
+
+ let invoice=invoices.find(x=>x.id===id);
+
+ if(invoice) invoice.paid=true;
+
+ localStorage.setItem(
+ "pcInvoices",
+ JSON.stringify(invoices)
+ );
+
+ renderInvoices();
+ updateDashboard();
+}
+
+
+function renderPlanner(){
+
+ let box=document.getElementById("plannerCustomers");
+
+ box.innerHTML="";
+
+ customers.forEach(c=>{
+
+   box.innerHTML+=`
+
+   <div class="item">
+
+   <strong>${safe(c.name)}</strong>
+
+   <p>${safe(c.address)}</p>
+
+   <p>£${Number(c.price).toFixed(2)}</p>
+
+   <button class="action">
+   Mark Job Complete
+   </button>
+
+   </div>
+
+   `;
+ });
+}
+
+
+function updateDashboard(){
+
+ document.getElementById("customerCount")
+ .textContent=customers.length;
+
+ let unpaid=invoices
+ .filter(x=>!x.paid)
+ .reduce((a,b)=>a+b.amount,0);
+
+ document.getElementById("unpaidTotal")
+ .textContent="£"+unpaid.toFixed(2);
+
+ let paid=invoices
+ .filter(x=>x.paid)
+ .reduce((a,b)=>a+b.amount,0);
+
+ document.getElementById("monthTotal")
+ .textContent="£"+paid.toFixed(2);
+
+ document.getElementById("dueSoon")
+ .textContent=customers.length;
+
+ document.getElementById("dashboardInvoices")
+ .textContent =
+ unpaid>0
+ ? "£"+unpaid.toFixed(2)+" outstanding"
+ : "No unpaid invoices";
+
+ document.getElementById("dashboardJobs")
+ .textContent =
+ customers.length
+ ? customers.length+" recurring customers"
+ : "Nothing due in the next 2 weeks";
+}
+
+
+function savePrices(){
+
+ let prices={
+
+ windows:
+ document.getElementById("priceWindows").value,
+
+ gutters:
+ document.getElementById("priceGutters").value,
+
+ fascia:
+ document.getElementById("priceFascia").value,
+
+ conservatory:
+ document.getElementById("priceConservatory").value
+
+ };
+
+ localStorage.setItem(
+ "pcPrices",
+ JSON.stringify(prices)
+ );
+
+ alert("Price list saved.");
+}
+
+
+function safe(value){
+
+ let div=document.createElement("div");
+
+ div.textContent=value || "";
+
+ return div.innerHTML;
+}
+
+
+updateDashboard();
+
+</script>
+
+</body>
+</html>
