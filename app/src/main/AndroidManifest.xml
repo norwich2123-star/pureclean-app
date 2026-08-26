@@ -4,7 +4,9 @@
     <application
         android:allowBackup="true"
         android:label="PureClean"
-        android:theme="@style/Theme.PureClean">
+        <application
+    android:allowBackup="true"
+    android:label="PureClean">
 
         <activity
             android:name=".MainActivity"
