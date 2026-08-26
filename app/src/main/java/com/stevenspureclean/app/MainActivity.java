@@ -13,9 +13,11 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         WebView webView = new WebView(this);
+
         setContentView(webView);
 
         WebSettings settings = webView.getSettings();
+
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(true);
@@ -26,6 +28,8 @@ public class MainActivity extends Activity {
 
         webView.setWebViewClient(new WebViewClient());
 
-        webView.loadUrl("file:///android_asset/index.html?v=20");
+        webView.loadUrl(
+            "file:///android_asset/index.html?v=34"
+        );
     }
 }
