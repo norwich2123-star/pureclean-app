@@ -9,6 +9,9 @@ import android.content.ClipData;
 
 import android.net.Uri;
 
+import android.util.Patterns;
+import android.widget.Toast;
+
 import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -205,10 +208,44 @@ public class MainActivity extends Activity {
 
         try {
 
+            if (email == null) {
+                email = "";
+            }
+
             email =
-                    email == null
-                            ? ""
-                            : email.trim();
+                    email.trim();
+
+            /*
+             * This lets us SEE exactly
+             * what Android receives.
+             */
+            Toast.makeText(
+                    this,
+                    "Emailing: " + email,
+                    Toast.LENGTH_LONG
+            ).show();
+
+            /*
+             * Stop if Android receives
+             * an invalid email.
+             */
+            if (
+                    email.isEmpty()
+                    ||
+                    !Patterns.EMAIL_ADDRESS
+                            .matcher(email)
+                            .matches()
+            ) {
+
+                Toast.makeText(
+                        this,
+                        "Invalid customer email: "
+                                + email,
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
 
             String subject =
                     "Invoice #"
@@ -234,58 +271,68 @@ public class MainActivity extends Activity {
                             + "Thank you for your custom.\n\n"
                             + "Steven's Pure Clean Exteriors";
 
-            Intent sendIntent =
-                    new Intent(
-                            Intent.ACTION_SEND
-                    );
+            /*
+             * Build a normal mailto link.
+             */
+            String mailto =
+                    "mailto:"
+                            + email
+                            + "?subject="
+                            + Uri.encode(subject)
+                            + "&body="
+                            + Uri.encode(message);
 
-            sendIntent.setType(
-                    "text/plain"
-            );
-
-            sendIntent.putExtra(
-                    Intent.EXTRA_EMAIL,
-                    new String[]{
-                            email
-                    }
-            );
-
-            sendIntent.putExtra(
-                    Intent.EXTRA_SUBJECT,
-                    subject
-            );
-
-            sendIntent.putExtra(
-                    Intent.EXTRA_TEXT,
-                    message
-            );
+            Uri mailUri =
+                    Uri.parse(mailto);
 
             /*
-             * Email-only selector.
+             * ACTION_VIEW is deliberately
+             * used here instead of ACTION_SEND.
              */
-            Intent selector =
+            Intent emailIntent =
                     new Intent(
-                            Intent.ACTION_SENDTO
+                            Intent.ACTION_VIEW,
+                            mailUri
                     );
 
-            selector.setData(
-                    Uri.parse("mailto:")
-            );
+            try {
 
-            sendIntent.setSelector(
-                    selector
-            );
+                /*
+                 * Try Gmail directly first.
+                 */
+                emailIntent.setPackage(
+                        "com.google.android.gm"
+                );
 
-            startActivity(
-                    Intent.createChooser(
-                            sendIntent,
-                            "Email Customer"
-                    )
-            );
+                startActivity(
+                        emailIntent
+                );
+
+            } catch (Exception gmailError) {
+
+                /*
+                 * If Gmail cannot handle it,
+                 * allow another email app.
+                 */
+                emailIntent.setPackage(null);
+
+                startActivity(
+                        Intent.createChooser(
+                                emailIntent,
+                                "Email Customer"
+                        )
+                );
+            }
 
         } catch (Exception e) {
 
             e.printStackTrace();
+
+            Toast.makeText(
+                    this,
+                    "Could not open email.",
+                    Toast.LENGTH_LONG
+            ).show();
         }
     }
 
@@ -301,10 +348,36 @@ public class MainActivity extends Activity {
 
         try {
 
+            if (email == null) {
+                email = "";
+            }
+
             email =
-                    email == null
-                            ? ""
-                            : email.trim();
+                    email.trim();
+
+            Toast.makeText(
+                    this,
+                    "Reminder to: " + email,
+                    Toast.LENGTH_LONG
+            ).show();
+
+            if (
+                    email.isEmpty()
+                    ||
+                    !Patterns.EMAIL_ADDRESS
+                            .matcher(email)
+                            .matches()
+            ) {
+
+                Toast.makeText(
+                        this,
+                        "Invalid customer email: "
+                                + email,
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
 
             String subject;
 
@@ -367,55 +440,51 @@ public class MainActivity extends Activity {
                     "\n\nThank you,\n"
                             + "Steven's Pure Clean Exteriors";
 
-            Intent sendIntent =
+            String mailto =
+                    "mailto:"
+                            + email
+                            + "?subject="
+                            + Uri.encode(subject)
+                            + "&body="
+                            + Uri.encode(message);
+
+            Intent reminderIntent =
                     new Intent(
-                            Intent.ACTION_SEND
+                            Intent.ACTION_VIEW,
+                            Uri.parse(mailto)
                     );
 
-            sendIntent.setType(
-                    "text/plain"
-            );
+            try {
 
-            sendIntent.putExtra(
-                    Intent.EXTRA_EMAIL,
-                    new String[]{
-                            email
-                    }
-            );
+                reminderIntent.setPackage(
+                        "com.google.android.gm"
+                );
 
-            sendIntent.putExtra(
-                    Intent.EXTRA_SUBJECT,
-                    subject
-            );
+                startActivity(
+                        reminderIntent
+                );
 
-            sendIntent.putExtra(
-                    Intent.EXTRA_TEXT,
-                    message
-            );
+            } catch (Exception gmailError) {
 
-            Intent selector =
-                    new Intent(
-                            Intent.ACTION_SENDTO
-                    );
+                reminderIntent.setPackage(null);
 
-            selector.setData(
-                    Uri.parse("mailto:")
-            );
-
-            sendIntent.setSelector(
-                    selector
-            );
-
-            startActivity(
-                    Intent.createChooser(
-                            sendIntent,
-                            "Send Reminder"
-                    )
-            );
+                startActivity(
+                        Intent.createChooser(
+                                reminderIntent,
+                                "Send Reminder"
+                        )
+                );
+            }
 
         } catch (Exception e) {
 
             e.printStackTrace();
+
+            Toast.makeText(
+                    this,
+                    "Could not open reminder.",
+                    Toast.LENGTH_LONG
+            ).show();
         }
     }
 
@@ -507,6 +576,12 @@ public class MainActivity extends Activity {
         } catch (Exception e) {
 
             e.printStackTrace();
+
+            Toast.makeText(
+                    this,
+                    "Could not create invoice PDF.",
+                    Toast.LENGTH_LONG
+            ).show();
         }
     }
 
@@ -700,9 +775,7 @@ public class MainActivity extends Activity {
                         ? ""
                         : description.trim();
 
-        if (
-                cleanDescription.isEmpty()
-        ) {
+        if (cleanDescription.isEmpty()) {
 
             cleanDescription =
                     "Exterior cleaning service";
@@ -821,4 +894,4 @@ public class MainActivity extends Activity {
 
         document.close();
     }
-}
+            }
