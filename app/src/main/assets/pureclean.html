@@ -235,11 +235,6 @@ background:#1565c0;
 color:#fff;
 }
 
-.pdfbtn{
-background:#00897b;
-color:#fff;
-}
-
 .reminderbtn{
 background:#7c4dff;
 color:#fff;
@@ -838,21 +833,10 @@ Accountant Export
 id="exportRange"
 onchange="toggleExportDates()">
 
-<option value="all">
-All invoices
-</option>
-
-<option value="month">
-This month
-</option>
-
-<option value="taxyear">
-Current UK tax year
-</option>
-
-<option value="custom">
-Custom dates
-</option>
+<option value="all">All invoices</option>
+<option value="month">This month</option>
+<option value="taxyear">Current UK tax year</option>
+<option value="custom">Custom dates</option>
 
 </select>
 
@@ -913,16 +897,12 @@ class="invoice-list">
 id="map"
 class="screen">
 
-<h2>
-Customer Map
-</h2>
+<h2>Customer Map</h2>
 
 <div
 id="mapStatus"
 class="map-status">
-
 Customer postcodes will appear as pins on the map.
-
 </div>
 
 <div id="customerMap"></div>
@@ -1040,7 +1020,6 @@ Number.isNaN(
 d.getTime()
 )
 ){
-
 return "";
 }
 
@@ -1109,7 +1088,6 @@ due
 &&
 due<today()
 ){
-
 return "overdue";
 }
 
@@ -1124,7 +1102,6 @@ invoiceStatus(inv)
 !==
 "overdue"
 ){
-
 return 0;
 }
 
@@ -1323,19 +1300,13 @@ c=>c.id===customer.id
 );
 
 if(existing>=0){
-
 customers[existing]=customer;
-
 }else{
-
 customers.push(customer);
-
 }
 
 saveData();
-
 closeCustomerForm();
-
 renderCustomers();
 
 }
@@ -1379,7 +1350,6 @@ if(
 "Delete this customer?"
 )
 ){
-
 return;
 }
 
@@ -1389,7 +1359,6 @@ c=>c.id!==id
 );
 
 saveData();
-
 renderCustomers();
 
 }
@@ -1688,7 +1657,6 @@ d.toISOString()
 .split("T")[0];
 
 saveData();
-
 renderPlanner();
 
 alert(
@@ -1838,9 +1806,7 @@ paidDate:
 });
 
 saveData();
-
 closeInvoiceForm();
-
 renderInvoices();
 
 }
@@ -1951,7 +1917,6 @@ invoiceFilter!=="all"
 &&
 status!==invoiceFilter
 ){
-
 return false;
 }
 
@@ -2112,12 +2077,6 @@ onclick="emailInvoice('${inv.id}')">
 Email Customer
 </button>
 
-<button
-class="action small pdfbtn"
-onclick="shareInvoice('${inv.id}')">
-Share PDF
-</button>
-
 ${!inv.paid
 ? `
 
@@ -2150,14 +2109,11 @@ x=>x.id===id
 if(inv){
 
 inv.paid=true;
-
-inv.paidDate=
-today();
+inv.paidDate=today();
 
 }
 
 saveData();
-
 renderInvoices();
 
 }
@@ -2199,6 +2155,20 @@ return;
 }
 
 if(
+!validEmail(
+customer.email
+)
+){
+
+alert(
+"The customer's saved email address is invalid. Please edit the customer and correct it first."
+);
+
+return;
+
+}
+
+if(
 typeof Android!=="undefined"
 &&
 Android.emailCustomer
@@ -2223,7 +2193,9 @@ invoiceDueDate(inv)
 Number(
 inv.amount || 0
 )
-.toFixed(2)
+.toFixed(2),
+
+inv.description || ""
 
 );
 
@@ -2231,56 +2203,6 @@ inv.amount || 0
 
 alert(
 "Android email system is not available."
-);
-
-}
-
-}
-
-function shareInvoice(id){
-
-let inv=
-invoices.find(
-x=>x.id===id
-);
-
-if(!inv){
-return;
-}
-
-if(
-typeof Android!=="undefined"
-&&
-Android.shareInvoicePdf
-){
-
-Android.shareInvoicePdf(
-
-inv.customerName,
-
-String(
-invoiceNumber(inv)
-),
-
-formatDate(inv.date),
-
-formatDate(
-invoiceDueDate(inv)
-),
-
-inv.description || "",
-
-Number(
-inv.amount || 0
-)
-.toFixed(2)
-
-);
-
-}else{
-
-alert(
-"Android PDF system is not available."
 );
 
 }
@@ -2576,7 +2498,6 @@ if(
 &&
 !to
 ){
-
 return true;
 }
 
@@ -3278,14 +3199,9 @@ return d.toLocaleDateString(
 
 {
 
-day:
-"2-digit",
-
-month:
-"short",
-
-year:
-"numeric"
+day:"2-digit",
+month:"short",
+year:"numeric"
 
 }
 
@@ -3389,11 +3305,8 @@ document
 today();
 
 renderCustomers();
-
 renderPlanner();
-
 renderInvoices();
-
 updateDashboard();
 
 </script>
