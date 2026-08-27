@@ -6,6 +6,7 @@ import android.view.Window;
 import android.content.Intent;
 import android.content.ClipData;
 import android.net.Uri;
+import android.content.ActivityNotFoundException;
 
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -152,7 +153,8 @@ public class MainActivity extends Activity {
         return false;
     }
 
-    private String getEmailAddress(String mailUrl) {
+    private String getEmailAddress(
+            String mailUrl) {
 
         try {
 
@@ -291,12 +293,15 @@ public class MainActivity extends Activity {
         );
     }
 
-    private void sendInvoice(String mailUrl) {
+    private void sendInvoice(
+            String mailUrl) {
 
         try {
 
             String email =
-                    getEmailAddress(mailUrl);
+                    getEmailAddress(
+                            mailUrl
+                    );
 
             String invoiceBody =
                     getQueryValue(
@@ -408,12 +413,39 @@ public class MainActivity extends Activity {
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
             );
 
-            startActivity(
-                    Intent.createChooser(
-                            emailIntent,
-                            "Send Invoice"
-                    )
+            /*
+             * Open Gmail directly.
+             * This makes Gmail honour the recipient,
+             * subject, body and attachment much more reliably.
+             */
+            emailIntent.setPackage(
+                    "com.google.android.gm"
             );
+
+            try {
+
+                startActivity(
+                        emailIntent
+                );
+
+            } catch (
+                    ActivityNotFoundException e
+            ) {
+
+                /*
+                 * Gmail not installed:
+                 * fall back to normal chooser.
+                 */
+
+                emailIntent.setPackage(null);
+
+                startActivity(
+                        Intent.createChooser(
+                                emailIntent,
+                                "Send Invoice"
+                        )
+                );
+            }
 
         } catch (Exception e) {
 
@@ -427,7 +459,9 @@ public class MainActivity extends Activity {
         try {
 
             String email =
-                    getEmailAddress(mailUrl);
+                    getEmailAddress(
+                            mailUrl
+                    );
 
             String subject =
                     getQueryValue(
@@ -441,36 +475,40 @@ public class MainActivity extends Activity {
                             "body"
                     );
 
-            Intent emailIntent =
+            String fullMailto =
+                    "mailto:"
+                            + Uri.encode(email)
+                            + "?subject="
+                            + Uri.encode(subject)
+                            + "&body="
+                            + Uri.encode(body);
+
+            Intent reminderIntent =
                     new Intent(
-                            Intent.ACTION_SENDTO
+                            Intent.ACTION_VIEW,
+                            Uri.parse(fullMailto)
                     );
 
-            emailIntent.setData(
-                    Uri.parse("mailto:")
+            reminderIntent.setPackage(
+                    "com.google.android.gm"
             );
 
-            emailIntent.putExtra(
-                    Intent.EXTRA_EMAIL,
-                    new String[]{email}
-            );
+            try {
 
-            emailIntent.putExtra(
-                    Intent.EXTRA_SUBJECT,
-                    subject
-            );
+                startActivity(
+                        reminderIntent
+                );
 
-            emailIntent.putExtra(
-                    Intent.EXTRA_TEXT,
-                    body
-            );
+            } catch (
+                    ActivityNotFoundException e
+            ) {
 
-            startActivity(
-                    Intent.createChooser(
-                            emailIntent,
-                            "Send Reminder"
-                    )
-            );
+                reminderIntent.setPackage(null);
+
+                startActivity(
+                        reminderIntent
+                );
+            }
 
         } catch (Exception e) {
 
@@ -754,9 +792,13 @@ public class MainActivity extends Activity {
         try {
 
             FileOutputStream output =
-                    new FileOutputStream(file);
+                    new FileOutputStream(
+                            file
+                    );
 
-            document.writeTo(output);
+            document.writeTo(
+                    output
+            );
 
             output.close();
 
