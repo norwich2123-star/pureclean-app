@@ -27,6 +27,7 @@ import android.graphics.pdf.PdfDocument;
 
 import androidx.core.content.FileProvider;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -206,12 +207,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    /*
-     * ============================================================
-     * BACKUP BUSINESS DATA
-     * ============================================================
-     */
-
     private void createBackupFile(
             String jsonData) {
 
@@ -282,12 +277,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    /*
-     * ============================================================
-     * RESTORE BUSINESS DATA
-     * ============================================================
-     */
-
     private void chooseBackupFile() {
 
         Intent intent =
@@ -300,7 +289,18 @@ public class MainActivity extends Activity {
         );
 
         intent.setType(
-                "application/json"
+                "*/*"
+        );
+
+        String[] mimeTypes = {
+                "application/json",
+                "text/plain",
+                "application/octet-stream"
+        };
+
+        intent.putExtra(
+                Intent.EXTRA_MIME_TYPES,
+                mimeTypes
         );
 
         try {
@@ -348,9 +348,6 @@ public class MainActivity extends Activity {
         Uri uri =
                 data.getData();
 
-        /*
-         * SAVE BACKUP
-         */
         if (
                 requestCode
                         ==
@@ -412,120 +409,172 @@ public class MainActivity extends Activity {
             return;
         }
 
-        /*
-         * LOAD BACKUP
-         */
         if (
                 requestCode
                         ==
                 OPEN_BACKUP_FILE
         ) {
 
-            try {
-
-                InputStream inputStream =
-                        getContentResolver()
-                                .openInputStream(
-                                        uri
-                                );
-
-                if (
-                        inputStream
-                                ==
-                        null
-                ) {
-
-                    Toast.makeText(
-                            this,
-                            "Could not read backup file.",
-                            Toast.LENGTH_LONG
-                    ).show();
-
-                    return;
-                }
-
-                BufferedReader reader =
-                        new BufferedReader(
-                                new InputStreamReader(
-                                        inputStream,
-                                        "UTF-8"
-                                )
-                        );
-
-                StringBuilder builder =
-                        new StringBuilder();
-
-                String line;
-
-                while (
-                        (line = reader.readLine())
-                                !=
-                        null
-                ) {
-
-                    builder.append(
-                            line
-                    );
-
-                    builder.append(
-                            "\n"
-                    );
-                }
-
-                reader.close();
-                inputStream.close();
-
-                String backupJson =
-                        builder.toString()
-                                .trim();
-
-                if (
-                        backupJson.isEmpty()
-                ) {
-
-                    Toast.makeText(
-                            this,
-                            "The selected backup file is empty.",
-                            Toast.LENGTH_LONG
-                    ).show();
-
-                    return;
-                }
-
-                /*
-                 * Pass the complete backup text
-                 * safely back into JavaScript.
-                 */
-                String javascript =
-                        "restoreBusinessBackup("
-                                + JSONObject.quote(
-                                        backupJson
-                                )
-                                + ");";
-
-                webView.evaluateJavascript(
-                        javascript,
-                        null
-                );
-
-            } catch (Exception e) {
-
-                e.printStackTrace();
-
-                Toast.makeText(
-                        this,
-                        "Backup could not be restored.",
-                        Toast.LENGTH_LONG
-                ).show();
-            }
+            restoreFromUri(uri);
         }
     }
 
-    /*
-     * ============================================================
-     * EMAIL INVOICE WITH PDF
-     * ============================================================
-     */
+    private void restoreFromUri(
+            Uri uri) {
+
+        try {
+
+            InputStream inputStream =
+                    getContentResolver()
+                            .openInputStream(
+                                    uri
+                            );
+
+            if (
+                    inputStream
+                            ==
+                    null
+            ) {
+
+                Toast.makeText(
+                        this,
+                        "Could not read backup file.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+            BufferedReader reader =
+                    new BufferedReader(
+                            new InputStreamReader(
+                                    inputStream,
+                                    "UTF-8"
+                            )
+                    );
+
+            StringBuilder builder =
+                    new StringBuilder();
+
+            String line;
+
+            while (
+                    (line = reader.readLine())
+                            !=
+                    null
+            ) {
+
+                builder.append(line);
+            }
+
+            reader.close();
+            inputStream.close();
+
+            String backupJson =
+                    builder.toString()
+                            .trim();
+
+            if (
+                    backupJson.isEmpty()
+            ) {
+
+                Toast.makeText(
+                        this,
+                        "The selected backup file is empty.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+            JSONObject backup =
+                    new JSONObject(
+                            backupJson
+                    );
+
+            if (
+                    !backup.has("customers")
+                            ||
+                    !backup.has("invoices")
+            ) {
+
+                Toast.makeText(
+                        this,
+                        "This is not a valid Pure Clean backup file.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+            JSONArray customers =
+                    backup.optJSONArray(
+                            "customers"
+                    );
+
+            JSONArray invoices =
+                    backup.optJSONArray(
+                            "invoices"
+                    );
+
+            if (
+                    customers == null
+                            ||
+                    invoices == null
+            ) {
+
+                Toast.makeText(
+                        this,
+                        "Backup file is missing customer or invoice data.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+            Toast.makeText(
+                    this,
+                    "Backup found: "
+                            + customers.length()
+                            + " customers, "
+                            + invoices.length()
+                            + " invoices",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            String escapedJson =
+                    JSONObject.quote(
+                            backupJson
+                    );
+
+            String javascript =
+                    "javascript:(function(){"
+                            + "if(typeof restoreBusinessBackup==='function'){"
+                            + "restoreBusinessBackup("
+                            + escapedJson
+                            + ");"
+                            + "}else{"
+                            + "alert('Restore function is missing from the app.');"
+                            + "}"
+                            + "})();";
+
+            webView.post(
+                    () -> webView.loadUrl(
+                            javascript
+                    )
+            );
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            Toast.makeText(
+                    this,
+                    "Could not restore this backup file.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
 
     private void emailInvoiceWithPdf(
             String email,
@@ -542,8 +591,7 @@ public class MainActivity extends Activity {
                 email = "";
             }
 
-            email =
-                    email.trim();
+            email = email.trim();
 
             if (
                     email.isEmpty()
@@ -689,9 +737,7 @@ public class MainActivity extends Activity {
 
             } catch (Exception gmailError) {
 
-                emailIntent.setPackage(
-                        null
-                );
+                emailIntent.setPackage(null);
 
                 startActivity(
                         Intent.createChooser(
@@ -713,12 +759,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    /*
-     * ============================================================
-     * REMINDER EMAIL
-     * ============================================================
-     */
-
     private void openReminderEmail(
             String email,
             String customerName,
@@ -735,8 +775,7 @@ public class MainActivity extends Activity {
                 email = "";
             }
 
-            email =
-                    email.trim();
+            email = email.trim();
 
             if (
                     email.isEmpty()
@@ -843,9 +882,7 @@ public class MainActivity extends Activity {
 
             } catch (Exception gmailError) {
 
-                reminderIntent.setPackage(
-                        null
-                );
+                reminderIntent.setPackage(null);
 
                 startActivity(
                         Intent.createChooser(
@@ -866,12 +903,6 @@ public class MainActivity extends Activity {
             ).show();
         }
     }
-
-    /*
-     * ============================================================
-     * PDF
-     * ============================================================
-     */
 
     private void makePdf(
             File file,
@@ -957,17 +988,9 @@ public class MainActivity extends Activity {
             e.printStackTrace();
         }
 
-        paint.setColor(
-                green
-        );
-
-        paint.setTextSize(
-                22
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
+        paint.setColor(green);
+        paint.setTextSize(22);
+        paint.setFakeBoldText(true);
 
         canvas.drawText(
                 "Steven's Pure Clean Exteriors",
@@ -976,13 +999,8 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setTextSize(
-                13
-        );
-
-        paint.setFakeBoldText(
-                false
-        );
+        paint.setTextSize(13);
+        paint.setFakeBoldText(false);
 
         canvas.drawText(
                 "Pure Results • Clean Exteriors",
@@ -991,17 +1009,9 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(
-                Color.BLACK
-        );
-
-        paint.setTextSize(
-                28
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
+        paint.setColor(Color.BLACK);
+        paint.setTextSize(28);
+        paint.setFakeBoldText(true);
 
         canvas.drawText(
                 "INVOICE",
@@ -1010,9 +1020,7 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setTextSize(
-                15
-        );
+        paint.setTextSize(15);
 
         canvas.drawText(
                 "Invoice #"
@@ -1022,13 +1030,8 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(
-                false
-        );
-
-        paint.setTextSize(
-                12
-        );
+        paint.setFakeBoldText(false);
+        paint.setTextSize(12);
 
         canvas.drawText(
                 "Invoice date:",
@@ -1044,13 +1047,8 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(
-                green
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
+        paint.setColor(green);
+        paint.setFakeBoldText(true);
 
         canvas.drawText(
                 "Due:",
@@ -1066,17 +1064,9 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(
-                Color.BLACK
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setTextSize(
-                15
-        );
+        paint.setColor(Color.BLACK);
+        paint.setFakeBoldText(true);
+        paint.setTextSize(15);
 
         canvas.drawText(
                 "Bill To",
@@ -1085,9 +1075,7 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(
-                false
-        );
+        paint.setFakeBoldText(false);
 
         canvas.drawText(
                 customerName,
@@ -1096,9 +1084,7 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(
-                true
-        );
+        paint.setFakeBoldText(true);
 
         canvas.drawText(
                 "Description",
@@ -1107,9 +1093,7 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(
-                false
-        );
+        paint.setFakeBoldText(false);
 
         String cleanDescription =
                 description == null
@@ -1131,17 +1115,9 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(
-                green
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setTextSize(
-                24
-        );
+        paint.setColor(green);
+        paint.setFakeBoldText(true);
+        paint.setTextSize(24);
 
         canvas.drawText(
                 "Amount Due: £"
@@ -1151,13 +1127,8 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(
-                Color.BLACK
-        );
-
-        paint.setTextSize(
-                15
-        );
+        paint.setColor(Color.BLACK);
+        paint.setTextSize(15);
 
         canvas.drawText(
                 "Payment terms",
@@ -1166,9 +1137,7 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(
-                false
-        );
+        paint.setFakeBoldText(false);
 
         canvas.drawText(
                 "Please make payment within 7 days",
@@ -1177,13 +1146,8 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setTextSize(
-                16
-        );
+        paint.setFakeBoldText(true);
+        paint.setTextSize(16);
 
         canvas.drawText(
                 "Bank Transfer Details",
@@ -1192,13 +1156,8 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(
-                false
-        );
-
-        paint.setTextSize(
-                14
-        );
+        paint.setFakeBoldText(false);
+        paint.setTextSize(14);
 
         canvas.drawText(
                 "Account name: Steven B Attew",
@@ -1228,13 +1187,8 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(
-                Color.DKGRAY
-        );
-
-        paint.setTextSize(
-                12
-        );
+        paint.setColor(Color.DKGRAY);
+        paint.setTextSize(12);
 
         canvas.drawText(
                 "Thank you for your custom.",
@@ -1243,9 +1197,7 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        document.finishPage(
-                page
-        );
+        document.finishPage(page);
 
         try {
 
@@ -1254,9 +1206,7 @@ public class MainActivity extends Activity {
                             file
                     );
 
-            document.writeTo(
-                    output
-            );
+            document.writeTo(output);
 
             output.close();
 
