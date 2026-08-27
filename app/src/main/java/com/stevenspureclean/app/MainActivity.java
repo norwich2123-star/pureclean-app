@@ -44,12 +44,9 @@ public class MainActivity extends Activity {
                 Window.FEATURE_NO_TITLE
         );
 
-        webView =
-                new WebView(this);
+        webView = new WebView(this);
 
-        setContentView(
-                webView
-        );
+        setContentView(webView);
 
         WebSettings settings =
                 webView.getSettings();
@@ -92,8 +89,7 @@ public class MainActivity extends Activity {
         );
     }
 
-    private boolean handleUrl(
-            String url) {
+    private boolean handleUrl(String url) {
 
         if (url == null) {
             return false;
@@ -101,7 +97,7 @@ public class MainActivity extends Activity {
 
         if (
                 url.contains("google.com/maps")
-                ||
+                        ||
                 url.contains("maps.google.com")
         ) {
 
@@ -113,9 +109,7 @@ public class MainActivity extends Activity {
                                 Uri.parse(url)
                         );
 
-                startActivity(
-                        mapIntent
-                );
+                startActivity(mapIntent);
 
             } catch (Exception e) {
 
@@ -140,7 +134,7 @@ public class MainActivity extends Activity {
                 String amount) {
 
             runOnUiThread(
-                    () -> openInvoiceEmail(
+                    () -> emailInvoiceWithPdf(
                             email,
                             customerName,
                             invoiceNumber,
@@ -198,7 +192,18 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void openInvoiceEmail(
+    /*
+     * EMAIL CUSTOMER
+     *
+     * Creates PDF first and then opens Gmail
+     * with:
+     *
+     * customer email
+     * subject
+     * message
+     * invoice PDF attached
+     */
+    private void emailInvoiceWithPdf(
             String email,
             String customerName,
             String invoiceNumber,
@@ -212,40 +217,68 @@ public class MainActivity extends Activity {
                 email = "";
             }
 
-            email =
-                    email.trim();
+            email = email.trim();
 
-            /*
-             * This lets us SEE exactly
-             * what Android receives.
-             */
-            Toast.makeText(
-                    this,
-                    "Emailing: " + email,
-                    Toast.LENGTH_LONG
-            ).show();
-
-            /*
-             * Stop if Android receives
-             * an invalid email.
-             */
             if (
                     email.isEmpty()
-                    ||
+                            ||
                     !Patterns.EMAIL_ADDRESS
-                            .matcher(email)
-                            .matches()
+                    .matcher(email)
+                    .matches()
             ) {
 
                 Toast.makeText(
                         this,
-                        "Invalid customer email: "
-                                + email,
+                        "Invalid customer email: " + email,
                         Toast.LENGTH_LONG
                 ).show();
 
                 return;
             }
+
+            /*
+             * CREATE PDF
+             */
+
+            File folder =
+                    new File(
+                            getCacheDir(),
+                            "invoices"
+                    );
+
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+
+            File pdf =
+                    new File(
+                            folder,
+                            "PureClean-Invoice-"
+                                    + invoiceNumber
+                                    + ".pdf"
+                    );
+
+            makePdf(
+                    pdf,
+                    customerName,
+                    invoiceNumber,
+                    invoiceDate,
+                    dueDate,
+                    "",
+                    amount
+            );
+
+            Uri pdfUri =
+                    FileProvider.getUriForFile(
+                            this,
+                            getPackageName()
+                                    + ".fileprovider",
+                            pdf
+                    );
+
+            /*
+             * EMAIL CONTENT
+             */
 
             String subject =
                     "Invoice #"
@@ -256,7 +289,7 @@ public class MainActivity extends Activity {
                     "Hi "
                             + customerName
                             + ",\n\n"
-                            + "Please find invoice #"
+                            + "Please find attached invoice #"
                             + invoiceNumber
                             + " for £"
                             + amount
@@ -272,34 +305,55 @@ public class MainActivity extends Activity {
                             + "Steven's Pure Clean Exteriors";
 
             /*
-             * Build a normal mailto link.
+             * OPEN GMAIL WITH PDF ATTACHED
              */
-            String mailto =
-                    "mailto:"
-                            + email
-                            + "?subject="
-                            + Uri.encode(subject)
-                            + "&body="
-                            + Uri.encode(message);
 
-            Uri mailUri =
-                    Uri.parse(mailto);
-
-            /*
-             * ACTION_VIEW is deliberately
-             * used here instead of ACTION_SEND.
-             */
             Intent emailIntent =
                     new Intent(
-                            Intent.ACTION_VIEW,
-                            mailUri
+                            Intent.ACTION_SEND
                     );
+
+            emailIntent.setType(
+                    "application/pdf"
+            );
+
+            emailIntent.putExtra(
+                    Intent.EXTRA_EMAIL,
+                    new String[]{email}
+            );
+
+            emailIntent.putExtra(
+                    Intent.EXTRA_SUBJECT,
+                    subject
+            );
+
+            emailIntent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    message
+            );
+
+            emailIntent.putExtra(
+                    Intent.EXTRA_STREAM,
+                    pdfUri
+            );
+
+            emailIntent.setClipData(
+                    ClipData.newRawUri(
+                            "Invoice PDF",
+                            pdfUri
+                    )
+            );
+
+            emailIntent.addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+            );
+
+            /*
+             * Try Gmail directly first
+             */
 
             try {
 
-                /*
-                 * Try Gmail directly first.
-                 */
                 emailIntent.setPackage(
                         "com.google.android.gm"
                 );
@@ -311,15 +365,16 @@ public class MainActivity extends Activity {
             } catch (Exception gmailError) {
 
                 /*
-                 * If Gmail cannot handle it,
-                 * allow another email app.
+                 * If Gmail isn't available,
+                 * let Android choose an email app
                  */
+
                 emailIntent.setPackage(null);
 
                 startActivity(
                         Intent.createChooser(
                                 emailIntent,
-                                "Email Customer"
+                                "Email Invoice"
                         )
                 );
             }
@@ -330,12 +385,15 @@ public class MainActivity extends Activity {
 
             Toast.makeText(
                     this,
-                    "Could not open email.",
+                    "Could not create or email invoice.",
                     Toast.LENGTH_LONG
             ).show();
         }
     }
 
+    /*
+     * REMINDER EMAIL
+     */
     private void openReminderEmail(
             String email,
             String customerName,
@@ -352,21 +410,14 @@ public class MainActivity extends Activity {
                 email = "";
             }
 
-            email =
-                    email.trim();
-
-            Toast.makeText(
-                    this,
-                    "Reminder to: " + email,
-                    Toast.LENGTH_LONG
-            ).show();
+            email = email.trim();
 
             if (
                     email.isEmpty()
-                    ||
+                            ||
                     !Patterns.EMAIL_ADDRESS
-                            .matcher(email)
-                            .matches()
+                    .matcher(email)
+                    .matches()
             ) {
 
                 Toast.makeText(
@@ -415,7 +466,7 @@ public class MainActivity extends Activity {
 
             if (
                     description != null
-                    &&
+                            &&
                     !description.trim().isEmpty()
             ) {
 
@@ -488,6 +539,9 @@ public class MainActivity extends Activity {
         }
     }
 
+    /*
+     * SHARE PDF BUTTON
+     */
     private void createAndSharePdf(
             String customerName,
             String invoiceNumber,
@@ -585,6 +639,9 @@ public class MainActivity extends Activity {
         }
     }
 
+    /*
+     * PDF DESIGN
+     */
     private void makePdf(
             File file,
             String customerName,
@@ -628,6 +685,9 @@ public class MainActivity extends Activity {
                         0
                 );
 
+        /*
+         * LOGO
+         */
         try {
 
             InputStream input =
@@ -663,6 +723,9 @@ public class MainActivity extends Activity {
             e.printStackTrace();
         }
 
+        /*
+         * BUSINESS NAME
+         */
         paint.setColor(green);
         paint.setTextSize(22);
         paint.setFakeBoldText(true);
@@ -684,6 +747,9 @@ public class MainActivity extends Activity {
                 paint
         );
 
+        /*
+         * INVOICE HEADING
+         */
         paint.setColor(Color.BLACK);
         paint.setTextSize(28);
         paint.setFakeBoldText(true);
@@ -739,6 +805,9 @@ public class MainActivity extends Activity {
                 paint
         );
 
+        /*
+         * CUSTOMER
+         */
         paint.setColor(Color.BLACK);
         paint.setFakeBoldText(true);
         paint.setTextSize(15);
@@ -759,6 +828,9 @@ public class MainActivity extends Activity {
                 paint
         );
 
+        /*
+         * DESCRIPTION
+         */
         paint.setFakeBoldText(true);
 
         canvas.drawText(
@@ -788,6 +860,9 @@ public class MainActivity extends Activity {
                 paint
         );
 
+        /*
+         * AMOUNT
+         */
         paint.setColor(green);
         paint.setFakeBoldText(true);
         paint.setTextSize(24);
@@ -800,6 +875,9 @@ public class MainActivity extends Activity {
                 paint
         );
 
+        /*
+         * PAYMENT TERMS
+         */
         paint.setColor(Color.BLACK);
         paint.setTextSize(15);
 
@@ -819,6 +897,9 @@ public class MainActivity extends Activity {
                 paint
         );
 
+        /*
+         * BANK DETAILS
+         */
         paint.setFakeBoldText(true);
         paint.setTextSize(16);
 
@@ -860,6 +941,9 @@ public class MainActivity extends Activity {
                 paint
         );
 
+        /*
+         * FOOTER
+         */
         paint.setColor(Color.DKGRAY);
         paint.setTextSize(12);
 
@@ -870,20 +954,14 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        document.finishPage(
-                page
-        );
+        document.finishPage(page);
 
         try {
 
             FileOutputStream output =
-                    new FileOutputStream(
-                            file
-                    );
+                    new FileOutputStream(file);
 
-            document.writeTo(
-                    output
-            );
+            document.writeTo(output);
 
             output.close();
 
@@ -894,4 +972,4 @@ public class MainActivity extends Activity {
 
         document.close();
     }
-            }
+}
