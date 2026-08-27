@@ -378,6 +378,18 @@ public class MainActivity extends Activity {
                             Intent.ACTION_SEND
                     );
 
+            /*
+             * Important:
+             * Give Gmail the recipient in the mailto URI
+             * AND as EXTRA_EMAIL.
+             */
+            emailIntent.setData(
+                    Uri.parse(
+                            "mailto:"
+                                    + Uri.encode(email)
+                    )
+            );
+
             emailIntent.setType(
                     "application/pdf"
             );
@@ -413,11 +425,6 @@ public class MainActivity extends Activity {
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
             );
 
-            /*
-             * Open Gmail directly.
-             * This makes Gmail honour the recipient,
-             * subject, body and attachment much more reliably.
-             */
             emailIntent.setPackage(
                     "com.google.android.gm"
             );
@@ -431,11 +438,6 @@ public class MainActivity extends Activity {
             } catch (
                     ActivityNotFoundException e
             ) {
-
-                /*
-                 * Gmail not installed:
-                 * fall back to normal chooser.
-                 */
 
                 emailIntent.setPackage(null);
 
@@ -475,18 +477,20 @@ public class MainActivity extends Activity {
                             "body"
                     );
 
-            String fullMailto =
-                    "mailto:"
-                            + Uri.encode(email)
-                            + "?subject="
-                            + Uri.encode(subject)
-                            + "&body="
-                            + Uri.encode(body);
+            Uri mailUri =
+                    Uri.parse(
+                            "mailto:"
+                                    + Uri.encode(email)
+                                    + "?subject="
+                                    + Uri.encode(subject)
+                                    + "&body="
+                                    + Uri.encode(body)
+                    );
 
             Intent reminderIntent =
                     new Intent(
                             Intent.ACTION_VIEW,
-                            Uri.parse(fullMailto)
+                            mailUri
                     );
 
             reminderIntent.setPackage(
