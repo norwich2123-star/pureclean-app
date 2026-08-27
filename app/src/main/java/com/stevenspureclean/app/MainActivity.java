@@ -131,7 +131,8 @@ public class MainActivity extends Activity {
                 String invoiceNumber,
                 String invoiceDate,
                 String dueDate,
-                String amount) {
+                String amount,
+                String description) {
 
             runOnUiThread(
                     () -> emailInvoiceWithPdf(
@@ -140,28 +141,8 @@ public class MainActivity extends Activity {
                             invoiceNumber,
                             invoiceDate,
                             dueDate,
-                            amount
-                    )
-            );
-        }
-
-        @JavascriptInterface
-        public void shareInvoicePdf(
-                String customerName,
-                String invoiceNumber,
-                String invoiceDate,
-                String dueDate,
-                String description,
-                String amount) {
-
-            runOnUiThread(
-                    () -> createAndSharePdf(
-                            customerName,
-                            invoiceNumber,
-                            invoiceDate,
-                            dueDate,
-                            description,
-                            amount
+                            amount,
+                            description
                     )
             );
         }
@@ -192,24 +173,14 @@ public class MainActivity extends Activity {
         }
     }
 
-    /*
-     * EMAIL CUSTOMER
-     *
-     * Creates PDF first and then opens Gmail
-     * with:
-     *
-     * customer email
-     * subject
-     * message
-     * invoice PDF attached
-     */
     private void emailInvoiceWithPdf(
             String email,
             String customerName,
             String invoiceNumber,
             String invoiceDate,
             String dueDate,
-            String amount) {
+            String amount,
+            String description) {
 
         try {
 
@@ -236,10 +207,6 @@ public class MainActivity extends Activity {
                 return;
             }
 
-            /*
-             * CREATE PDF
-             */
-
             File folder =
                     new File(
                             getCacheDir(),
@@ -264,7 +231,7 @@ public class MainActivity extends Activity {
                     invoiceNumber,
                     invoiceDate,
                     dueDate,
-                    "",
+                    description,
                     amount
             );
 
@@ -275,10 +242,6 @@ public class MainActivity extends Activity {
                                     + ".fileprovider",
                             pdf
                     );
-
-            /*
-             * EMAIL CONTENT
-             */
 
             String subject =
                     "Invoice #"
@@ -299,14 +262,24 @@ public class MainActivity extends Activity {
                             + "\n"
                             + "Payment due: "
                             + dueDate
-                            + "\n\n"
-                            + "Please make payment within 7 days.\n\n"
+                            + "\n";
+
+            if (
+                    description != null
+                            &&
+                    !description.trim().isEmpty()
+            ) {
+
+                message +=
+                        "Description: "
+                                + description.trim()
+                                + "\n";
+            }
+
+            message +=
+                    "\nPlease make payment within 7 days.\n\n"
                             + "Thank you for your custom.\n\n"
                             + "Steven's Pure Clean Exteriors";
-
-            /*
-             * OPEN GMAIL WITH PDF ATTACHED
-             */
 
             Intent emailIntent =
                     new Intent(
@@ -348,10 +321,6 @@ public class MainActivity extends Activity {
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
             );
 
-            /*
-             * Try Gmail directly first
-             */
-
             try {
 
                 emailIntent.setPackage(
@@ -363,11 +332,6 @@ public class MainActivity extends Activity {
                 );
 
             } catch (Exception gmailError) {
-
-                /*
-                 * If Gmail isn't available,
-                 * let Android choose an email app
-                 */
 
                 emailIntent.setPackage(null);
 
@@ -391,9 +355,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    /*
-     * REMINDER EMAIL
-     */
     private void openReminderEmail(
             String email,
             String customerName,
@@ -472,7 +433,7 @@ public class MainActivity extends Activity {
 
                 message +=
                         "Description: "
-                                + description
+                                + description.trim()
                                 + "\n";
             }
 
@@ -539,109 +500,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    /*
-     * SHARE PDF BUTTON
-     */
-    private void createAndSharePdf(
-            String customerName,
-            String invoiceNumber,
-            String invoiceDate,
-            String dueDate,
-            String description,
-            String amount) {
-
-        try {
-
-            File folder =
-                    new File(
-                            getCacheDir(),
-                            "invoices"
-                    );
-
-            if (!folder.exists()) {
-                folder.mkdirs();
-            }
-
-            File pdf =
-                    new File(
-                            folder,
-                            "PureClean-Invoice-"
-                                    + invoiceNumber
-                                    + ".pdf"
-                    );
-
-            makePdf(
-                    pdf,
-                    customerName,
-                    invoiceNumber,
-                    invoiceDate,
-                    dueDate,
-                    description,
-                    amount
-            );
-
-            Uri pdfUri =
-                    FileProvider.getUriForFile(
-                            this,
-                            getPackageName()
-                                    + ".fileprovider",
-                            pdf
-                    );
-
-            Intent shareIntent =
-                    new Intent(
-                            Intent.ACTION_SEND
-                    );
-
-            shareIntent.setType(
-                    "application/pdf"
-            );
-
-            shareIntent.putExtra(
-                    Intent.EXTRA_STREAM,
-                    pdfUri
-            );
-
-            shareIntent.putExtra(
-                    Intent.EXTRA_SUBJECT,
-                    "Invoice #"
-                            + invoiceNumber
-                            + " - Steven's Pure Clean Exteriors"
-            );
-
-            shareIntent.setClipData(
-                    ClipData.newRawUri(
-                            "PureClean Invoice",
-                            pdfUri
-                    )
-            );
-
-            shareIntent.addFlags(
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-            );
-
-            startActivity(
-                    Intent.createChooser(
-                            shareIntent,
-                            "Share Invoice PDF"
-                    )
-            );
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-
-            Toast.makeText(
-                    this,
-                    "Could not create invoice PDF.",
-                    Toast.LENGTH_LONG
-            ).show();
-        }
-    }
-
-    /*
-     * PDF DESIGN
-     */
     private void makePdf(
             File file,
             String customerName,
@@ -685,9 +543,6 @@ public class MainActivity extends Activity {
                         0
                 );
 
-        /*
-         * LOGO
-         */
         try {
 
             InputStream input =
@@ -723,9 +578,6 @@ public class MainActivity extends Activity {
             e.printStackTrace();
         }
 
-        /*
-         * BUSINESS NAME
-         */
         paint.setColor(green);
         paint.setTextSize(22);
         paint.setFakeBoldText(true);
@@ -747,9 +599,6 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        /*
-         * INVOICE HEADING
-         */
         paint.setColor(Color.BLACK);
         paint.setTextSize(28);
         paint.setFakeBoldText(true);
@@ -805,9 +654,6 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        /*
-         * CUSTOMER
-         */
         paint.setColor(Color.BLACK);
         paint.setFakeBoldText(true);
         paint.setTextSize(15);
@@ -828,9 +674,6 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        /*
-         * DESCRIPTION
-         */
         paint.setFakeBoldText(true);
 
         canvas.drawText(
@@ -860,9 +703,6 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        /*
-         * AMOUNT
-         */
         paint.setColor(green);
         paint.setFakeBoldText(true);
         paint.setTextSize(24);
@@ -875,9 +715,6 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        /*
-         * PAYMENT TERMS
-         */
         paint.setColor(Color.BLACK);
         paint.setTextSize(15);
 
@@ -897,9 +734,6 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        /*
-         * BANK DETAILS
-         */
         paint.setFakeBoldText(true);
         paint.setTextSize(16);
 
@@ -941,9 +775,6 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        /*
-         * FOOTER
-         */
         paint.setColor(Color.DKGRAY);
         paint.setTextSize(12);
 
