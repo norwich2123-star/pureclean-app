@@ -77,9 +77,7 @@ public class MainActivity extends Activity {
 
         if (url.startsWith("mailto:")) {
 
-            createAndSendInvoice(
-                    Uri.parse(url)
-            );
+            createAndSendInvoice(url);
 
             return true;
         }
@@ -127,27 +125,69 @@ public class MainActivity extends Activity {
     }
 
 
-    private void createAndSendInvoice(Uri mailUri) {
+    private String getMailValue(
+            String fullUrl,
+            String key) {
 
         try {
 
-            String full =
-                    mailUri.toString();
+            int question =
+                    fullUrl.indexOf("?");
 
-            String email = "";
+            if (question < 0) {
+                return "";
+            }
 
-            int start =
-                    full.indexOf("mailto:") + 7;
+            String query =
+                    fullUrl.substring(
+                            question + 1
+                    );
+
+            String[] parts =
+                    query.split("&");
+
+            for (String part : parts) {
+
+                String prefix =
+                        key + "=";
+
+                if (part.startsWith(prefix)) {
+
+                    return Uri.decode(
+                            part.substring(
+                                    prefix.length()
+                            )
+                    );
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "";
+    }
+
+
+    private void createAndSendInvoice(
+            String mailUrl) {
+
+        try {
+
+            int emailStart =
+                    "mailto:".length();
 
             int question =
-                    full.indexOf("?");
+                    mailUrl.indexOf("?");
 
-            if (question > start) {
+            String email;
+
+            if (question > emailStart) {
 
                 email =
                         Uri.decode(
-                                full.substring(
-                                        start,
+                                mailUrl.substring(
+                                        emailStart,
                                         question
                                 )
                         );
@@ -156,29 +196,30 @@ public class MainActivity extends Activity {
 
                 email =
                         Uri.decode(
-                                full.substring(start)
+                                mailUrl.substring(
+                                        emailStart
+                                )
                         );
             }
 
 
             String subject =
-                    mailUri.getQueryParameter(
+                    getMailValue(
+                            mailUrl,
                             "subject"
                     );
 
             String body =
-                    mailUri.getQueryParameter(
+                    getMailValue(
+                            mailUrl,
                             "body"
                     );
 
 
-            if (subject == null) {
+            if (subject.isEmpty()) {
+
                 subject =
                         "Invoice from Steven's Pure Clean Exteriors";
-            }
-
-            if (body == null) {
-                body = "";
             }
 
 
@@ -189,6 +230,7 @@ public class MainActivity extends Activity {
                     );
 
             if (!invoiceFolder.exists()) {
+
                 invoiceFolder.mkdirs();
             }
 
@@ -196,7 +238,7 @@ public class MainActivity extends Activity {
             File pdfFile =
                     new File(
                             invoiceFolder,
-                            "PureClean-Invoice.pdf"
+                            "Steven-Pure-Clean-Invoice.pdf"
                     );
 
 
@@ -236,7 +278,7 @@ public class MainActivity extends Activity {
 
             emailIntent.putExtra(
                     Intent.EXTRA_TEXT,
-                    "Hi,\n\nPlease find your invoice attached.\n\nThank you for your custom.\n\nSteven's Pure Clean Exteriors"
+                    "Hi,\n\nPlease find your invoice attached from Steven's Pure Clean Exteriors.\n\nThank you for your custom."
             );
 
             emailIntent.putExtra(
@@ -245,249 +287,4 @@ public class MainActivity extends Activity {
             );
 
             emailIntent.addFlags(
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-            );
-
-
-            startActivity(
-                    Intent.createChooser(
-                            emailIntent,
-                            "Send Invoice"
-                    )
-            );
-
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-
-            Intent normalEmail =
-                    new Intent(
-                            Intent.ACTION_VIEW,
-                            mailUri
-                    );
-
-            try {
-                startActivity(normalEmail);
-            } catch (Exception ignored) {
-            }
-        }
-    }
-
-
-    private void createInvoicePdf(
-            File file,
-            String invoiceText) {
-
-        PdfDocument document =
-                new PdfDocument();
-
-
-        PdfDocument.PageInfo pageInfo =
-                new PdfDocument.PageInfo.Builder(
-                        595,
-                        842,
-                        1
-                ).create();
-
-
-        PdfDocument.Page page =
-                document.startPage(
-                        pageInfo
-                );
-
-
-        Canvas canvas =
-                page.getCanvas();
-
-
-        Paint paint =
-                new Paint(
-                        Paint.ANTI_ALIAS_FLAG
-                );
-
-
-        canvas.drawColor(
-                Color.WHITE
-        );
-
-
-        int green =
-                Color.rgb(
-                        145,
-                        205,
-                        0
-                );
-
-
-        try {
-
-            InputStream input =
-                    getAssets()
-                            .open("logo.jpg");
-
-            Bitmap logo =
-                    BitmapFactory
-                            .decodeStream(input);
-
-            if (logo != null) {
-
-                Bitmap scaled =
-                        Bitmap.createScaledBitmap(
-                                logo,
-                                95,
-                                95,
-                                true
-                        );
-
-                canvas.drawBitmap(
-                        scaled,
-                        40,
-                        35,
-                        paint
-                );
-            }
-
-            input.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
-        paint.setColor(green);
-        paint.setTextSize(23);
-        paint.setFakeBoldText(true);
-
-        canvas.drawText(
-                "Steven's Pure Clean Exteriors",
-                150,
-                65,
-                paint
-        );
-
-
-        paint.setTextSize(13);
-        paint.setFakeBoldText(false);
-
-        canvas.drawText(
-                "Pure Results • Clean Exteriors",
-                150,
-                90,
-                paint
-        );
-
-
-        paint.setColor(
-                Color.BLACK
-        );
-
-        paint.setTextSize(28);
-        paint.setFakeBoldText(true);
-
-        canvas.drawText(
-                "INVOICE",
-                40,
-                165,
-                paint
-        );
-
-
-        paint.setFakeBoldText(false);
-
-        canvas.drawLine(
-                40,
-                180,
-                555,
-                180,
-                paint
-        );
-
-
-        paint.setTextSize(15);
-
-        float y = 220;
-
-
-        String[] lines =
-                invoiceText.split("\n");
-
-
-        for (String line : lines) {
-
-            if (line.trim().isEmpty()) {
-                y += 16;
-                continue;
-            }
-
-            if (line.startsWith("Amount due:")) {
-
-                paint.setColor(green);
-                paint.setTextSize(22);
-                paint.setFakeBoldText(true);
-
-                canvas.drawText(
-                        line,
-                        40,
-                        y,
-                        paint
-                );
-
-                paint.setColor(Color.BLACK);
-                paint.setTextSize(15);
-                paint.setFakeBoldText(false);
-
-                y += 35;
-
-            } else {
-
-                canvas.drawText(
-                        line,
-                        40,
-                        y,
-                        paint
-                );
-
-                y += 24;
-            }
-
-            if (y > 760) {
-                break;
-            }
-        }
-
-
-        paint.setColor(
-                Color.DKGRAY
-        );
-
-        paint.setTextSize(12);
-
-        canvas.drawText(
-                "Thank you for your custom.",
-                40,
-                790,
-                paint
-        );
-
-
-        document.finishPage(page);
-
-
-        try {
-
-            FileOutputStream output =
-                    new FileOutputStream(file);
-
-            document.writeTo(output);
-
-            output.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
-        document.close();
-    }
-}
+                   
