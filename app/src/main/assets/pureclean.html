@@ -493,34 +493,23 @@ Pure Results • Clean Exteriors
 
 <nav>
 
-<button
-type="button"
-class="active"
-onclick="openPage('dashboard',this)">
+<button type="button" class="active" onclick="openPage('dashboard',this)">
 Dashboard
 </button>
 
-<button
-type="button"
-onclick="openPage('customers',this)">
+<button type="button" onclick="openPage('customers',this)">
 Customers
 </button>
 
-<button
-type="button"
-onclick="openPage('planner',this)">
+<button type="button" onclick="openPage('planner',this)">
 Planner
 </button>
 
-<button
-type="button"
-onclick="openPage('invoices',this)">
+<button type="button" onclick="openPage('invoices',this)">
 Invoices
 </button>
 
-<button
-type="button"
-onclick="openPage('map',this)">
+<button type="button" onclick="openPage('map',this)">
 Map
 </button>
 
@@ -528,9 +517,7 @@ Map
 
 <main>
 
-<section
-id="dashboard"
-class="screen active">
+<section id="dashboard" class="screen active">
 
 <h2>Dashboard</h2>
 
@@ -566,18 +553,13 @@ class="screen active">
 Today's Round
 </h3>
 
-<button
-type="button"
-class="action small secondary"
-onclick="openPage('planner')">
+<button type="button" class="action small secondary" onclick="openPage('planner')">
 View all
 </button>
 
 </div>
 
-<div
-id="todayJobs"
-class="muted">
+<div id="todayJobs" class="muted">
 No jobs due today
 </div>
 
@@ -591,18 +573,13 @@ No jobs due today
 Unpaid Invoices
 </h3>
 
-<button
-type="button"
-class="action small secondary"
-onclick="openPage('invoices')">
+<button type="button" class="action small secondary" onclick="openPage('invoices')">
 View all
 </button>
 
 </div>
 
-<div
-id="dashInvoices"
-class="muted">
+<div id="dashInvoices" class="muted">
 No unpaid invoices
 </div>
 
@@ -618,17 +595,11 @@ Keep a copy of your customers, invoices, payment records and cleaning schedule.
 
 <div class="backup-buttons">
 
-<button
-type="button"
-class="action backupbtn"
-onclick="backupBusinessData()">
+<button type="button" class="action backupbtn" onclick="backupBusinessData()">
 Backup Data
 </button>
 
-<button
-type="button"
-class="action restorebtn"
-onclick="restoreBusinessData()">
+<button type="button" class="action restorebtn" onclick="restoreBusinessData()">
 Restore Data
 </button>
 
@@ -638,9 +609,7 @@ Restore Data
 
 </section>
 
-<section
-id="customers"
-class="screen">
+<section id="customers" class="screen">
 
 <h2>Customers</h2>
 
@@ -650,27 +619,17 @@ placeholder="Search name, address or postcode..."
 oninput="renderCustomers()"
 >
 
-<button
-type="button"
-class="action"
-onclick="newCustomer()">
+<button type="button" class="action" onclick="newCustomer()">
 + Add Customer
 </button>
 
-<div
-id="customerForm"
-class="formBox card">
+<div id="customerForm" class="formBox card">
 
-<h3
-id="customerFormTitle"
-style="color:#9bd600">
+<h3 id="customerFormTitle" style="color:#9bd600">
 Add Customer
 </h3>
 
-<input
-type="hidden"
-id="customerId"
->
+<input type="hidden" id="customerId">
 
 <label>Name</label>
 <input id="customerName">
@@ -747,17 +706,11 @@ placeholder="Windows, gutters, fascia, soffits..."
 <label>Access Notes</label>
 <textarea id="customerNotes"></textarea>
 
-<button
-type="button"
-class="action"
-onclick="saveCustomer()">
+<button type="button" class="action" onclick="saveCustomer()">
 Save Customer
 </button>
 
-<button
-type="button"
-class="action secondary"
-onclick="closeCustomerForm()">
+<button type="button" class="action secondary" onclick="closeCustomerForm()">
 Cancel
 </button>
 
@@ -767,9 +720,7 @@ Cancel
 
 </section>
 
-<section
-id="planner"
-class="screen">
+<section id="planner" class="screen">
 
 <h2>Daily Planner</h2>
 
@@ -789,9 +740,7 @@ onchange="renderPlanner()"
 JOBS
 </div>
 
-<div
-class="num"
-id="plannerJobCount">
+<div class="num" id="plannerJobCount">
 0
 </div>
 
@@ -803,9 +752,7 @@ id="plannerJobCount">
 ROUND VALUE
 </div>
 
-<div
-class="num green"
-id="plannerRoundTotal">
+<div class="num green" id="plannerRoundTotal">
 £0.00
 </div>
 
@@ -817,22 +764,15 @@ id="plannerRoundTotal">
 
 </section>
 
-<section
-id="invoices"
-class="screen">
+<section id="invoices" class="screen">
 
 <h2>Invoices</h2>
 
-<button
-type="button"
-class="action"
-onclick="openInvoiceForm()">
+<button type="button" class="action" onclick="openInvoiceForm()">
 + New Invoice
 </button>
 
-<div
-id="invoiceForm"
-class="formBox card">
+<div id="invoiceForm" class="formBox card">
 
 <h3 style="color:#9bd600">
 Create Invoice
@@ -851,17 +791,11 @@ id="invoiceDescription"
 placeholder="Type your invoice description here...">
 </textarea>
 
-<button
-type="button"
-class="action"
-onclick="saveInvoice()">
+<button type="button" class="action" onclick="saveInvoice()">
 Create Invoice
 </button>
 
-<button
-type="button"
-class="action secondary"
-onclick="closeInvoiceForm()">
+<button type="button" class="action secondary" onclick="closeInvoiceForm()">
 Cancel
 </button>
 
@@ -873,13 +807,9 @@ Cancel
 
 <div class="mini-stat">
 
-<div class="label">
-OUTSTANDING
-</div>
+<div class="label">OUTSTANDING</div>
 
-<div
-class="num orange"
-id="invoiceOutstanding">
+<div class="num orange" id="invoiceOutstanding">
 £0.00
 </div>
 
@@ -887,13 +817,9 @@ id="invoiceOutstanding">
 
 <div class="mini-stat">
 
-<div class="label">
-OVERDUE
-</div>
+<div class="label">OVERDUE</div>
 
-<div
-class="num red"
-id="invoiceOverdueTotal">
+<div class="num red" id="invoiceOverdueTotal">
 £0.00
 </div>
 
@@ -945,10 +871,7 @@ Paid
 
 </div>
 
-<button
-type="button"
-class="action"
-onclick="toggleAccountantExport()">
+<button type="button" class="action" onclick="toggleAccountantExport()">
 Accountant Export
 </button>
 
@@ -963,9 +886,7 @@ Accountant Export
 
 <label>Export period</label>
 
-<select
-id="exportRange"
-onchange="toggleExportDates()">
+<select id="exportRange" onchange="toggleExportDates()">
 
 <option value="all">All invoices</option>
 <option value="month">This month</option>
@@ -974,9 +895,7 @@ onchange="toggleExportDates()">
 
 </select>
 
-<div
-id="exportDates"
-class="exportDates">
+<div id="exportDates" class="exportDates">
 
 <div>
 <label>From</label>
@@ -990,10 +909,7 @@ class="exportDates">
 
 </div>
 
-<button
-type="button"
-class="action"
-onclick="exportInvoicesCsv()">
+<button type="button" class="action" onclick="exportInvoicesCsv()">
 Export CSV for Accountant
 </button>
 
@@ -1003,9 +919,7 @@ Export CSV for Accountant
 
 </section>
 
-<section
-id="map"
-class="screen">
+<section id="map" class="screen">
 
 <h2>Customer Map</h2>
 
@@ -1015,10 +929,7 @@ Customer postcodes will appear as pins on the map.
 
 <div id="customerMap"></div>
 
-<button
-type="button"
-class="action"
-onclick="renderMap()">
+<button type="button" class="action" onclick="renderMap()">
 Refresh Customer Pins
 </button>
 
@@ -1041,7 +952,9 @@ localStorage.getItem("pcInvoices") || "[]"
 );
 
 let invoiceFilter="all";
+
 let map=null;
+
 let mapMarkers=[];
 
 function saveData(){
@@ -1150,8 +1063,11 @@ return;
 
 }
 
-customers=backup.customers;
-invoices=backup.invoices;
+customers=
+backup.customers;
+
+invoices=
+backup.invoices;
 
 let next=
 Number(
@@ -1595,6 +1511,7 @@ c=>c.id!==id
 );
 
 saveData();
+
 renderCustomers();
 
 }
@@ -1685,31 +1602,19 @@ ${c.nextClean
 
 </div>
 
-<button
-type="button"
-class="action small"
-onclick="editCustomer('${c.id}')">
+<button type="button" class="action small" onclick="editCustomer('${c.id}')">
 Edit
 </button>
 
-<button
-type="button"
-class="action small blue"
-onclick="openCustomerMap('${c.id}')">
+<button type="button" class="action small blue" onclick="openCustomerMap('${c.id}')">
 Map
 </button>
 
-<button
-type="button"
-class="action small secondary"
-onclick="quickInvoice('${c.id}')">
+<button type="button" class="action small secondary" onclick="quickInvoice('${c.id}')">
 Invoice
 </button>
 
-<button
-type="button"
-class="action small danger"
-onclick="deleteCustomer('${c.id}')">
+<button type="button" class="action small danger" onclick="deleteCustomer('${c.id}')">
 Delete
 </button>
 
@@ -1719,10 +1624,6 @@ Delete
 ).join("");
 
 }
-
-/* =========================
-   IMPROVED DAILY PLANNER
-========================= */
 
 function renderPlanner(){
 
@@ -1843,31 +1744,19 @@ ${safe(c.notes)}
 
 <div class="job-buttons">
 
-<button
-type="button"
-class="action"
-onclick="completeJob('${c.id}')">
+<button type="button" class="action" onclick="completeJob('${c.id}')">
 ✓ Complete
 </button>
 
-<button
-type="button"
-class="action skipbtn"
-onclick="skipJob('${c.id}')">
+<button type="button" class="action skipbtn" onclick="skipJob('${c.id}')">
 Skip
 </button>
 
-<button
-type="button"
-class="action movebtn"
-onclick="showMoveJob('${c.id}')">
+<button type="button" class="action movebtn" onclick="showMoveJob('${c.id}')">
 Move Date
 </button>
 
-<button
-type="button"
-class="action secondary"
-onclick="openCustomerMap('${c.id}')">
+<button type="button" class="action secondary" onclick="openCustomerMap('${c.id}')">
 Directions
 </button>
 
@@ -1887,17 +1776,11 @@ id="move-date-${c.id}"
 value="${date}"
 >
 
-<button
-type="button"
-class="action"
-onclick="moveJob('${c.id}')">
+<button type="button" class="action" onclick="moveJob('${c.id}')">
 Save New Date
 </button>
 
-<button
-type="button"
-class="action secondary"
-onclick="hideMoveJob('${c.id}')">
+<button type="button" class="action secondary" onclick="hideMoveJob('${c.id}')">
 Cancel
 </button>
 
@@ -1984,6 +1867,8 @@ formatDate(c.nextClean)
 
 }
 
+/* FIXED SKIP BUTTON */
+
 function skipJob(id){
 
 let c=
@@ -1995,34 +1880,25 @@ if(!c){
 return;
 }
 
-if(
-!confirm(
-"Skip this clean?\n\nThe customer will be moved to their next normal cleaning date."
-)
-){
-
-return;
-
-}
-
 let oldDate=
 c.nextClean || today();
+
+let weeks=
+Number(
+c.frequency || 4
+);
 
 c.nextClean=
 addDays(
 oldDate,
-Number(c.frequency || 4)*7
+weeks*7
 );
 
 saveData();
 
 renderPlanner();
 
-alert(
-"Clean skipped.\n\nNext clean: "
-+
-formatDate(c.nextClean)
-);
+updateDashboard();
 
 }
 
@@ -2102,10 +1978,6 @@ formatDate(newDate)
 );
 
 }
-
-/* =========================
-   INVOICES
-========================= */
 
 function openInvoiceForm(){
 
@@ -2238,7 +2110,9 @@ paidDate:""
 });
 
 saveData();
+
 closeInvoiceForm();
+
 renderInvoices();
 
 }
@@ -2254,6 +2128,7 @@ document
 b=>{
 
 b.classList.remove("selected");
+
 b.classList.add("secondary");
 
 }
@@ -2262,6 +2137,7 @@ b.classList.add("secondary");
 if(button){
 
 button.classList.add("selected");
+
 button.classList.remove("secondary");
 
 }
@@ -2461,30 +2337,21 @@ ${overdueDays} day${overdueDays===1 ? "" : "s"} overdue
 ${!inv.paid
 ? `
 
-<button
-type="button"
-class="action small"
-onclick="markPaid('${inv.id}')">
+<button type="button" class="action small" onclick="markPaid('${inv.id}')">
 Mark Paid
 </button>
 
 `
 : ""}
 
-<button
-type="button"
-class="action small emailbtn"
-onclick="emailInvoice('${inv.id}')">
+<button type="button" class="action small emailbtn" onclick="emailInvoice('${inv.id}')">
 Email Customer
 </button>
 
 ${!inv.paid
 ? `
 
-<button
-type="button"
-class="action small reminderbtn"
-onclick="sendReminder('${inv.id}')">
+<button type="button" class="action small reminderbtn" onclick="sendReminder('${inv.id}')">
 Send Reminder
 </button>
 
@@ -2513,9 +2380,11 @@ return;
 }
 
 inv.paid=true;
+
 inv.paidDate=today();
 
 saveData();
+
 renderInvoices();
 
 }
@@ -2683,10 +2552,6 @@ alert(
 
 }
 
-/* =========================
-   ACCOUNTANT EXPORT
-========================= */
-
 function toggleAccountantExport(){
 
 let box=
@@ -2806,6 +2671,7 @@ let tax=
 getUkTaxYearRange();
 
 from=tax.from;
+
 to=tax.to;
 
 }
@@ -3014,10 +2880,6 @@ URL.revokeObjectURL(url);
 
 }
 
-/* =========================
-   DASHBOARD
-========================= */
-
 function updateDashboard(){
 
 document
@@ -3190,10 +3052,6 @@ ${status==="overdue"
 "No unpaid invoices";
 
 }
-
-/* =========================
-   MAP
-========================= */
 
 async function postcodeCoordinates(postcode){
 
@@ -3457,10 +3315,6 @@ encodeURIComponent(query);
 
 }
 
-/* =========================
-   HELPERS
-========================= */
-
 function safe(value){
 
 return String(
@@ -3494,8 +3348,6 @@ year:"numeric"
 );
 
 }
-
-/* Upgrade old invoices */
 
 let changed=false;
 
@@ -3593,4 +3445,4 @@ updateDashboard();
 </script>
 
 </body>
-</html>
+   </html>
