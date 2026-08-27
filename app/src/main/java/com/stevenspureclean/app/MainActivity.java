@@ -76,6 +76,7 @@ public class MainActivity extends Activity {
         }
 
         if (url.startsWith("intent://")) {
+
             try {
                 Intent intent =
                         Intent.parseUri(
@@ -84,6 +85,7 @@ public class MainActivity extends Activity {
                         );
 
                 startActivity(intent);
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -102,6 +104,7 @@ public class MainActivity extends Activity {
                         );
 
                 startActivity(intent);
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -117,6 +120,7 @@ public class MainActivity extends Activity {
             String name) {
 
         try {
+
             int q = url.indexOf("?");
 
             if (q < 0) {
@@ -149,6 +153,30 @@ public class MainActivity extends Activity {
         }
 
         return "";
+    }
+
+    private int getNextInvoiceNumber() {
+
+        android.content.SharedPreferences prefs =
+                getSharedPreferences(
+                        "PureCleanPrefs",
+                        MODE_PRIVATE
+                );
+
+        int current =
+                prefs.getInt(
+                        "nextInvoiceNumber",
+                        1001
+                );
+
+        prefs.edit()
+                .putInt(
+                        "nextInvoiceNumber",
+                        current + 1
+                )
+                .apply();
+
+        return current;
     }
 
     private void sendInvoice(String mailUrl) {
@@ -193,6 +221,9 @@ public class MainActivity extends Activity {
                             "body"
                     );
 
+            int invoiceNumber =
+                    getNextInvoiceNumber();
+
             File folder =
                     new File(
                             getCacheDir(),
@@ -206,10 +237,16 @@ public class MainActivity extends Activity {
             File pdf =
                     new File(
                             folder,
-                            "PureClean-Invoice.pdf"
+                            "PureClean-Invoice-"
+                                    + invoiceNumber
+                                    + ".pdf"
                     );
 
-            makePdf(pdf, body);
+            makePdf(
+                    pdf,
+                    body,
+                    invoiceNumber
+            );
 
             Uri pdfUri =
                     FileProvider.getUriForFile(
@@ -235,12 +272,20 @@ public class MainActivity extends Activity {
 
             intent.putExtra(
                     Intent.EXTRA_SUBJECT,
-                    subject
+                    "Invoice #"
+                            + invoiceNumber
+                            + " - Steven's Pure Clean Exteriors"
             );
 
             intent.putExtra(
                     Intent.EXTRA_TEXT,
-                    "Please find your invoice attached.\n\nSteven's Pure Clean Exteriors"
+                    "Hi,\n\n"
+                            + "Please find invoice #"
+                            + invoiceNumber
+                            + " attached.\n\n"
+                            + "Please make payment within 7 days.\n\n"
+                            + "Thank you for your custom.\n\n"
+                            + "Steven's Pure Clean Exteriors"
             );
 
             intent.putExtra(
@@ -266,7 +311,8 @@ public class MainActivity extends Activity {
 
     private void makePdf(
             File file,
-            String text) {
+            String text,
+            int invoiceNumber) {
 
         PdfDocument document =
                 new PdfDocument();
@@ -366,6 +412,16 @@ public class MainActivity extends Activity {
                 paint
         );
 
+        paint.setTextSize(16);
+
+        canvas.drawText(
+                "Invoice #"
+                        + invoiceNumber,
+                390,
+                160,
+                paint
+        );
+
         paint.setFakeBoldText(false);
         paint.setTextSize(15);
 
@@ -412,10 +468,71 @@ public class MainActivity extends Activity {
                 y += 24;
             }
 
-            if (y > 760) {
+            if (y > 500) {
                 break;
             }
         }
+
+        paint.setColor(Color.BLACK);
+        paint.setTextSize(15);
+        paint.setFakeBoldText(true);
+
+        canvas.drawText(
+                "Payment terms",
+                40,
+                560,
+                paint
+        );
+
+        paint.setFakeBoldText(false);
+
+        canvas.drawText(
+                "Please make payment within 7 days",
+                40,
+                585,
+                paint
+        );
+
+        paint.setFakeBoldText(true);
+        paint.setTextSize(16);
+
+        canvas.drawText(
+                "Bank Transfer Details",
+                40,
+                635,
+                paint
+        );
+
+        paint.setFakeBoldText(false);
+        paint.setTextSize(14);
+
+        canvas.drawText(
+                "Account name: Steven B Attew",
+                40,
+                665,
+                paint
+        );
+
+        canvas.drawText(
+                "Bank: Monzo",
+                40,
+                690,
+                paint
+        );
+
+        canvas.drawText(
+                "Sort code: 04-00-06",
+                40,
+                715,
+                paint
+        );
+
+        canvas.drawText(
+                "Account number: 34121651",
+                40,
+                740,
+                paint
+        );
 
         paint.setColor(Color.DKGRAY);
         paint.setTextSize(12);
@@ -423,7 +540,7 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "Thank you for your custom.",
                 40,
-                790,
+                795,
                 paint
         );
 
