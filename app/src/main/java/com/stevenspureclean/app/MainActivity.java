@@ -23,6 +23,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
+
 public class MainActivity extends Activity {
 
     @Override
@@ -179,6 +183,43 @@ public class MainActivity extends Activity {
         return current;
     }
 
+    private String getInvoiceDate() {
+
+        Calendar calendar =
+                Calendar.getInstance();
+
+        SimpleDateFormat formatter =
+                new SimpleDateFormat(
+                        "dd MMMM yyyy",
+                        Locale.UK
+                );
+
+        return formatter.format(
+                calendar.getTime()
+        );
+    }
+
+    private String getDueDate() {
+
+        Calendar calendar =
+                Calendar.getInstance();
+
+        calendar.add(
+                Calendar.DAY_OF_YEAR,
+                7
+        );
+
+        SimpleDateFormat formatter =
+                new SimpleDateFormat(
+                        "dd MMMM yyyy",
+                        Locale.UK
+                );
+
+        return formatter.format(
+                calendar.getTime()
+        );
+    }
+
     private void sendInvoice(String mailUrl) {
 
         try {
@@ -209,12 +250,6 @@ public class MainActivity extends Activity {
                         );
             }
 
-            String subject =
-                    getQueryValue(
-                            mailUrl,
-                            "subject"
-                    );
-
             String body =
                     getQueryValue(
                             mailUrl,
@@ -223,6 +258,12 @@ public class MainActivity extends Activity {
 
             int invoiceNumber =
                     getNextInvoiceNumber();
+
+            String invoiceDate =
+                    getInvoiceDate();
+
+            String dueDate =
+                    getDueDate();
 
             File folder =
                     new File(
@@ -245,7 +286,9 @@ public class MainActivity extends Activity {
             makePdf(
                     pdf,
                     body,
-                    invoiceNumber
+                    invoiceNumber,
+                    invoiceDate,
+                    dueDate
             );
 
             Uri pdfUri =
@@ -283,7 +326,9 @@ public class MainActivity extends Activity {
                             + "Please find invoice #"
                             + invoiceNumber
                             + " attached.\n\n"
-                            + "Please make payment within 7 days.\n\n"
+                            + "Payment is due by "
+                            + dueDate
+                            + ".\n\n"
                             + "Thank you for your custom.\n\n"
                             + "Steven's Pure Clean Exteriors"
             );
@@ -312,7 +357,9 @@ public class MainActivity extends Activity {
     private void makePdf(
             File file,
             String text,
-            int invoiceNumber) {
+            int invoiceNumber,
+            String invoiceDate,
+            String dueDate) {
 
         PdfDocument document =
                 new PdfDocument();
@@ -412,20 +459,43 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setTextSize(16);
+        paint.setTextSize(15);
 
         canvas.drawText(
                 "Invoice #"
                         + invoiceNumber,
                 390,
-                160,
+                150,
                 paint
         );
 
         paint.setFakeBoldText(false);
+        paint.setTextSize(13);
+
+        canvas.drawText(
+                "Invoice date: "
+                        + invoiceDate,
+                390,
+                172,
+                paint
+        );
+
+        paint.setColor(green);
+        paint.setFakeBoldText(true);
+
+        canvas.drawText(
+                "Due date: "
+                        + dueDate,
+                390,
+                194,
+                paint
+        );
+
+        paint.setColor(Color.BLACK);
+        paint.setFakeBoldText(false);
         paint.setTextSize(15);
 
-        float y = 210;
+        float y = 235;
 
         String[] lines =
                 text.split("\n");
@@ -560,4 +630,4 @@ public class MainActivity extends Activity {
 
         document.close();
     }
-}
+            }
