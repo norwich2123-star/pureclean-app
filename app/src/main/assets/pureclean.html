@@ -384,6 +384,12 @@ color:#999;
 padding:16px 4px;
 }
 
+.email-help{
+color:#888;
+font-size:11px;
+margin-top:5px;
+}
+
 </style>
 
 </head>
@@ -566,22 +572,28 @@ id="customerId"
 <label>Postcode</label>
 <input id="customerPostcode">
 
-<div class="two">
-
-<div>
-
 <label>Phone</label>
-<input id="customerPhone">
 
-</div>
-
-<div>
+<input
+id="customerPhone"
+type="tel"
+autocomplete="tel"
+>
 
 <label>Email</label>
-<input id="customerEmail">
 
-</div>
+<input
+id="customerEmail"
+type="email"
+inputmode="email"
+autocomplete="email"
+autocapitalize="none"
+spellcheck="false"
+placeholder="customer@example.com"
+>
 
+<div class="email-help">
+Enter the customer's full email address.
 </div>
 
 <div class="two">
@@ -1139,6 +1151,23 @@ Math.floor(
 
 }
 
+function validEmail(email){
+
+if(!email){
+return true;
+}
+
+let atCount=
+(email.match(/@/g) || []).length;
+
+if(atCount!==1){
+return false;
+}
+
+return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+}
+
 function newCustomer(){
 
 document
@@ -1195,6 +1224,36 @@ return;
 
 }
 
+let email=
+document
+.getElementById("customerEmail")
+.value
+.trim()
+.toLowerCase();
+
+document
+.getElementById("customerEmail")
+.value=
+email;
+
+if(
+email
+&&
+!validEmail(email)
+){
+
+alert(
+"That email address does not look right.\n\nPlease enter one complete email address, for example:\ncustomer@gmail.com"
+);
+
+document
+.getElementById("customerEmail")
+.focus();
+
+return;
+
+}
+
 let customer={
 
 id:
@@ -1223,10 +1282,7 @@ document
 .trim(),
 
 email:
-document
-.getElementById("customerEmail")
-.value
-.trim(),
+email,
 
 price:
 Number(
