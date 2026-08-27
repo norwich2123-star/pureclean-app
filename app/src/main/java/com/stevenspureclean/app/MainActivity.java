@@ -27,7 +27,6 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -36,7 +35,6 @@ public class MainActivity extends Activity {
         setContentView(webView);
 
         WebSettings settings = webView.getSettings();
-
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(true);
@@ -49,9 +47,7 @@ public class MainActivity extends Activity {
                     WebView view,
                     WebResourceRequest request) {
 
-                return handleUrl(
-                        request.getUrl().toString()
-                );
+                return handleUrl(request.getUrl().toString());
             }
 
             @Override
@@ -68,7 +64,6 @@ public class MainActivity extends Activity {
         );
     }
 
-
     private boolean handleUrl(String url) {
 
         if (url == null) {
@@ -76,16 +71,12 @@ public class MainActivity extends Activity {
         }
 
         if (url.startsWith("mailto:")) {
-
-            createAndSendInvoice(url);
-
+            sendInvoice(url);
             return true;
         }
 
         if (url.startsWith("intent://")) {
-
             try {
-
                 Intent intent =
                         Intent.parseUri(
                                 url,
@@ -93,7 +84,6 @@ public class MainActivity extends Activity {
                         );
 
                 startActivity(intent);
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -105,15 +95,13 @@ public class MainActivity extends Activity {
                 || url.contains("maps.google.com")) {
 
             try {
-
-                Intent mapIntent =
+                Intent intent =
                         new Intent(
                                 Intent.ACTION_VIEW,
                                 Uri.parse(url)
                         );
 
-                startActivity(mapIntent);
-
+                startActivity(intent);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -124,24 +112,19 @@ public class MainActivity extends Activity {
         return false;
     }
 
-
-    private String getMailValue(
-            String fullUrl,
-            String key) {
+    private String getQueryValue(
+            String url,
+            String name) {
 
         try {
+            int q = url.indexOf("?");
 
-            int question =
-                    fullUrl.indexOf("?");
-
-            if (question < 0) {
+            if (q < 0) {
                 return "";
             }
 
             String query =
-                    fullUrl.substring(
-                            question + 1
-                    );
+                    url.substring(q + 1);
 
             String[] parts =
                     query.split("&");
@@ -149,7 +132,7 @@ public class MainActivity extends Activity {
             for (String part : parts) {
 
                 String prefix =
-                        key + "=";
+                        name + "=";
 
                 if (part.startsWith(prefix)) {
 
@@ -168,13 +151,11 @@ public class MainActivity extends Activity {
         return "";
     }
 
-
-    private void createAndSendInvoice(
-            String mailUrl) {
+    private void sendInvoice(String mailUrl) {
 
         try {
 
-            int emailStart =
+            int start =
                     "mailto:".length();
 
             int question =
@@ -182,12 +163,12 @@ public class MainActivity extends Activity {
 
             String email;
 
-            if (question > emailStart) {
+            if (question > start) {
 
                 email =
                         Uri.decode(
                                 mailUrl.substring(
-                                        emailStart,
+                                        start,
                                         question
                                 )
                         );
@@ -196,95 +177,270 @@ public class MainActivity extends Activity {
 
                 email =
                         Uri.decode(
-                                mailUrl.substring(
-                                        emailStart
-                                )
+                                mailUrl.substring(start)
                         );
             }
 
-
             String subject =
-                    getMailValue(
+                    getQueryValue(
                             mailUrl,
                             "subject"
                     );
 
             String body =
-                    getMailValue(
+                    getQueryValue(
                             mailUrl,
                             "body"
                     );
 
-
-            if (subject.isEmpty()) {
-
-                subject =
-                        "Invoice from Steven's Pure Clean Exteriors";
-            }
-
-
-            File invoiceFolder =
+            File folder =
                     new File(
                             getCacheDir(),
                             "invoices"
                     );
 
-            if (!invoiceFolder.exists()) {
-
-                invoiceFolder.mkdirs();
+            if (!folder.exists()) {
+                folder.mkdirs();
             }
 
-
-            File pdfFile =
+            File pdf =
                     new File(
-                            invoiceFolder,
-                            "Steven-Pure-Clean-Invoice.pdf"
+                            folder,
+                            "PureClean-Invoice.pdf"
                     );
 
-
-            createInvoicePdf(
-                    pdfFile,
-                    body
-            );
-
+            makePdf(pdf, body);
 
             Uri pdfUri =
                     FileProvider.getUriForFile(
                             this,
                             getPackageName()
                                     + ".fileprovider",
-                            pdfFile
+                            pdf
                     );
 
-
-            Intent emailIntent =
+            Intent intent =
                     new Intent(
                             Intent.ACTION_SEND
                     );
 
-            emailIntent.setType(
+            intent.setType(
                     "application/pdf"
             );
 
-            emailIntent.putExtra(
+            intent.putExtra(
                     Intent.EXTRA_EMAIL,
                     new String[]{email}
             );
 
-            emailIntent.putExtra(
+            intent.putExtra(
                     Intent.EXTRA_SUBJECT,
                     subject
             );
 
-            emailIntent.putExtra(
+            intent.putExtra(
                     Intent.EXTRA_TEXT,
-                    "Hi,\n\nPlease find your invoice attached from Steven's Pure Clean Exteriors.\n\nThank you for your custom."
+                    "Please find your invoice attached.\n\nSteven's Pure Clean Exteriors"
             );
 
-            emailIntent.putExtra(
+            intent.putExtra(
                     Intent.EXTRA_STREAM,
                     pdfUri
             );
 
-            emailIntent.addFlags(
-                   
+            intent.addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+            );
+
+            startActivity(
+                    Intent.createChooser(
+                            intent,
+                            "Send Invoice"
+                    )
+            );
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void makePdf(
+            File file,
+            String text) {
+
+        PdfDocument document =
+                new PdfDocument();
+
+        PdfDocument.PageInfo pageInfo =
+                new PdfDocument.PageInfo.Builder(
+                        595,
+                        842,
+                        1
+                ).create();
+
+        PdfDocument.Page page =
+                document.startPage(pageInfo);
+
+        Canvas canvas =
+                page.getCanvas();
+
+        Paint paint =
+                new Paint(
+                        Paint.ANTI_ALIAS_FLAG
+                );
+
+        canvas.drawColor(
+                Color.WHITE
+        );
+
+        int green =
+                Color.rgb(
+                        145,
+                        205,
+                        0
+                );
+
+        try {
+
+            InputStream input =
+                    getAssets()
+                            .open("logo.jpg");
+
+            Bitmap logo =
+                    BitmapFactory
+                            .decodeStream(input);
+
+            if (logo != null) {
+
+                Bitmap scaled =
+                        Bitmap.createScaledBitmap(
+                                logo,
+                                90,
+                                90,
+                                true
+                        );
+
+                canvas.drawBitmap(
+                        scaled,
+                        40,
+                        35,
+                        paint
+                );
+            }
+
+            input.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        paint.setColor(green);
+        paint.setTextSize(22);
+        paint.setFakeBoldText(true);
+
+        canvas.drawText(
+                "Steven's Pure Clean Exteriors",
+                150,
+                65,
+                paint
+        );
+
+        paint.setTextSize(13);
+        paint.setFakeBoldText(false);
+
+        canvas.drawText(
+                "Pure Results • Clean Exteriors",
+                150,
+                90,
+                paint
+        );
+
+        paint.setColor(Color.BLACK);
+        paint.setTextSize(28);
+        paint.setFakeBoldText(true);
+
+        canvas.drawText(
+                "INVOICE",
+                40,
+                160,
+                paint
+        );
+
+        paint.setFakeBoldText(false);
+        paint.setTextSize(15);
+
+        float y = 210;
+
+        String[] lines =
+                text.split("\n");
+
+        for (String line : lines) {
+
+            if (line.trim().isEmpty()) {
+                y += 15;
+                continue;
+            }
+
+            if (line.startsWith("Amount due:")) {
+
+                paint.setColor(green);
+                paint.setTextSize(22);
+                paint.setFakeBoldText(true);
+
+                canvas.drawText(
+                        line,
+                        40,
+                        y,
+                        paint
+                );
+
+                paint.setColor(Color.BLACK);
+                paint.setTextSize(15);
+                paint.setFakeBoldText(false);
+
+                y += 35;
+
+            } else {
+
+                canvas.drawText(
+                        line,
+                        40,
+                        y,
+                        paint
+                );
+
+                y += 24;
+            }
+
+            if (y > 760) {
+                break;
+            }
+        }
+
+        paint.setColor(Color.DKGRAY);
+        paint.setTextSize(12);
+
+        canvas.drawText(
+                "Thank you for your custom.",
+                40,
+                790,
+                paint
+        );
+
+        document.finishPage(page);
+
+        try {
+
+            FileOutputStream output =
+                    new FileOutputStream(file);
+
+            document.writeTo(output);
+            output.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        document.close();
+    }
+}
