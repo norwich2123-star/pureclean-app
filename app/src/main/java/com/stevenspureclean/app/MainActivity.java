@@ -197,6 +197,12 @@ public class MainActivity extends Activity {
 
         try {
 
+            if (email == null) {
+                email = "";
+            }
+
+            email = email.trim();
+
             String subject =
                     "Invoice #"
                             + invoiceNumber
@@ -221,25 +227,53 @@ public class MainActivity extends Activity {
                             + "Thank you for your custom.\n\n"
                             + "Steven's Pure Clean Exteriors";
 
+            /*
+             * IMPORTANT:
+             * Do not encode the customer email address.
+             * Gmail receives the real address directly.
+             */
+            String mailto =
+                    "mailto:"
+                            + email
+                            + "?subject="
+                            + Uri.encode(subject)
+                            + "&body="
+                            + Uri.encode(message);
+
             Uri mailUri =
-                    Uri.parse(
-                            "mailto:"
-                                    + Uri.encode(email.trim())
-                                    + "?subject="
-                                    + Uri.encode(subject)
-                                    + "&body="
-                                    + Uri.encode(message)
+                    Uri.parse(mailto);
+
+            Intent emailIntent =
+                    new Intent(
+                            Intent.ACTION_SENDTO
                     );
 
-            Intent intent =
-                    new Intent(
-                            Intent.ACTION_SENDTO,
-                            mailUri
-                    );
+            emailIntent.setData(
+                    mailUri
+            );
+
+            /*
+             * Also supply the recipient as an extra
+             * as a second method.
+             */
+            emailIntent.putExtra(
+                    Intent.EXTRA_EMAIL,
+                    new String[]{email}
+            );
+
+            emailIntent.putExtra(
+                    Intent.EXTRA_SUBJECT,
+                    subject
+            );
+
+            emailIntent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    message
+            );
 
             startActivity(
                     Intent.createChooser(
-                            intent,
+                            emailIntent,
                             "Email Customer"
                     )
             );
@@ -261,6 +295,12 @@ public class MainActivity extends Activity {
             boolean overdue) {
 
         try {
+
+            if (email == null) {
+                email = "";
+            }
+
+            email = email.trim();
 
             String subject;
 
@@ -323,25 +363,44 @@ public class MainActivity extends Activity {
                     "\n\nThank you,\n"
                             + "Steven's Pure Clean Exteriors";
 
+            String mailto =
+                    "mailto:"
+                            + email
+                            + "?subject="
+                            + Uri.encode(subject)
+                            + "&body="
+                            + Uri.encode(message);
+
             Uri mailUri =
-                    Uri.parse(
-                            "mailto:"
-                                    + Uri.encode(email.trim())
-                                    + "?subject="
-                                    + Uri.encode(subject)
-                                    + "&body="
-                                    + Uri.encode(message)
+                    Uri.parse(mailto);
+
+            Intent reminderIntent =
+                    new Intent(
+                            Intent.ACTION_SENDTO
                     );
 
-            Intent intent =
-                    new Intent(
-                            Intent.ACTION_SENDTO,
-                            mailUri
-                    );
+            reminderIntent.setData(
+                    mailUri
+            );
+
+            reminderIntent.putExtra(
+                    Intent.EXTRA_EMAIL,
+                    new String[]{email}
+            );
+
+            reminderIntent.putExtra(
+                    Intent.EXTRA_SUBJECT,
+                    subject
+            );
+
+            reminderIntent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    message
+            );
 
             startActivity(
                     Intent.createChooser(
-                            intent,
+                            reminderIntent,
                             "Send Reminder"
                     )
             );
@@ -463,7 +522,9 @@ public class MainActivity extends Activity {
                 ).create();
 
         PdfDocument.Page page =
-                document.startPage(pageInfo);
+                document.startPage(
+                        pageInfo
+                );
 
         Canvas canvas =
                 page.getCanvas();
@@ -726,14 +787,20 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        document.finishPage(page);
+        document.finishPage(
+                page
+        );
 
         try {
 
             FileOutputStream output =
-                    new FileOutputStream(file);
+                    new FileOutputStream(
+                            file
+                    );
 
-            document.writeTo(output);
+            document.writeTo(
+                    output
+            );
 
             output.close();
 
@@ -744,4 +811,4 @@ public class MainActivity extends Activity {
 
         document.close();
     }
-            }
+}
