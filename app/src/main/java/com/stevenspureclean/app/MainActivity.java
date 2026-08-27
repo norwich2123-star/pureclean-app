@@ -2,10 +2,18 @@ package com.stevenspureclean.app;
 
 import android.app.Activity;
 import android.os.Bundle;
+
 import android.content.Intent;
 import android.content.ClipData;
+
 import android.net.Uri;
+
 import android.util.Patterns;
+
+import android.view.View;
+import android.view.Window;
+import android.view.WindowInsets;
+
 import android.widget.Toast;
 
 import android.webkit.JavascriptInterface;
@@ -34,6 +42,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 
 import java.text.SimpleDateFormat;
+
 import java.util.Date;
 import java.util.Locale;
 
@@ -51,9 +60,53 @@ public class MainActivity extends Activity {
 
         super.onCreate(savedInstanceState);
 
+        /*
+         * Make Android's top status bar black.
+         */
+        Window window = getWindow();
+
+        window.setStatusBarColor(Color.BLACK);
+        window.setNavigationBarColor(Color.BLACK);
+
         webView = new WebView(this);
 
+        /*
+         * IMPORTANT:
+         * Android 15 / targetSdk 35 can place apps underneath
+         * the status bar.
+         *
+         * This adds the real status-bar height to the WebView
+         * so the logo/header sits underneath it instead.
+         */
+        webView.setOnApplyWindowInsetsListener(
+                new View.OnApplyWindowInsetsListener() {
+
+                    @Override
+                    public WindowInsets onApplyWindowInsets(
+                            View view,
+                            WindowInsets insets) {
+
+                        int top =
+                                insets.getSystemWindowInsetTop();
+
+                        int bottom =
+                                insets.getSystemWindowInsetBottom();
+
+                        view.setPadding(
+                                0,
+                                top,
+                                0,
+                                bottom
+                        );
+
+                        return insets;
+                    }
+                }
+        );
+
         setContentView(webView);
+
+        webView.requestApplyInsets();
 
         WebSettings settings =
                 webView.getSettings();
@@ -249,7 +302,8 @@ public class MainActivity extends Activity {
             intent.setData(
                     Uri.parse(
                             "tel:"
-                                    + phone.trim()
+                                    +
+                                    phone.trim()
                     )
             );
 
@@ -292,7 +346,8 @@ public class MainActivity extends Activity {
             intent.setData(
                     Uri.parse(
                             "smsto:"
-                                    + phone.trim()
+                                    +
+                                    phone.trim()
                     )
             );
 
@@ -307,6 +362,10 @@ public class MainActivity extends Activity {
             ).show();
         }
     }
+
+    /*
+     * BACKUP
+     */
 
     private void startBackup(String json) {
 
@@ -331,7 +390,9 @@ public class MainActivity extends Activity {
                 new SimpleDateFormat(
                         "yyyy-MM-dd",
                         Locale.UK
-                ).format(new Date());
+                ).format(
+                        new Date()
+                );
 
         Intent intent =
                 new Intent(
@@ -349,15 +410,32 @@ public class MainActivity extends Activity {
         intent.putExtra(
                 Intent.EXTRA_TITLE,
                 "PureClean-Backup-"
-                        + date
-                        + ".json"
+                        +
+                        date
+                        +
+                        ".json"
         );
 
-        startActivityForResult(
-                intent,
-                SAVE_BACKUP
-        );
+        try {
+
+            startActivityForResult(
+                    intent,
+                    SAVE_BACKUP
+            );
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not open backup screen.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
     }
+
+    /*
+     * RESTORE
+     */
 
     private void startRestore() {
 
@@ -372,10 +450,21 @@ public class MainActivity extends Activity {
 
         intent.setType("*/*");
 
-        startActivityForResult(
-                intent,
-                RESTORE_BACKUP
-        );
+        try {
+
+            startActivityForResult(
+                    intent,
+                    RESTORE_BACKUP
+            );
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not open restore screen.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
     }
 
     @Override
@@ -431,6 +520,13 @@ public class MainActivity extends Activity {
                             .openOutputStream(uri);
 
             if (output == null) {
+
+                Toast.makeText(
+                        this,
+                        "Could not save backup.",
+                        Toast.LENGTH_LONG
+                ).show();
+
                 return;
             }
 
@@ -470,6 +566,13 @@ public class MainActivity extends Activity {
                             .openInputStream(uri);
 
             if (input == null) {
+
+                Toast.makeText(
+                        this,
+                        "Could not read backup.",
+                        Toast.LENGTH_LONG
+                ).show();
+
                 return;
             }
 
@@ -488,7 +591,8 @@ public class MainActivity extends Activity {
 
             while (
                     (line = reader.readLine())
-                            != null
+                            !=
+                    null
             ) {
 
                 text.append(line);
@@ -499,6 +603,17 @@ public class MainActivity extends Activity {
 
             String json =
                     text.toString().trim();
+
+            if (json.isEmpty()) {
+
+                Toast.makeText(
+                        this,
+                        "Backup file is empty.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
 
             JSONObject backup =
                     new JSONObject(json);
@@ -564,6 +679,10 @@ public class MainActivity extends Activity {
         }
     }
 
+    /*
+     * EMAIL VALIDATION
+     */
+
     private boolean validEmail(
             String email) {
 
@@ -577,6 +696,10 @@ public class MainActivity extends Activity {
                         )
                         .matches();
     }
+
+    /*
+     * EMAIL INVOICE
+     */
 
     private void emailInvoice(
             String email,
@@ -653,9 +776,24 @@ public class MainActivity extends Activity {
                             +
                             dueDate
                             +
-                            "\n\n"
-                            +
-                            "Please make payment within 7 days."
+                            "\n";
+
+            if (
+                    description != null
+                            &&
+                    !description.trim().isEmpty()
+            ) {
+
+                message +=
+                        "Description: "
+                                +
+                                description.trim()
+                                +
+                                "\n";
+            }
+
+            message +=
+                    "\nPlease make payment within 7 days."
                             +
                             "\n\nThank you for your custom."
                             +
@@ -711,7 +849,7 @@ public class MainActivity extends Activity {
 
                 startActivity(intent);
 
-            } catch (Exception e) {
+            } catch (Exception gmailError) {
 
                 intent.setPackage(null);
 
@@ -733,6 +871,10 @@ public class MainActivity extends Activity {
         }
     }
 
+    /*
+     * REMINDER
+     */
+
     private void reminderEmail(
             String email,
             String customerName,
@@ -744,19 +886,36 @@ public class MainActivity extends Activity {
             boolean overdue) {
 
         if (!validEmail(email)) {
+
+            Toast.makeText(
+                    this,
+                    "Invalid customer email.",
+                    Toast.LENGTH_LONG
+            ).show();
+
             return;
         }
 
-        String subject =
-                overdue
-                        ?
-                        "Overdue Invoice #"
-                                +
-                                invoiceNumber
-                        :
-                        "Invoice Reminder #"
-                                +
-                                invoiceNumber;
+        String subject;
+
+        if (overdue) {
+
+            subject =
+                    "Overdue Invoice #"
+                            +
+                            invoiceNumber
+                            +
+                            " - Steven's Pure Clean Exteriors";
+
+        } else {
+
+            subject =
+                    "Invoice Reminder #"
+                            +
+                            invoiceNumber
+                            +
+                            " - Steven's Pure Clean Exteriors";
+        }
 
         String message =
                 "Hi "
@@ -771,9 +930,9 @@ public class MainActivity extends Activity {
                         +
                         ".\n\n"
                         +
-                        "Amount due: £"
+                        "Invoice date: "
                         +
-                        amount
+                        invoiceDate
                         +
                         "\n"
                         +
@@ -781,28 +940,47 @@ public class MainActivity extends Activity {
                         +
                         dueDate
                         +
-                        "\n\n"
+                        "\n"
                         +
-                        "Thank you,\n"
+                        "Amount due: £"
+                        +
+                        amount
+                        +
+                        "\n\n";
+
+        if (overdue) {
+
+            message +=
+                    "This invoice is now overdue.\n\n";
+
+        } else {
+
+            message +=
+                    "Please make payment by the due date.\n\n";
+        }
+
+        message +=
+                "Thank you,\n"
                         +
                         "Steven's Pure Clean Exteriors";
+
+        String mailto =
+                "mailto:"
+                        +
+                        email.trim()
+                        +
+                        "?subject="
+                        +
+                        Uri.encode(subject)
+                        +
+                        "&body="
+                        +
+                        Uri.encode(message);
 
         Intent intent =
                 new Intent(
                         Intent.ACTION_VIEW,
-                        Uri.parse(
-                                "mailto:"
-                                        +
-                                        email.trim()
-                                        +
-                                        "?subject="
-                                        +
-                                        Uri.encode(subject)
-                                        +
-                                        "&body="
-                                        +
-                                        Uri.encode(message)
-                        )
+                        Uri.parse(mailto)
                 );
 
         try {
@@ -817,9 +995,24 @@ public class MainActivity extends Activity {
 
             intent.setPackage(null);
 
-            startActivity(intent);
+            try {
+
+                startActivity(intent);
+
+            } catch (Exception ignored) {
+
+                Toast.makeText(
+                        this,
+                        "Could not open email app.",
+                        Toast.LENGTH_LONG
+                ).show();
+            }
         }
     }
+
+    /*
+     * CREATE INVOICE PDF
+     */
 
     private File createInvoicePdf(
             String customerName,
@@ -837,6 +1030,7 @@ public class MainActivity extends Activity {
                 );
 
         if (!folder.exists()) {
+
             folder.mkdirs();
         }
 
@@ -894,9 +1088,7 @@ public class MainActivity extends Activity {
 
             Bitmap logo =
                     BitmapFactory
-                            .decodeStream(
-                                    input
-                            );
+                            .decodeStream(input);
 
             if (logo != null) {
 
@@ -1105,6 +1297,19 @@ public class MainActivity extends Activity {
                 "Account number: 34121651",
                 40,
                 700,
+                paint
+        );
+
+        paint.setColor(
+                Color.DKGRAY
+        );
+
+        paint.setTextSize(12);
+
+        canvas.drawText(
+                "Thank you for your custom.",
+                40,
+                790,
                 paint
         );
 
