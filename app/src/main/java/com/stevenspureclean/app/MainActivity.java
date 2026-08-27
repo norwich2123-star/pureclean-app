@@ -38,7 +38,6 @@ public class MainActivity extends Activity {
                 String url = request.getUrl().toString();
 
                 if (url.startsWith("mailto:")) {
-
                     try {
                         Intent emailIntent =
                                 new Intent(
@@ -49,16 +48,13 @@ public class MainActivity extends Activity {
                         startActivity(emailIntent);
 
                     } catch (Exception e) {
-                        // No email app available
                     }
 
                     return true;
                 }
 
                 if (url.startsWith("intent://")) {
-
                     try {
-
                         Intent intent =
                                 Intent.parseUri(
                                         url,
@@ -77,7 +73,6 @@ public class MainActivity extends Activity {
                         || url.contains("maps.google.com")) {
 
                     try {
-
                         Intent mapIntent =
                                 new Intent(
                                         Intent.ACTION_VIEW,
