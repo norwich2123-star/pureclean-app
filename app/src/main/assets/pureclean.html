@@ -34,7 +34,7 @@ header{
 display:flex;
 align-items:center;
 gap:12px;
-padding:34px 14px 12px;
+padding:50px 14px 16px;
 background:#101010;
 border-bottom:1px solid #242424;
 }
@@ -45,7 +45,6 @@ height:64px;
 border-radius:50%;
 object-fit:cover;
 flex-shrink:0;
-transform:translateY(10px);
 }
 
 .brand h1{
@@ -470,9 +469,7 @@ margin-top:5px;
 <div class="row">
 <h3 style="color:#9bd600">Today's Round</h3>
 
-<button
-class="action small secondary"
-onclick="openPage('planner')">
+<button class="action small secondary" onclick="openPage('planner')">
 View all
 </button>
 </div>
@@ -488,9 +485,7 @@ No jobs due today
 <div class="row">
 <h3 style="color:#9bd600">Unpaid Invoices</h3>
 
-<button
-class="action small secondary"
-onclick="openPage('invoices')">
+<button class="action small secondary" onclick="openPage('invoices')">
 View all
 </button>
 </div>
@@ -511,15 +506,11 @@ Keep a copy of your customers, invoices, payment records and cleaning schedule.
 
 <div class="backup-buttons">
 
-<button
-class="action"
-onclick="backupBusinessData()">
+<button class="action" onclick="backupBusinessData()">
 Backup Data
 </button>
 
-<button
-class="action restorebtn"
-onclick="restoreBusinessData()">
+<button class="action restorebtn" onclick="restoreBusinessData()">
 Restore Data
 </button>
 
@@ -617,9 +608,7 @@ placeholder="Windows, gutters, fascia, soffits...">
 Save Customer
 </button>
 
-<button
-class="action secondary"
-onclick="closeCustomerForm()">
+<button class="action secondary" onclick="closeCustomerForm()">
 Cancel
 </button>
 
@@ -685,9 +674,7 @@ Create Invoice
 Create Invoice
 </button>
 
-<button
-class="action secondary"
-onclick="closeInvoiceForm()">
+<button class="action secondary" onclick="closeInvoiceForm()">
 Cancel
 </button>
 
@@ -748,9 +735,7 @@ Paid
 
 </div>
 
-<button
-class="action"
-onclick="toggleAccountantExport()">
+<button class="action" onclick="toggleAccountantExport()">
 Accountant Export
 </button>
 
@@ -786,9 +771,7 @@ Accountant Export
 
 </div>
 
-<button
-class="action"
-onclick="exportInvoicesCsv()">
+<button class="action" onclick="exportInvoicesCsv()">
 Export CSV for Accountant
 </button>
 
@@ -2940,4 +2923,4 @@ updateDashboard();
 </script>
 
 </body>
-   </html>
+</html>
