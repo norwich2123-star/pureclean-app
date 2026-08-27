@@ -580,16 +580,10 @@ Backup Data
 <button
 type="button"
 class="action restorebtn"
-onclick="Android.restoreBusinessData()">
+onclick="restoreBusinessData()">
 Restore Data
 </button>
 
-</div>
-
-<div
-class="muted"
-style="margin-top:9px;">
-Keep your backup somewhere safe such as Google Drive or your phone's Documents folder.
 </div>
 
 </div>
@@ -957,16 +951,6 @@ onclick="exportInvoicesCsv()">
 Export CSV for Accountant
 </button>
 
-<div
-class="muted"
-style="margin-top:8px;">
-
-CSV includes invoice number, customer,
-invoice date, due date, description,
-amount, status and paid date.
-
-</div>
-
 </div>
 
 <div
@@ -1046,17 +1030,14 @@ let backup={
 app:
 "Steven's Pure Clean Exteriors",
 
-backupVersion:
-1,
+backupVersion:1,
 
 created:
 new Date().toISOString(),
 
-customers:
-customers,
+customers:customers,
 
-invoices:
-invoices,
+invoices:invoices,
 
 nextInvoiceNumber:
 Number(
@@ -1069,13 +1050,6 @@ localStorage.getItem(
 
 };
 
-let backupJson=
-JSON.stringify(
-backup,
-null,
-2
-);
-
 if(
 typeof Android!=="undefined"
 &&
@@ -1083,13 +1057,37 @@ Android.backupBusinessData
 ){
 
 Android.backupBusinessData(
-backupJson
+JSON.stringify(
+backup,
+null,
+2
+)
 );
 
 }else{
 
 alert(
 "Android backup system is not available."
+);
+
+}
+
+}
+
+function restoreBusinessData(){
+
+if(
+typeof Android!=="undefined"
+&&
+Android.restoreBusinessData
+){
+
+Android.restoreBusinessData();
+
+}else{
+
+alert(
+"Android restore system is not available."
 );
 
 }
@@ -1149,22 +1147,16 @@ restoredNextNumber<1
 let numbers=
 invoices
 .map(
-i=>
-Number(
-i.invoiceNumber
-)
+i=>Number(i.invoiceNumber)
 )
 .filter(
-n=>
-Number.isFinite(n)
+n=>Number.isFinite(n)
 );
 
 restoredNextNumber=
 numbers.length
 ?
-Math.max(
-...numbers
-)+1
+Math.max(...numbers)+1
 :
 1001;
 
@@ -1172,23 +1164,17 @@ Math.max(
 
 localStorage.setItem(
 "pcCustomers",
-JSON.stringify(
-customers
-)
+JSON.stringify(customers)
 );
 
 localStorage.setItem(
 "pcInvoices",
-JSON.stringify(
-invoices
-)
+JSON.stringify(invoices)
 );
 
 localStorage.setItem(
 "pcNextInvoiceNumber",
-String(
-restoredNextNumber
-)
+String(restoredNextNumber)
 );
 
 renderCustomers();
@@ -1207,8 +1193,6 @@ invoices.length
 );
 
 }catch(error){
-
-console.log(error);
 
 alert(
 "The backup file could not be restored."
@@ -1253,10 +1237,12 @@ renderInvoices();
 }
 
 if(id==="map"){
+
 setTimeout(
 renderMap,
 250
 );
+
 }
 
 }
@@ -1269,7 +1255,10 @@ return new Date()
 
 }
 
-function addDays(dateString,days){
+function addDays(
+dateString,
+days
+){
 
 let d=
 new Date(
@@ -1281,7 +1270,9 @@ Number.isNaN(
 d.getTime()
 )
 ){
+
 return "";
+
 }
 
 d.setDate(
@@ -1316,9 +1307,7 @@ return next;
 
 function invoiceNumber(inv){
 
-return inv.invoiceNumber
-||
-inv.id;
+return inv.invoiceNumber || inv.id;
 
 }
 
@@ -1349,7 +1338,9 @@ due
 &&
 due<today()
 ){
+
 return "overdue";
+
 }
 
 return "unpaid";
@@ -1359,11 +1350,11 @@ return "unpaid";
 function daysOverdue(inv){
 
 if(
-invoiceStatus(inv)
-!==
-"overdue"
+invoiceStatus(inv)!=="overdue"
 ){
+
 return 0;
+
 }
 
 let due=
@@ -1481,12 +1472,8 @@ email
 ){
 
 alert(
-"That email address does not look right.\n\nPlease enter one complete email address, for example:\ncustomer@gmail.com"
+"That email address does not look right."
 );
-
-document
-.getElementById("customerEmail")
-.focus();
 
 return;
 
@@ -1559,13 +1546,19 @@ c=>c.id===customer.id
 );
 
 if(existing>=0){
+
 customers[existing]=customer;
+
 }else{
+
 customers.push(customer);
+
 }
 
 saveData();
+
 closeCustomerForm();
+
 renderCustomers();
 
 }
@@ -1609,7 +1602,9 @@ if(
 "Delete this customer?"
 )
 ){
+
 return;
+
 }
 
 customers=
@@ -1618,6 +1613,7 @@ c=>c.id!==id
 );
 
 saveData();
+
 renderCustomers();
 
 }
@@ -1763,7 +1759,9 @@ document
 .getElementById("plannerDate");
 
 if(!input.value){
+
 input.value=today();
+
 }
 
 let date=
@@ -1806,6 +1804,8 @@ ${safe(c.name)}
 <div class="muted">
 
 ${safe(c.address)}
+
+<br>
 
 ${safe(c.postcode)}
 
@@ -1899,7 +1899,9 @@ paidDate:""
 
 let d=
 new Date(
-c.nextClean || today()
+(c.nextClean || today())
++
+"T12:00:00"
 );
 
 d.setDate(
@@ -1916,6 +1918,7 @@ d.toISOString()
 .split("T")[0];
 
 saveData();
+
 renderPlanner();
 
 alert(
@@ -2014,13 +2017,6 @@ return;
 
 }
 
-let amount=
-Number(
-document
-.getElementById("invoiceAmount")
-.value || 0
-);
-
 let invoiceDate=
 today();
 
@@ -2036,7 +2032,12 @@ customerId:c.id,
 
 customerName:c.name,
 
-amount:amount,
+amount:
+Number(
+document
+.getElementById("invoiceAmount")
+.value || 0
+),
 
 description:
 document
@@ -2059,7 +2060,9 @@ paidDate:""
 });
 
 saveData();
+
 closeInvoiceForm();
+
 renderInvoices();
 
 }
@@ -2104,9 +2107,7 @@ i=>!i.paid
 .reduce(
 (sum,i)=>
 sum+
-Number(
-i.amount || 0
-),
+Number(i.amount || 0),
 0
 );
 
@@ -2114,16 +2115,12 @@ let overdue=
 invoices
 .filter(
 i=>
-invoiceStatus(i)
-===
-"overdue"
+invoiceStatus(i)==="overdue"
 )
 .reduce(
 (sum,i)=>
 sum+
-Number(
-i.amount || 0
-),
+Number(i.amount || 0),
 0
 );
 
@@ -2170,7 +2167,9 @@ invoiceFilter!=="all"
 &&
 status!==invoiceFilter
 ){
+
 return false;
+
 }
 
 let haystack=[
@@ -2254,8 +2253,7 @@ Due date:
 ${formatDate(due)}
 
 ${inv.paidDate
-? "<br>Paid date: "+
-formatDate(inv.paidDate)
+? "<br>Paid date: "+formatDate(inv.paidDate)
 : ""}
 
 </div>
@@ -2276,9 +2274,9 @@ inv.amount || 0
 class="muted"
 style="margin-top:6px">
 
-${inv.description
-? safe(inv.description)
-: ""}
+${safe(
+inv.description || ""
+)}
 
 </div>
 
@@ -2362,14 +2360,17 @@ invoices.find(
 x=>x.id===id
 );
 
-if(inv){
-
-inv.paid=true;
-inv.paidDate=today();
-
+if(!inv){
+return;
 }
 
+inv.paid=true;
+
+inv.paidDate=
+today();
+
 saveData();
+
 renderInvoices();
 
 }
@@ -2417,7 +2418,7 @@ customer.email
 ){
 
 alert(
-"The customer's saved email address is invalid. Please edit the customer and correct it first."
+"The customer's saved email address is invalid."
 );
 
 return;
@@ -2557,21 +2558,12 @@ document
 "accountantExportBox"
 );
 
-if(
-box.style.display==="none"
-||
-box.style.display===""
-){
-
 box.style.display=
+box.style.display==="block"
+?
+"none"
+:
 "block";
-
-}else{
-
-box.style.display=
-"none";
-
-}
 
 }
 
@@ -2698,11 +2690,9 @@ range==="taxyear"
 let tax=
 getUkTaxYearRange();
 
-from=
-tax.from;
+from=tax.from;
 
-to=
-tax.to;
+to=tax.to;
 
 }
 
@@ -2712,16 +2702,12 @@ range==="custom"
 
 from=
 document
-.getElementById(
-"exportFrom"
-)
+.getElementById("exportFrom")
 .value;
 
 to=
 document
-.getElementById(
-"exportTo"
-)
+.getElementById("exportTo")
 .value;
 
 if(!from || !to){
@@ -2749,12 +2735,10 @@ return null;
 return invoices.filter(
 inv=>{
 
-if(
-!from
-&&
-!to
-){
+if(!from && !to){
+
 return true;
+
 }
 
 let d=
@@ -2853,7 +2837,9 @@ invoiceNumber(inv),
 
 inv.customerName || "",
 
-customer?.email || "",
+customer
+? customer.email || ""
+: "",
 
 formatDate(inv.date),
 
@@ -2904,8 +2890,7 @@ let url=
 URL.createObjectURL(blob);
 
 let link=
-document
-.createElement("a");
+document.createElement("a");
 
 link.href=url;
 
@@ -2916,17 +2901,18 @@ today()
 +
 ".csv";
 
-document.body
-.appendChild(link);
+document.body.appendChild(link);
 
 link.click();
 
-document.body
-.removeChild(link);
+document.body.removeChild(link);
 
 setTimeout(
-()=>
-URL.revokeObjectURL(url),
+function(){
+
+URL.revokeObjectURL(url);
+
+},
 1500
 );
 
@@ -2976,9 +2962,7 @@ return false;
 }
 
 let dateSource=
-i.paidDate
-||
-i.date;
+i.paidDate || i.date;
 
 let d=
 new Date(
@@ -3016,7 +3000,10 @@ document
 paidMonth.toFixed(2);
 
 let soonLimit=
-new Date();
+new Date(
+today()+
+"T12:00:00"
+);
 
 soonLimit.setDate(
 soonLimit.getDate()+7
@@ -3147,11 +3134,9 @@ try{
 
 let response=
 await fetch(
-
 "https://api.postcodes.io/postcodes/"
 +
 encodeURIComponent(cleaned)
-
 );
 
 let data=
@@ -3219,19 +3204,13 @@ L.map(
 );
 
 L.tileLayer(
-
 "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-
 {
-
 maxZoom:19,
-
-attribution:
-"© OpenStreetMap"
-
+attribution:"© OpenStreetMap"
 }
-
-).addTo(map);
+)
+.addTo(map);
 
 }
 
@@ -3244,8 +3223,11 @@ return;
 }
 
 setTimeout(
-()=>
-map.invalidateSize(),
+function(){
+
+map.invalidateSize();
+
+},
 200
 );
 
@@ -3305,28 +3287,265 @@ coords.lng
 )
 .addTo(map);
 
-marker.bindPopup(`
+marker.bindPopup(
 
-<strong>
-${safe(c.name)}
-</strong>
-
-<br>
-
-${safe(c.address)}
-
-<br>
-
-${safe(c.postcode)}
-
-<br>
-
-£${Number(
+"<strong>"
++
+safe(c.name)
++
+"</strong><br>"
++
+safe(c.address)
++
+"<br>"
++
+safe(c.postcode)
++
+"<br>£"
++
+Number(
 c.price || 0
-).toFixed(2)}
+).toFixed(2)
 
-`);
+);
 
 mapMarkers.push(marker);
 
-bounds.push
+bounds.push(
+[
+coords.lat,
+coords.lng
+]
+);
+
+}
+
+if(
+bounds.length>0
+){
+
+map.fitBounds(
+bounds,
+{
+padding:[35,35],
+maxZoom:15
+}
+);
+
+status.innerText=
+bounds.length
++
+" customer location"
++
+(
+bounds.length===1
+?
+""
+:
+"s"
+)
++
+" shown.";
+
+}else{
+
+status.innerText=
+"No customer postcodes could be located.";
+
+}
+
+}
+
+function openCustomerMap(id){
+
+let c=
+customers.find(
+x=>x.id===id
+);
+
+if(!c){
+return;
+}
+
+let query=
+[
+c.address,
+c.postcode
+]
+.filter(Boolean)
+.join(" ");
+
+if(!query){
+
+alert(
+"This customer has no address or postcode."
+);
+
+return;
+
+}
+
+window.location.href=
+"https://www.google.com/maps/search/?api=1&query="
++
+encodeURIComponent(query);
+
+}
+
+function safe(value){
+
+return String(
+value || ""
+)
+.replace(
+/&/g,
+"&amp;"
+)
+.replace(
+/</g,
+"&lt;"
+)
+.replace(
+/>/g,
+"&gt;"
+)
+.replace(
+/"/g,
+"&quot;"
+);
+
+}
+
+function formatDate(value){
+
+if(!value){
+return "";
+}
+
+let d=
+new Date(
+value+
+"T00:00:00"
+);
+
+return d.toLocaleDateString(
+"en-GB",
+{
+day:"2-digit",
+month:"short",
+year:"numeric"
+}
+);
+
+}
+
+/* Upgrade older invoices */
+
+let changed=false;
+
+let usedNumbers=
+invoices
+.map(
+i=>Number(
+i.invoiceNumber
+)
+)
+.filter(
+n=>Number.isFinite(n)
+);
+
+let storedNext=
+Number(
+localStorage.getItem(
+"pcNextInvoiceNumber"
+)
+||
+1001
+);
+
+let nextNumber=
+usedNumbers.length
+?
+Math.max(
+Math.max(...usedNumbers)+1,
+storedNext
+)
+:
+Math.max(
+1001,
+storedNext
+);
+
+invoices.forEach(
+inv=>{
+
+if(!inv.invoiceNumber){
+
+inv.invoiceNumber=
+nextNumber++;
+
+changed=true;
+
+}
+
+if(
+!inv.dueDate
+&&
+inv.date
+){
+
+inv.dueDate=
+addDays(
+inv.date,
+7
+);
+
+changed=true;
+
+}
+
+if(
+typeof inv.paidDate
+===
+"undefined"
+){
+
+inv.paidDate="";
+
+changed=true;
+
+}
+
+}
+);
+
+localStorage.setItem(
+"pcNextInvoiceNumber",
+String(nextNumber)
+);
+
+if(changed){
+
+saveData();
+
+}
+
+document
+.getElementById(
+"plannerDate"
+)
+.value=
+today();
+
+renderCustomers();
+
+renderPlanner();
+
+renderInvoices();
+
+updateDashboard();
+
+</script>
+
+</body>
+</html>
