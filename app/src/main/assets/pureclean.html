@@ -446,27 +446,32 @@ Pure Results • Clean Exteriors
 <nav>
 
 <button
+type="button"
 class="active"
 onclick="openPage('dashboard',this)">
 Dashboard
 </button>
 
 <button
+type="button"
 onclick="openPage('customers',this)">
 Customers
 </button>
 
 <button
+type="button"
 onclick="openPage('planner',this)">
 Planner
 </button>
 
 <button
+type="button"
 onclick="openPage('invoices',this)">
 Invoices
 </button>
 
 <button
+type="button"
 onclick="openPage('map',this)">
 Map
 </button>
@@ -514,6 +519,7 @@ Today's Round
 </h3>
 
 <button
+type="button"
 class="action small secondary"
 onclick="openPage('planner')">
 View all
@@ -538,6 +544,7 @@ Unpaid Invoices
 </h3>
 
 <button
+type="button"
 class="action small secondary"
 onclick="openPage('invoices')">
 View all
@@ -555,9 +562,7 @@ No unpaid invoices
 
 <div class="card backup-box">
 
-<h3>
-Business Backup
-</h3>
+<h3>Business Backup</h3>
 
 <div class="muted">
 Keep a copy of your customers, invoices, payment records and cleaning schedule.
@@ -566,14 +571,16 @@ Keep a copy of your customers, invoices, payment records and cleaning schedule.
 <div class="backup-buttons">
 
 <button
+type="button"
 class="action backupbtn"
 onclick="backupBusinessData()">
 Backup Data
 </button>
 
 <button
+type="button"
 class="action restorebtn"
-onclick="restoreBusinessData()">
+onclick="requestRestoreBackup()">
 Restore Data
 </button>
 
@@ -602,6 +609,7 @@ oninput="renderCustomers()"
 >
 
 <button
+type="button"
 class="action"
 onclick="newCustomer()">
 + Add Customer
@@ -708,12 +716,14 @@ placeholder="Windows, gutters, fascia, soffits..."
 <textarea id="customerNotes"></textarea>
 
 <button
+type="button"
 class="action"
 onclick="saveCustomer()">
 Save Customer
 </button>
 
 <button
+type="button"
 class="action secondary"
 onclick="closeCustomerForm()">
 Cancel
@@ -756,6 +766,7 @@ class="screen">
 <h2>Invoices</h2>
 
 <button
+type="button"
 class="action"
 onclick="openInvoiceForm()">
 + New Invoice
@@ -788,12 +799,14 @@ placeholder="Type your invoice description here...">
 </textarea>
 
 <button
+type="button"
 class="action"
 onclick="saveInvoice()">
 Create Invoice
 </button>
 
 <button
+type="button"
 class="action secondary"
 onclick="closeInvoiceForm()">
 Cancel
@@ -844,6 +857,7 @@ oninput="renderInvoices()"
 <div class="filterbar">
 
 <button
+type="button"
 class="action small selected"
 data-filter="all"
 onclick="setInvoiceFilter('all',this)">
@@ -851,6 +865,7 @@ All
 </button>
 
 <button
+type="button"
 class="action small secondary"
 data-filter="unpaid"
 onclick="setInvoiceFilter('unpaid',this)">
@@ -858,6 +873,7 @@ Unpaid
 </button>
 
 <button
+type="button"
 class="action small secondary"
 data-filter="overdue"
 onclick="setInvoiceFilter('overdue',this)">
@@ -865,6 +881,7 @@ Overdue
 </button>
 
 <button
+type="button"
 class="action small secondary"
 data-filter="paid"
 onclick="setInvoiceFilter('paid',this)">
@@ -876,6 +893,7 @@ Paid
 </div>
 
 <button
+type="button"
 class="action"
 onclick="toggleAccountantExport()">
 Accountant Export
@@ -933,6 +951,7 @@ id="exportTo"
 </div>
 
 <button
+type="button"
 class="action"
 onclick="exportInvoicesCsv()">
 Export CSV for Accountant
@@ -972,6 +991,7 @@ Customer postcodes will appear as pins on the map.
 <div id="customerMap"></div>
 
 <button
+type="button"
 class="action"
 onclick="renderMap()">
 Refresh Customer Pins
@@ -1019,7 +1039,13 @@ updateDashboard();
 
 }
 
+/* ================================
+   BACKUP
+================================ */
+
 function backupBusinessData(){
+
+try{
 
 let backup={
 
@@ -1057,54 +1083,103 @@ null,
 );
 
 if(
-typeof Android!=="undefined"
-&&
-Android.backupBusinessData
+typeof Android==="undefined"
 ){
+
+alert(
+"Android backup system is not connected."
+);
+
+return;
+}
+
+if(
+typeof Android.backupBusinessData
+!==
+"function"
+){
+
+alert(
+"Backup function is not available in this version of the app."
+);
+
+return;
+}
 
 Android.backupBusinessData(
 backupJson
 );
 
-}else{
+}catch(error){
 
 alert(
-"Android backup system is not available."
+"Backup could not start: "
++
+error.message
 );
 
 }
 
 }
 
-function restoreBusinessData(){
+/* ================================
+   RESTORE BUTTON
+================================ */
 
-if(
-!confirm(
+function requestRestoreBackup(){
+
+try{
+
+let answer=
+window.confirm(
 "Restore a business backup?\n\nYour current customers and invoices will be replaced by the data in the backup file."
-)
-){
+);
 
+if(!answer){
 return;
-
 }
 
 if(
-typeof Android!=="undefined"
-&&
-Android.restoreBusinessData
+typeof Android==="undefined"
 ){
+
+alert(
+"Android restore system is not connected."
+);
+
+return;
+}
+
+if(
+typeof Android.restoreBusinessData
+!==
+"function"
+){
+
+alert(
+"Restore function is not available in this version of the app."
+);
+
+return;
+}
 
 Android.restoreBusinessData();
 
-}else{
+}catch(error){
 
 alert(
-"Android restore system is not available."
+"Restore could not start: "
++
+error.message
 );
 
 }
 
 }
+
+/* ================================
+   RECEIVE RESTORED BACKUP
+================================ */
 
 function restoreBusinessBackup(
 backupText
@@ -1188,16 +1263,12 @@ restoredInvoices;
 
 localStorage.setItem(
 "pcCustomers",
-JSON.stringify(
-customers
-)
+JSON.stringify(customers)
 );
 
 localStorage.setItem(
 "pcInvoices",
-JSON.stringify(
-invoices
-)
+JSON.stringify(invoices)
 );
 
 localStorage.setItem(
@@ -1230,7 +1301,7 @@ invoices.length
 console.log(error);
 
 alert(
-"The backup file could not be restored. Please choose a valid Pure Clean backup file."
+"The backup file could not be restored."
 );
 
 }
@@ -1745,24 +1816,28 @@ ${c.nextClean
 </div>
 
 <button
+type="button"
 class="action small"
 onclick="editCustomer('${c.id}')">
 Edit
 </button>
 
 <button
+type="button"
 class="action small blue"
 onclick="openCustomerMap('${c.id}')">
 Map
 </button>
 
 <button
+type="button"
 class="action small secondary"
 onclick="quickInvoice('${c.id}')">
 Invoice
 </button>
 
 <button
+type="button"
 class="action small danger"
 onclick="deleteCustomer('${c.id}')">
 Delete
@@ -1843,12 +1918,14 @@ c.price || 0
 </div>
 
 <button
+type="button"
 class="action"
 onclick="completeJob('${c.id}')">
 ✓ Complete Job
 </button>
 
 <button
+type="button"
 class="action secondary"
 onclick="openCustomerMap('${c.id}')">
 Directions
@@ -2345,6 +2422,7 @@ ${!inv.paid
 ? `
 
 <button
+type="button"
 class="action small"
 onclick="markPaid('${inv.id}')">
 Mark Paid
@@ -2354,6 +2432,7 @@ Mark Paid
 : ""}
 
 <button
+type="button"
 class="action small emailbtn"
 onclick="emailInvoice('${inv.id}')">
 Email Customer
@@ -2363,6 +2442,7 @@ ${!inv.paid
 ? `
 
 <button
+type="button"
 class="action small reminderbtn"
 onclick="sendReminder('${inv.id}')">
 Send Reminder
@@ -3250,8 +3330,7 @@ L.tileLayer(
 
 {
 
-maxZoom:
-19,
+maxZoom:19,
 
 attribution:
 "© OpenStreetMap"
@@ -3609,4 +3688,4 @@ updateDashboard();
 </script>
 
 </body>
-</html>
+  </html>
