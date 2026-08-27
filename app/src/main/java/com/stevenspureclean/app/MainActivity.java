@@ -2,13 +2,9 @@ package com.stevenspureclean.app;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.Window;
-
 import android.content.Intent;
 import android.content.ClipData;
-
 import android.net.Uri;
-
 import android.util.Patterns;
 import android.widget.Toast;
 
@@ -45,17 +41,15 @@ public class MainActivity extends Activity {
 
     private WebView webView;
 
-    private static final int CREATE_BACKUP_FILE = 5001;
-    private static final int OPEN_BACKUP_FILE = 5002;
+    private static final int SAVE_BACKUP = 1001;
+    private static final int RESTORE_BACKUP = 1002;
 
-    private String pendingBackupJson = "";
+    private String backupJson = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         webView = new WebView(this);
 
@@ -81,7 +75,7 @@ public class MainActivity extends Activity {
                             WebView view,
                             WebResourceRequest request) {
 
-                        return handleUrl(
+                        return openExternalLink(
                                 request.getUrl().toString()
                         );
                     }
@@ -91,7 +85,7 @@ public class MainActivity extends Activity {
                             WebView view,
                             String url) {
 
-                        return handleUrl(url);
+                        return openExternalLink(url);
                     }
                 }
         );
@@ -101,7 +95,7 @@ public class MainActivity extends Activity {
         );
     }
 
-    private boolean handleUrl(String url) {
+    private boolean openExternalLink(String url) {
 
         if (url == null) {
             return false;
@@ -115,17 +109,20 @@ public class MainActivity extends Activity {
 
             try {
 
-                Intent mapIntent =
+                startActivity(
                         new Intent(
                                 Intent.ACTION_VIEW,
                                 Uri.parse(url)
-                        );
-
-                startActivity(mapIntent);
+                        )
+                );
 
             } catch (Exception e) {
 
-                e.printStackTrace();
+                Toast.makeText(
+                        this,
+                        "Could not open maps.",
+                        Toast.LENGTH_SHORT
+                ).show();
             }
 
             return true;
@@ -147,7 +144,7 @@ public class MainActivity extends Activity {
                 String description) {
 
             runOnUiThread(
-                    () -> emailInvoiceWithPdf(
+                    () -> emailInvoice(
                             email,
                             customerName,
                             invoiceNumber,
@@ -171,7 +168,7 @@ public class MainActivity extends Activity {
                 boolean overdue) {
 
             runOnUiThread(
-                    () -> openReminderEmail(
+                    () -> reminderEmail(
                             email,
                             customerName,
                             invoiceNumber,
@@ -185,13 +182,10 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
-        public void backupBusinessData(
-                String jsonData) {
+        public void backupBusinessData(String json) {
 
             runOnUiThread(
-                    () -> createBackupFile(
-                            jsonData
-                    )
+                    () -> startBackup(json)
             );
         }
 
@@ -199,48 +193,39 @@ public class MainActivity extends Activity {
         public void restoreBusinessData() {
 
             runOnUiThread(
-                    this::openRestorePicker
+                    () -> startRestore()
             );
-        }
-
-        private void openRestorePicker() {
-
-            chooseBackupFile();
         }
     }
 
-    private void createBackupFile(
-            String jsonData) {
+    /* =========================
+       BACKUP
+    ========================= */
+
+    private void startBackup(String json) {
 
         if (
-                jsonData == null
+                json == null
                         ||
-                jsonData.trim().isEmpty()
+                json.trim().isEmpty()
         ) {
 
             Toast.makeText(
                     this,
-                    "There is no business data to back up.",
+                    "No business data to back up.",
                     Toast.LENGTH_LONG
             ).show();
 
             return;
         }
 
-        pendingBackupJson = jsonData;
+        backupJson = json;
 
         String date =
                 new SimpleDateFormat(
                         "yyyy-MM-dd",
                         Locale.UK
-                ).format(
-                        new Date()
-                );
-
-        String fileName =
-                "PureClean-Backup-"
-                        + date
-                        + ".json";
+                ).format(new Date());
 
         Intent intent =
                 new Intent(
@@ -257,29 +242,33 @@ public class MainActivity extends Activity {
 
         intent.putExtra(
                 Intent.EXTRA_TITLE,
-                fileName
+                "PureClean-Backup-"
+                        + date
+                        + ".json"
         );
 
         try {
 
             startActivityForResult(
                     intent,
-                    CREATE_BACKUP_FILE
+                    SAVE_BACKUP
             );
 
         } catch (Exception e) {
 
-            e.printStackTrace();
-
             Toast.makeText(
                     this,
-                    "Could not open backup save screen.",
+                    "Could not open backup screen.",
                     Toast.LENGTH_LONG
             ).show();
         }
     }
 
-    private void chooseBackupFile() {
+    /* =========================
+       RESTORE
+    ========================= */
+
+    private void startRestore() {
 
         Intent intent =
                 new Intent(
@@ -290,35 +279,20 @@ public class MainActivity extends Activity {
                 Intent.CATEGORY_OPENABLE
         );
 
-        intent.setType(
-                "*/*"
-        );
-
-        String[] mimeTypes = {
-                "application/json",
-                "text/plain",
-                "application/octet-stream"
-        };
-
-        intent.putExtra(
-                Intent.EXTRA_MIME_TYPES,
-                mimeTypes
-        );
+        intent.setType("*/*");
 
         try {
 
             startActivityForResult(
                     intent,
-                    OPEN_BACKUP_FILE
+                    RESTORE_BACKUP
             );
 
         } catch (Exception e) {
 
-            e.printStackTrace();
-
             Toast.makeText(
                     this,
-                    "Could not open restore file picker.",
+                    "Could not open restore screen.",
                     Toast.LENGTH_LONG
             ).show();
         }
@@ -349,43 +323,29 @@ public class MainActivity extends Activity {
 
         Uri uri = data.getData();
 
-        if (
+        if (requestCode == SAVE_BACKUP) {
+
+            saveBackup(uri);
+
+        } else if (
                 requestCode
                         ==
-                CREATE_BACKUP_FILE
+                RESTORE_BACKUP
         ) {
 
-            saveBackupToUri(uri);
-
-            return;
-        }
-
-        if (
-                requestCode
-                        ==
-                OPEN_BACKUP_FILE
-        ) {
-
-            restoreBackupFromUri(uri);
+            loadBackup(uri);
         }
     }
 
-    private void saveBackupToUri(
-            Uri uri) {
+    private void saveBackup(Uri uri) {
 
         try {
 
-            OutputStream outputStream =
+            OutputStream output =
                     getContentResolver()
-                            .openOutputStream(
-                                    uri
-                            );
+                            .openOutputStream(uri);
 
-            if (
-                    outputStream
-                            ==
-                    null
-            ) {
+            if (output == null) {
 
                 Toast.makeText(
                         this,
@@ -396,17 +356,14 @@ public class MainActivity extends Activity {
                 return;
             }
 
-            outputStream.write(
-                    pendingBackupJson
-                            .getBytes(
-                                    "UTF-8"
-                            )
+            output.write(
+                    backupJson.getBytes("UTF-8")
             );
 
-            outputStream.flush();
-            outputStream.close();
+            output.flush();
+            output.close();
 
-            pendingBackupJson = "";
+            backupJson = "";
 
             Toast.makeText(
                     this,
@@ -416,8 +373,6 @@ public class MainActivity extends Activity {
 
         } catch (Exception e) {
 
-            e.printStackTrace();
-
             Toast.makeText(
                     this,
                     "Backup could not be saved.",
@@ -426,26 +381,19 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void restoreBackupFromUri(
-            Uri uri) {
+    private void loadBackup(Uri uri) {
 
         try {
 
-            InputStream inputStream =
+            InputStream input =
                     getContentResolver()
-                            .openInputStream(
-                                    uri
-                            );
+                            .openInputStream(uri);
 
-            if (
-                    inputStream
-                            ==
-                    null
-            ) {
+            if (input == null) {
 
                 Toast.makeText(
                         this,
-                        "Could not read backup file.",
+                        "Could not read backup.",
                         Toast.LENGTH_LONG
                 ).show();
 
@@ -455,39 +403,35 @@ public class MainActivity extends Activity {
             BufferedReader reader =
                     new BufferedReader(
                             new InputStreamReader(
-                                    inputStream,
+                                    input,
                                     "UTF-8"
                             )
                     );
 
-            StringBuilder builder =
+            StringBuilder text =
                     new StringBuilder();
 
             String line;
 
             while (
                     (line = reader.readLine())
-                            !=
-                    null
+                            != null
             ) {
 
-                builder.append(line);
+                text.append(line);
             }
 
             reader.close();
-            inputStream.close();
+            input.close();
 
-            String backupJson =
-                    builder.toString()
-                            .trim();
+            String json =
+                    text.toString().trim();
 
-            if (
-                    backupJson.isEmpty()
-            ) {
+            if (json.isEmpty()) {
 
                 Toast.makeText(
                         this,
-                        "The selected backup file is empty.",
+                        "Backup file is empty.",
                         Toast.LENGTH_LONG
                 ).show();
 
@@ -495,9 +439,7 @@ public class MainActivity extends Activity {
             }
 
             JSONObject backup =
-                    new JSONObject(
-                            backupJson
-                    );
+                    new JSONObject(json);
 
             JSONArray customers =
                     backup.optJSONArray(
@@ -517,7 +459,7 @@ public class MainActivity extends Activity {
 
                 Toast.makeText(
                         this,
-                        "This is not a valid Pure Clean backup file.",
+                        "This is not a Pure Clean backup.",
                         Toast.LENGTH_LONG
                 ).show();
 
@@ -526,16 +468,12 @@ public class MainActivity extends Activity {
 
             String javascript =
                     "restoreBusinessBackup("
-                            + JSONObject.quote(
-                                    backupJson
-                            )
+                            + JSONObject.quote(json)
                             + ");";
 
-            webView.post(
-                    () -> webView.evaluateJavascript(
-                            javascript,
-                            null
-                    )
+            webView.evaluateJavascript(
+                    javascript,
+                    null
             );
 
             Toast.makeText(
@@ -550,17 +488,19 @@ public class MainActivity extends Activity {
 
         } catch (Exception e) {
 
-            e.printStackTrace();
-
             Toast.makeText(
                     this,
-                    "Could not restore this backup file.",
+                    "Could not restore backup.",
                     Toast.LENGTH_LONG
             ).show();
         }
     }
 
-    private void emailInvoiceWithPdf(
+    /* =========================
+       EMAIL INVOICE + PDF
+    ========================= */
+
+    private void emailInvoice(
             String email,
             String customerName,
             String invoiceNumber,
@@ -569,59 +509,21 @@ public class MainActivity extends Activity {
             String amount,
             String description) {
 
+        if (!isValidEmail(email)) {
+            return;
+        }
+
         try {
 
-            if (email == null) {
-                email = "";
-            }
-
-            email = email.trim();
-
-            if (
-                    email.isEmpty()
-                            ||
-                    !Patterns.EMAIL_ADDRESS
-                            .matcher(email)
-                            .matches()
-            ) {
-
-                Toast.makeText(
-                        this,
-                        "Invalid customer email: "
-                                + email,
-                        Toast.LENGTH_LONG
-                ).show();
-
-                return;
-            }
-
-            File folder =
-                    new File(
-                            getCacheDir(),
-                            "invoices"
-                    );
-
-            if (!folder.exists()) {
-                folder.mkdirs();
-            }
-
             File pdf =
-                    new File(
-                            folder,
-                            "PureClean-Invoice-"
-                                    + invoiceNumber
-                                    + ".pdf"
+                    createInvoicePdf(
+                            customerName,
+                            invoiceNumber,
+                            invoiceDate,
+                            dueDate,
+                            amount,
+                            description
                     );
-
-            makePdf(
-                    pdf,
-                    customerName,
-                    invoiceNumber,
-                    invoiceDate,
-                    dueDate,
-                    description,
-                    amount
-            );
 
             Uri pdfUri =
                     FileProvider.getUriForFile(
@@ -665,69 +567,67 @@ public class MainActivity extends Activity {
             }
 
             message +=
-                    "\nPlease make payment within 7 days.\n\n"
-                            + "Thank you for your custom.\n\n"
-                            + "Steven's Pure Clean Exteriors";
+                    "\nPlease make payment within 7 days."
+                            + "\n\nThank you for your custom."
+                            + "\n\nSteven's Pure Clean Exteriors";
 
-            Intent emailIntent =
+            Intent intent =
                     new Intent(
                             Intent.ACTION_SEND
                     );
 
-            emailIntent.setType(
+            intent.setType(
                     "application/pdf"
             );
 
-            emailIntent.putExtra(
+            intent.putExtra(
                     Intent.EXTRA_EMAIL,
                     new String[]{
-                            email
+                            email.trim()
                     }
             );
 
-            emailIntent.putExtra(
+            intent.putExtra(
                     Intent.EXTRA_SUBJECT,
                     subject
             );
 
-            emailIntent.putExtra(
+            intent.putExtra(
                     Intent.EXTRA_TEXT,
                     message
             );
 
-            emailIntent.putExtra(
+            intent.putExtra(
                     Intent.EXTRA_STREAM,
                     pdfUri
             );
 
-            emailIntent.setClipData(
+            intent.setClipData(
                     ClipData.newRawUri(
                             "Invoice PDF",
                             pdfUri
                     )
             );
 
-            emailIntent.addFlags(
+            intent.addFlags(
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
             );
 
             try {
 
-                emailIntent.setPackage(
+                intent.setPackage(
                         "com.google.android.gm"
                 );
 
-                startActivity(
-                        emailIntent
-                );
+                startActivity(intent);
 
-            } catch (Exception gmailError) {
+            } catch (Exception e) {
 
-                emailIntent.setPackage(null);
+                intent.setPackage(null);
 
                 startActivity(
                         Intent.createChooser(
-                                emailIntent,
+                                intent,
                                 "Email Invoice"
                         )
                 );
@@ -735,17 +635,19 @@ public class MainActivity extends Activity {
 
         } catch (Exception e) {
 
-            e.printStackTrace();
-
             Toast.makeText(
                     this,
-                    "Could not create or email invoice.",
+                    "Could not create invoice email.",
                     Toast.LENGTH_LONG
             ).show();
         }
     }
 
-    private void openReminderEmail(
+    /* =========================
+       REMINDER EMAIL
+    ========================= */
+
+    private void reminderEmail(
             String email,
             String customerName,
             String invoiceNumber,
@@ -755,51 +657,424 @@ public class MainActivity extends Activity {
             String description,
             boolean overdue) {
 
+        if (!isValidEmail(email)) {
+            return;
+        }
+
+        String subject;
+
+        if (overdue) {
+
+            subject =
+                    "Overdue Invoice #"
+                            + invoiceNumber
+                            + " - Steven's Pure Clean Exteriors";
+
+        } else {
+
+            subject =
+                    "Invoice Reminder #"
+                            + invoiceNumber
+                            + " - Steven's Pure Clean Exteriors";
+        }
+
+        String message =
+                "Hi "
+                        + customerName
+                        + ",\n\n"
+                        + "This is a friendly reminder regarding invoice #"
+                        + invoiceNumber
+                        + ".\n\n"
+                        + "Invoice date: "
+                        + invoiceDate
+                        + "\n"
+                        + "Due date: "
+                        + dueDate
+                        + "\n"
+                        + "Amount due: £"
+                        + amount;
+
+        if (overdue) {
+
+            message +=
+                    "\n\nThis invoice is now overdue.";
+
+        } else {
+
+            message +=
+                    "\n\nPlease make payment by the due date.";
+        }
+
+        message +=
+                "\n\nThank you,"
+                        + "\nSteven's Pure Clean Exteriors";
+
+        String mailto =
+                "mailto:"
+                        + email.trim()
+                        + "?subject="
+                        + Uri.encode(subject)
+                        + "&body="
+                        + Uri.encode(message);
+
+        Intent intent =
+                new Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(mailto)
+                );
+
         try {
 
-            if (email == null) {
-                email = "";
-            }
+            intent.setPackage(
+                    "com.google.android.gm"
+            );
 
-            email = email.trim();
+            startActivity(intent);
 
-            if (
-                    email.isEmpty()
-                            ||
-                    !Patterns.EMAIL_ADDRESS
-                            .matcher(email)
-                            .matches()
-            ) {
+        } catch (Exception e) {
+
+            intent.setPackage(null);
+
+            try {
+
+                startActivity(intent);
+
+            } catch (Exception ignored) {
 
                 Toast.makeText(
                         this,
-                        "Invalid customer email: "
-                                + email,
+                        "Could not open email app.",
                         Toast.LENGTH_LONG
                 ).show();
+            }
+        }
+    }
 
-                return;
+    private boolean isValidEmail(
+            String email) {
+
+        if (
+                email == null
+                        ||
+                email.trim().isEmpty()
+                        ||
+                !Patterns.EMAIL_ADDRESS
+                        .matcher(email.trim())
+                        .matches()
+        ) {
+
+            Toast.makeText(
+                    this,
+                    "Invalid customer email.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /* =========================
+       CREATE PDF
+    ========================= */
+
+    private File createInvoicePdf(
+            String customerName,
+            String invoiceNumber,
+            String invoiceDate,
+            String dueDate,
+            String amount,
+            String description)
+            throws Exception {
+
+        File folder =
+                new File(
+                        getCacheDir(),
+                        "invoices"
+                );
+
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+
+        File file =
+                new File(
+                        folder,
+                        "PureClean-Invoice-"
+                                + invoiceNumber
+                                + ".pdf"
+                );
+
+        PdfDocument document =
+                new PdfDocument();
+
+        PdfDocument.PageInfo pageInfo =
+                new PdfDocument.PageInfo.Builder(
+                        595,
+                        842,
+                        1
+                ).create();
+
+        PdfDocument.Page page =
+                document.startPage(
+                        pageInfo
+                );
+
+        Canvas canvas =
+                page.getCanvas();
+
+        Paint paint =
+                new Paint(
+                        Paint.ANTI_ALIAS_FLAG
+                );
+
+        canvas.drawColor(
+                Color.WHITE
+        );
+
+        int lime =
+                Color.rgb(
+                        145,
+                        205,
+                        0
+                );
+
+        try {
+
+            InputStream input =
+                    getAssets()
+                            .open("logo.jpg");
+
+            Bitmap logo =
+                    BitmapFactory
+                            .decodeStream(input);
+
+            if (logo != null) {
+
+                Bitmap resized =
+                        Bitmap.createScaledBitmap(
+                                logo,
+                                85,
+                                85,
+                                true
+                        );
+
+                canvas.drawBitmap(
+                        resized,
+                        40,
+                        35,
+                        paint
+                );
             }
 
-            String subject;
+            input.close();
 
-            if (overdue) {
+        } catch (Exception ignored) {
+        }
 
-                subject =
-                        "Overdue Invoice #"
-                                + invoiceNumber
-                                + " - Steven's Pure Clean Exteriors";
+        paint.setColor(lime);
+        paint.setFakeBoldText(true);
+        paint.setTextSize(22);
 
-            } else {
+        canvas.drawText(
+                "Steven's Pure Clean Exteriors",
+                145,
+                65,
+                paint
+        );
 
-                subject =
-                        "Invoice Reminder #"
-                                + invoiceNumber
-                                + " - Steven's Pure Clean Exteriors";
-            }
+        paint.setFakeBoldText(false);
+        paint.setTextSize(13);
 
-            String message =
-                    "Hi "
-                            + customerName
-                            + ",\n\n"
-                            + "This is a friendly reminder regarding invoice
+        canvas.drawText(
+                "Pure Results • Clean Exteriors",
+                145,
+                90,
+                paint
+        );
+
+        paint.setColor(Color.BLACK);
+        paint.setFakeBoldText(true);
+        paint.setTextSize(28);
+
+        canvas.drawText(
+                "INVOICE",
+                40,
+                160,
+                paint
+        );
+
+        paint.setTextSize(15);
+
+        canvas.drawText(
+                "Invoice #"
+                        + invoiceNumber,
+                365,
+                145,
+                paint
+        );
+
+        paint.setFakeBoldText(false);
+        paint.setTextSize(12);
+
+        canvas.drawText(
+                "Invoice date: "
+                        + invoiceDate,
+                365,
+                175,
+                paint
+        );
+
+        canvas.drawText(
+                "Due date: "
+                        + dueDate,
+                365,
+                200,
+                paint
+        );
+
+        paint.setFakeBoldText(true);
+        paint.setTextSize(15);
+
+        canvas.drawText(
+                "Bill To",
+                40,
+                245,
+                paint
+        );
+
+        paint.setFakeBoldText(false);
+
+        canvas.drawText(
+                customerName,
+                40,
+                270,
+                paint
+        );
+
+        paint.setFakeBoldText(true);
+
+        canvas.drawText(
+                "Description",
+                40,
+                325,
+                paint
+        );
+
+        paint.setFakeBoldText(false);
+
+        String cleanDescription =
+                description == null
+                        ? ""
+                        : description.trim();
+
+        if (cleanDescription.isEmpty()) {
+
+            cleanDescription =
+                    "Exterior cleaning service";
+        }
+
+        canvas.drawText(
+                cleanDescription,
+                40,
+                350,
+                paint
+        );
+
+        paint.setColor(lime);
+        paint.setFakeBoldText(true);
+        paint.setTextSize(24);
+
+        canvas.drawText(
+                "Amount Due: £"
+                        + amount,
+                40,
+                415,
+                paint
+        );
+
+        paint.setColor(Color.BLACK);
+        paint.setTextSize(15);
+
+        canvas.drawText(
+                "Payment terms",
+                40,
+                510,
+                paint
+        );
+
+        paint.setFakeBoldText(false);
+
+        canvas.drawText(
+                "Please make payment within 7 days",
+                40,
+                535,
+                paint
+        );
+
+        paint.setFakeBoldText(true);
+        paint.setTextSize(16);
+
+        canvas.drawText(
+                "Bank Transfer Details",
+                40,
+                595,
+                paint
+        );
+
+        paint.setFakeBoldText(false);
+        paint.setTextSize(14);
+
+        canvas.drawText(
+                "Account name: Steven B Attew",
+                40,
+                625,
+                paint
+        );
+
+        canvas.drawText(
+                "Bank: Monzo",
+                40,
+                650,
+                paint
+        );
+
+        canvas.drawText(
+                "Sort code: 04-00-06",
+                40,
+                675,
+                paint
+        );
+
+        canvas.drawText(
+                "Account number: 34121651",
+                40,
+                700,
+                paint
+        );
+
+        paint.setColor(Color.DKGRAY);
+        paint.setTextSize(12);
+
+        canvas.drawText(
+                "Thank you for your custom.",
+                40,
+                790,
+                paint
+        );
+
+        document.finishPage(page);
+
+        FileOutputStream output =
+                new FileOutputStream(file);
+
+        document.writeTo(output);
+
+        output.close();
+
+        document.close();
+
+        return file;
+    }
+                }
