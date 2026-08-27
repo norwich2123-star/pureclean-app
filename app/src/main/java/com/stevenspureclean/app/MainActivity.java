@@ -82,7 +82,25 @@ public class MainActivity extends Activity {
 
         if (url.startsWith("mailto:")) {
 
-            sendInvoice(url);
+            String subject =
+                    getQueryValue(
+                            url,
+                            "subject"
+                    );
+
+            if (
+                    subject != null
+                    &&
+                    subject.toLowerCase(Locale.UK)
+                            .contains("reminder")
+            ) {
+
+                sendReminderEmail(url);
+
+            } else {
+
+                sendInvoice(url);
+            }
 
             return true;
         }
@@ -107,8 +125,11 @@ public class MainActivity extends Activity {
             return true;
         }
 
-        if (url.contains("google.com/maps")
-                || url.contains("maps.google.com")) {
+        if (
+                url.contains("google.com/maps")
+                ||
+                url.contains("maps.google.com")
+        ) {
 
             try {
 
@@ -129,6 +150,42 @@ public class MainActivity extends Activity {
         }
 
         return false;
+    }
+
+    private String getEmailAddress(String mailUrl) {
+
+        try {
+
+            int start =
+                    "mailto:".length();
+
+            int question =
+                    mailUrl.indexOf("?");
+
+            String email;
+
+            if (question > start) {
+
+                email =
+                        mailUrl.substring(
+                                start,
+                                question
+                        );
+
+            } else {
+
+                email =
+                        mailUrl.substring(start);
+            }
+
+            return Uri.decode(email).trim();
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            return "";
+        }
     }
 
     private String getQueryValue(
@@ -238,33 +295,8 @@ public class MainActivity extends Activity {
 
         try {
 
-            int start =
-                    "mailto:".length();
-
-            int question =
-                    mailUrl.indexOf("?");
-
-            String email;
-
-            if (question > start) {
-
-                email =
-                        Uri.decode(
-                                mailUrl.substring(
-                                        start,
-                                        question
-                                )
-                        );
-
-            } else {
-
-                email =
-                        Uri.decode(
-                                mailUrl.substring(start)
-                        );
-            }
-
-            email = email.trim();
+            String email =
+                    getEmailAddress(mailUrl);
 
             String invoiceBody =
                     getQueryValue(
@@ -380,6 +412,63 @@ public class MainActivity extends Activity {
                     Intent.createChooser(
                             emailIntent,
                             "Send Invoice"
+                    )
+            );
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
+    }
+
+    private void sendReminderEmail(
+            String mailUrl) {
+
+        try {
+
+            String email =
+                    getEmailAddress(mailUrl);
+
+            String subject =
+                    getQueryValue(
+                            mailUrl,
+                            "subject"
+                    );
+
+            String body =
+                    getQueryValue(
+                            mailUrl,
+                            "body"
+                    );
+
+            Intent emailIntent =
+                    new Intent(
+                            Intent.ACTION_SENDTO
+                    );
+
+            emailIntent.setData(
+                    Uri.parse("mailto:")
+            );
+
+            emailIntent.putExtra(
+                    Intent.EXTRA_EMAIL,
+                    new String[]{email}
+            );
+
+            emailIntent.putExtra(
+                    Intent.EXTRA_SUBJECT,
+                    subject
+            );
+
+            emailIntent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    body
+            );
+
+            startActivity(
+                    Intent.createChooser(
+                            emailIntent,
+                            "Send Reminder"
                     )
             );
 
@@ -549,8 +638,11 @@ public class MainActivity extends Activity {
                 continue;
             }
 
-            if (clean.startsWith(
-                    "Amount due:")) {
+            if (
+                    clean.startsWith(
+                            "Amount due:"
+                    )
+            ) {
 
                 paint.setColor(green);
                 paint.setTextSize(22);
