@@ -37,16 +37,11 @@ public class MainActivity extends Activity {
 
         super.onCreate(savedInstanceState);
 
-        requestWindowFeature(
-                Window.FEATURE_NO_TITLE
-        );
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        webView =
-                new WebView(this);
+        webView = new WebView(this);
 
-        setContentView(
-                webView
-        );
+        setContentView(webView);
 
         WebSettings settings =
                 webView.getSettings();
@@ -70,9 +65,7 @@ public class MainActivity extends Activity {
                             WebResourceRequest request) {
 
                         return handleUrl(
-                                request
-                                        .getUrl()
-                                        .toString()
+                                request.getUrl().toString()
                         );
                     }
 
@@ -91,21 +84,16 @@ public class MainActivity extends Activity {
         );
     }
 
-    private boolean handleUrl(
-            String url) {
+    private boolean handleUrl(String url) {
 
         if (url == null) {
             return false;
         }
 
         if (
-                url.contains(
-                        "google.com/maps"
-                )
+                url.contains("google.com/maps")
                 ||
-                url.contains(
-                        "maps.google.com"
-                )
+                url.contains("maps.google.com")
         ) {
 
             try {
@@ -116,9 +104,7 @@ public class MainActivity extends Activity {
                                 Uri.parse(url)
                         );
 
-                startActivity(
-                        mapIntent
-                );
+                startActivity(mapIntent);
 
             } catch (Exception e) {
 
@@ -134,8 +120,28 @@ public class MainActivity extends Activity {
     public class AndroidBridge {
 
         @JavascriptInterface
-        public void sendInvoice(
+        public void emailCustomer(
                 String email,
+                String customerName,
+                String invoiceNumber,
+                String invoiceDate,
+                String dueDate,
+                String amount) {
+
+            runOnUiThread(
+                    () -> openInvoiceEmail(
+                            email,
+                            customerName,
+                            invoiceNumber,
+                            invoiceDate,
+                            dueDate,
+                            amount
+                    )
+            );
+        }
+
+        @JavascriptInterface
+        public void shareInvoicePdf(
                 String customerName,
                 String invoiceNumber,
                 String invoiceDate,
@@ -144,16 +150,14 @@ public class MainActivity extends Activity {
                 String amount) {
 
             runOnUiThread(
-                    () ->
-                            createAndSendInvoice(
-                                    email,
-                                    customerName,
-                                    invoiceNumber,
-                                    invoiceDate,
-                                    dueDate,
-                                    description,
-                                    amount
-                            )
+                    () -> createAndSharePdf(
+                            customerName,
+                            invoiceNumber,
+                            invoiceDate,
+                            dueDate,
+                            description,
+                            amount
+                    )
             );
         }
 
@@ -169,166 +173,74 @@ public class MainActivity extends Activity {
                 boolean overdue) {
 
             runOnUiThread(
-                    () ->
-                            createReminder(
-                                    email,
-                                    customerName,
-                                    invoiceNumber,
-                                    invoiceDate,
-                                    dueDate,
-                                    amount,
-                                    description,
-                                    overdue
-                            )
+                    () -> openReminderEmail(
+                            email,
+                            customerName,
+                            invoiceNumber,
+                            invoiceDate,
+                            dueDate,
+                            amount,
+                            description,
+                            overdue
+                    )
             );
         }
     }
 
-    private void createAndSendInvoice(
+    private void openInvoiceEmail(
             String email,
             String customerName,
             String invoiceNumber,
             String invoiceDate,
             String dueDate,
-            String description,
             String amount) {
 
         try {
-
-            email =
-                    email == null
-                            ? ""
-                            : email.trim();
-
-            File folder =
-                    new File(
-                            getCacheDir(),
-                            "invoices"
-                    );
-
-            if (!folder.exists()) {
-
-                folder.mkdirs();
-            }
-
-            File pdf =
-                    new File(
-                            folder,
-                            "PureClean-Invoice-"
-                                    + invoiceNumber
-                                    + ".pdf"
-                    );
-
-            makePdf(
-                    pdf,
-                    customerName,
-                    invoiceNumber,
-                    invoiceDate,
-                    dueDate,
-                    description,
-                    amount
-            );
-
-            Uri pdfUri =
-                    FileProvider.getUriForFile(
-                            this,
-                            getPackageName()
-                                    + ".fileprovider",
-                            pdf
-                    );
 
             String subject =
                     "Invoice #"
                             + invoiceNumber
                             + " - Steven's Pure Clean Exteriors";
 
-            String emailMessage =
+            String message =
                     "Hi "
                             + customerName
                             + ",\n\n"
                             + "Please find invoice #"
                             + invoiceNumber
-                            + " attached.\n\n"
+                            + " for £"
+                            + amount
+                            + ".\n\n"
                             + "Invoice date: "
                             + invoiceDate
                             + "\n"
                             + "Payment due: "
                             + dueDate
-                            + "\n"
-                            + "Amount due: £"
-                            + amount
                             + "\n\n"
                             + "Please make payment within 7 days.\n\n"
                             + "Thank you for your custom.\n\n"
                             + "Steven's Pure Clean Exteriors";
 
-            Intent emailIntent =
-                    new Intent(
-                            Intent.ACTION_SEND
+            Uri mailUri =
+                    Uri.parse(
+                            "mailto:"
+                                    + Uri.encode(email.trim())
+                                    + "?subject="
+                                    + Uri.encode(subject)
+                                    + "&body="
+                                    + Uri.encode(message)
                     );
 
-            /*
-             * Tell Android this is specifically
-             * an email message.
-             */
-            emailIntent.setType(
-                    "message/rfc822"
-            );
+            Intent intent =
+                    new Intent(
+                            Intent.ACTION_SENDTO,
+                            mailUri
+                    );
 
-            /*
-             * Customer email address.
-             */
-            emailIntent.putExtra(
-                    Intent.EXTRA_EMAIL,
-                    new String[]{
-                            email
-                    }
-            );
-
-            /*
-             * Email subject.
-             */
-            emailIntent.putExtra(
-                    Intent.EXTRA_SUBJECT,
-                    subject
-            );
-
-            /*
-             * Email message.
-             */
-            emailIntent.putExtra(
-                    Intent.EXTRA_TEXT,
-                    emailMessage
-            );
-
-            /*
-             * PDF invoice attachment.
-             */
-            emailIntent.putExtra(
-                    Intent.EXTRA_STREAM,
-                    pdfUri
-            );
-
-            emailIntent.setClipData(
-                    ClipData.newRawUri(
-                            "PureClean Invoice",
-                            pdfUri
-                    )
-            );
-
-            emailIntent.addFlags(
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-            );
-
-            /*
-             * Do NOT force Gmail here.
-             * Let Android hand all the email
-             * information to the chosen mail app.
-             */
             startActivity(
                     Intent.createChooser(
-                            emailIntent,
-                            "Send Invoice"
+                            intent,
+                            "Email Customer"
                     )
             );
 
@@ -338,7 +250,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void createReminder(
+    private void openReminderEmail(
             String email,
             String customerName,
             String invoiceNumber,
@@ -349,11 +261,6 @@ public class MainActivity extends Activity {
             boolean overdue) {
 
         try {
-
-            email =
-                    email == null
-                            ? ""
-                            : email.trim();
 
             String subject;
 
@@ -416,30 +323,117 @@ public class MainActivity extends Activity {
                     "\n\nThank you,\n"
                             + "Steven's Pure Clean Exteriors";
 
-            /*
-             * Reminder has no attachment,
-             * so a mailto address is reliable.
-             */
-            Uri reminderUri =
+            Uri mailUri =
                     Uri.parse(
                             "mailto:"
-                                    + Uri.encode(email)
+                                    + Uri.encode(email.trim())
                                     + "?subject="
                                     + Uri.encode(subject)
                                     + "&body="
                                     + Uri.encode(message)
                     );
 
-            Intent reminderIntent =
+            Intent intent =
                     new Intent(
                             Intent.ACTION_SENDTO,
-                            reminderUri
+                            mailUri
                     );
 
             startActivity(
                     Intent.createChooser(
-                            reminderIntent,
+                            intent,
                             "Send Reminder"
+                    )
+            );
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
+    }
+
+    private void createAndSharePdf(
+            String customerName,
+            String invoiceNumber,
+            String invoiceDate,
+            String dueDate,
+            String description,
+            String amount) {
+
+        try {
+
+            File folder =
+                    new File(
+                            getCacheDir(),
+                            "invoices"
+                    );
+
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+
+            File pdf =
+                    new File(
+                            folder,
+                            "PureClean-Invoice-"
+                                    + invoiceNumber
+                                    + ".pdf"
+                    );
+
+            makePdf(
+                    pdf,
+                    customerName,
+                    invoiceNumber,
+                    invoiceDate,
+                    dueDate,
+                    description,
+                    amount
+            );
+
+            Uri pdfUri =
+                    FileProvider.getUriForFile(
+                            this,
+                            getPackageName()
+                                    + ".fileprovider",
+                            pdf
+                    );
+
+            Intent shareIntent =
+                    new Intent(
+                            Intent.ACTION_SEND
+                    );
+
+            shareIntent.setType(
+                    "application/pdf"
+            );
+
+            shareIntent.putExtra(
+                    Intent.EXTRA_STREAM,
+                    pdfUri
+            );
+
+            shareIntent.putExtra(
+                    Intent.EXTRA_SUBJECT,
+                    "Invoice #"
+                            + invoiceNumber
+                            + " - Steven's Pure Clean Exteriors"
+            );
+
+            shareIntent.setClipData(
+                    ClipData.newRawUri(
+                            "PureClean Invoice",
+                            pdfUri
+                    )
+            );
+
+            shareIntent.addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+            );
+
+            startActivity(
+                    Intent.createChooser(
+                            shareIntent,
+                            "Share Invoice PDF"
                     )
             );
 
@@ -469,9 +463,7 @@ public class MainActivity extends Activity {
                 ).create();
 
         PdfDocument.Page page =
-                document.startPage(
-                        pageInfo
-                );
+                document.startPage(pageInfo);
 
         Canvas canvas =
                 page.getCanvas();
@@ -496,15 +488,11 @@ public class MainActivity extends Activity {
 
             InputStream input =
                     getAssets()
-                            .open(
-                                    "logo.jpg"
-                            );
+                            .open("logo.jpg");
 
             Bitmap logo =
                     BitmapFactory
-                            .decodeStream(
-                                    input
-                            );
+                            .decodeStream(input);
 
             if (logo != null) {
 
@@ -531,17 +519,9 @@ public class MainActivity extends Activity {
             e.printStackTrace();
         }
 
-        paint.setColor(
-                green
-        );
-
-        paint.setTextSize(
-                22
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
+        paint.setColor(green);
+        paint.setTextSize(22);
+        paint.setFakeBoldText(true);
 
         canvas.drawText(
                 "Steven's Pure Clean Exteriors",
@@ -550,13 +530,8 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setTextSize(
-                13
-        );
-
-        paint.setFakeBoldText(
-                false
-        );
+        paint.setTextSize(13);
+        paint.setFakeBoldText(false);
 
         canvas.drawText(
                 "Pure Results • Clean Exteriors",
@@ -565,17 +540,9 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(
-                Color.BLACK
-        );
-
-        paint.setTextSize(
-                28
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
+        paint.setColor(Color.BLACK);
+        paint.setTextSize(28);
+        paint.setFakeBoldText(true);
 
         canvas.drawText(
                 "INVOICE",
@@ -584,9 +551,7 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setTextSize(
-                15
-        );
+        paint.setTextSize(15);
 
         canvas.drawText(
                 "Invoice #"
@@ -596,13 +561,8 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(
-                false
-        );
-
-        paint.setTextSize(
-                12
-        );
+        paint.setFakeBoldText(false);
+        paint.setTextSize(12);
 
         canvas.drawText(
                 "Invoice date:",
@@ -618,13 +578,8 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(
-                green
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
+        paint.setColor(green);
+        paint.setFakeBoldText(true);
 
         canvas.drawText(
                 "Due:",
@@ -640,17 +595,9 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(
-                Color.BLACK
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setTextSize(
-                15
-        );
+        paint.setColor(Color.BLACK);
+        paint.setFakeBoldText(true);
+        paint.setTextSize(15);
 
         canvas.drawText(
                 "Bill To",
@@ -659,9 +606,7 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(
-                false
-        );
+        paint.setFakeBoldText(false);
 
         canvas.drawText(
                 customerName,
@@ -670,9 +615,7 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(
-                true
-        );
+        paint.setFakeBoldText(true);
 
         canvas.drawText(
                 "Description",
@@ -681,18 +624,14 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(
-                false
-        );
+        paint.setFakeBoldText(false);
 
         String cleanDescription =
                 description == null
                         ? ""
                         : description.trim();
 
-        if (
-                cleanDescription.isEmpty()
-        ) {
+        if (cleanDescription.isEmpty()) {
 
             cleanDescription =
                     "Exterior cleaning service";
@@ -705,17 +644,9 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(
-                green
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setTextSize(
-                24
-        );
+        paint.setColor(green);
+        paint.setFakeBoldText(true);
+        paint.setTextSize(24);
 
         canvas.drawText(
                 "Amount Due: £"
@@ -725,13 +656,8 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(
-                Color.BLACK
-        );
-
-        paint.setTextSize(
-                15
-        );
+        paint.setColor(Color.BLACK);
+        paint.setTextSize(15);
 
         canvas.drawText(
                 "Payment terms",
@@ -740,9 +666,7 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(
-                false
-        );
+        paint.setFakeBoldText(false);
 
         canvas.drawText(
                 "Please make payment within 7 days",
@@ -751,13 +675,8 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setTextSize(
-                16
-        );
+        paint.setFakeBoldText(true);
+        paint.setTextSize(16);
 
         canvas.drawText(
                 "Bank Transfer Details",
@@ -766,13 +685,8 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(
-                false
-        );
-
-        paint.setTextSize(
-                14
-        );
+        paint.setFakeBoldText(false);
+        paint.setTextSize(14);
 
         canvas.drawText(
                 "Account name: Steven B Attew",
@@ -802,13 +716,8 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(
-                Color.DKGRAY
-        );
-
-        paint.setTextSize(
-                12
-        );
+        paint.setColor(Color.DKGRAY);
+        paint.setTextSize(12);
 
         canvas.drawText(
                 "Thank you for your custom.",
@@ -817,20 +726,14 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        document.finishPage(
-                page
-        );
+        document.finishPage(page);
 
         try {
 
             FileOutputStream output =
-                    new FileOutputStream(
-                            file
-                    );
+                    new FileOutputStream(file);
 
-            document.writeTo(
-                    output
-            );
+            document.writeTo(output);
 
             output.close();
 
@@ -841,4 +744,4 @@ public class MainActivity extends Activity {
 
         document.close();
     }
-}
+            }
