@@ -91,7 +91,7 @@ nav button.active{
 }
 
 main{
-  padding:14px;
+  padding:14px 14px 100px 14px;
   max-width:850px;
   margin:auto;
 }
@@ -144,8 +144,6 @@ h2{
   justify-content:space-between;
   gap:8px;
 }
-
-.wrap{ flex-wrap:wrap; }
 
 .muted{
   color:var(--muted);
@@ -359,13 +357,11 @@ textarea{ min-height:70px; }
 </header>
 
 <nav>
-
 <button class="active" onclick="openPage('dashboard',this)">Dashboard</button>
 <button onclick="openPage('customers',this)">Customers</button>
 <button onclick="openPage('planner',this)">Planner</button>
 <button onclick="openPage('invoices',this)">Invoices</button>
 <button onclick="openPage('map',this)">Map</button>
-
 </nav>
 
 <main>
@@ -559,7 +555,16 @@ oninput="renderInvoices()"
 
 </div>
 
-<div class="card exportBox">
+<button
+class="action"
+onclick="toggleAccountantExport()">
+Accountant Export
+</button>
+
+<div
+id="accountantExportBox"
+class="card exportBox"
+style="display:none;">
 
 <h3 style="color:#9bd600;margin-top:0;">Accountant Export</h3>
 
@@ -1322,6 +1327,23 @@ window.location.href=mailto;
 
 }
 
+function toggleAccountantExport(){
+
+let box =
+document.getElementById("accountantExportBox");
+
+if(
+box.style.display==="none"
+||
+box.style.display===""
+){
+box.style.display="block";
+}else{
+box.style.display="none";
+}
+
+}
+
 function toggleExportDates(){
 
 let box = document.getElementById("exportDates");
@@ -1802,7 +1824,6 @@ year:"numeric"
 
 }
 
-/* Add due dates to older unpaid invoices without removing existing data */
 let invoiceDataChanged=false;
 
 invoices.forEach(inv => {
