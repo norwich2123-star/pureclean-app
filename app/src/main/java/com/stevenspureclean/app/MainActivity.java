@@ -3,11 +3,14 @@ package com.stevenspureclean.app;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.Window;
+
 import android.content.Intent;
 import android.content.ClipData;
-import android.net.Uri;
 import android.content.ActivityNotFoundException;
 
+import android.net.Uri;
+
+import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -26,11 +29,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Locale;
-
 public class MainActivity extends Activity {
+
+    private WebView webView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,17 +40,29 @@ public class MainActivity extends Activity {
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        WebView webView = new WebView(this);
+        webView = new WebView(this);
+
         setContentView(webView);
 
-        WebSettings settings = webView.getSettings();
+        WebSettings settings =
+                webView.getSettings();
 
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
 
-        webView.setWebViewClient(new WebViewClient() {
+        /*
+         * This is the reliable connection
+         * between the HTML app and Android.
+         */
+        webView.addJavascriptInterface(
+                new AndroidBridge(),
+                "Android"
+        );
+
+        webView.setWebViewClient(
+                new WebViewClient() {
 
             @Override
             public boolean shouldOverrideUrlLoading(
@@ -75,55 +88,11 @@ public class MainActivity extends Activity {
         );
     }
 
-    private boolean handleUrl(String url) {
+    private boolean handleUrl(
+            String url) {
 
         if (url == null) {
             return false;
-        }
-
-        if (url.startsWith("mailto:")) {
-
-            String subject =
-                    getQueryValue(
-                            url,
-                            "subject"
-                    );
-
-            if (
-                    subject != null
-                    &&
-                    subject.toLowerCase(Locale.UK)
-                            .contains("reminder")
-            ) {
-
-                sendReminderEmail(url);
-
-            } else {
-
-                sendInvoice(url);
-            }
-
-            return true;
-        }
-
-        if (url.startsWith("intent://")) {
-
-            try {
-
-                Intent intent =
-                        Intent.parseUri(
-                                url,
-                                Intent.URI_INTENT_SCHEME
-                        );
-
-                startActivity(intent);
-
-            } catch (Exception e) {
-
-                e.printStackTrace();
-            }
-
-            return true;
         }
 
         if (
@@ -153,170 +122,72 @@ public class MainActivity extends Activity {
         return false;
     }
 
-    private String getEmailAddress(
-            String mailUrl) {
+    /*
+     * HTML calls these functions directly.
+     */
+    public class AndroidBridge {
 
-        try {
+        @JavascriptInterface
+        public void sendInvoice(
+                String email,
+                String customerName,
+                String invoiceNumber,
+                String invoiceDate,
+                String dueDate,
+                String description,
+                String amount) {
 
-            int start =
-                    "mailto:".length();
+            runOnUiThread(() -> {
 
-            int question =
-                    mailUrl.indexOf("?");
+                createAndSendInvoice(
+                        email,
+                        customerName,
+                        invoiceNumber,
+                        invoiceDate,
+                        dueDate,
+                        description,
+                        amount
+                );
+            });
+        }
 
-            String email;
+        @JavascriptInterface
+        public void sendReminder(
+                String email,
+                String customerName,
+                String invoiceNumber,
+                String invoiceDate,
+                String dueDate,
+                String amount,
+                String description,
+                boolean overdue) {
 
-            if (question > start) {
+            runOnUiThread(() -> {
 
-                email =
-                        mailUrl.substring(
-                                start,
-                                question
-                        );
-
-            } else {
-
-                email =
-                        mailUrl.substring(start);
-            }
-
-            return Uri.decode(email).trim();
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-
-            return "";
+                createReminder(
+                        email,
+                        customerName,
+                        invoiceNumber,
+                        invoiceDate,
+                        dueDate,
+                        amount,
+                        description,
+                        overdue
+                );
+            });
         }
     }
 
-    private String getQueryValue(
-            String url,
-            String name) {
+    private void createAndSendInvoice(
+            String email,
+            String customerName,
+            String invoiceNumber,
+            String invoiceDate,
+            String dueDate,
+            String description,
+            String amount) {
 
         try {
-
-            int q =
-                    url.indexOf("?");
-
-            if (q < 0) {
-                return "";
-            }
-
-            String query =
-                    url.substring(q + 1);
-
-            String[] parts =
-                    query.split("&");
-
-            for (String part : parts) {
-
-                String prefix =
-                        name + "=";
-
-                if (part.startsWith(prefix)) {
-
-                    return Uri.decode(
-                            part.substring(
-                                    prefix.length()
-                            )
-                    );
-                }
-            }
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-        }
-
-        return "";
-    }
-
-    private int getNextInvoiceNumber() {
-
-        android.content.SharedPreferences prefs =
-                getSharedPreferences(
-                        "PureCleanPrefs",
-                        MODE_PRIVATE
-                );
-
-        int current =
-                prefs.getInt(
-                        "nextInvoiceNumber",
-                        1001
-                );
-
-        prefs.edit()
-                .putInt(
-                        "nextInvoiceNumber",
-                        current + 1
-                )
-                .apply();
-
-        return current;
-    }
-
-    private String getInvoiceDate() {
-
-        Calendar calendar =
-                Calendar.getInstance();
-
-        SimpleDateFormat formatter =
-                new SimpleDateFormat(
-                        "dd MMMM yyyy",
-                        Locale.UK
-                );
-
-        return formatter.format(
-                calendar.getTime()
-        );
-    }
-
-    private String getDueDate() {
-
-        Calendar calendar =
-                Calendar.getInstance();
-
-        calendar.add(
-                Calendar.DAY_OF_YEAR,
-                7
-        );
-
-        SimpleDateFormat formatter =
-                new SimpleDateFormat(
-                        "dd MMMM yyyy",
-                        Locale.UK
-                );
-
-        return formatter.format(
-                calendar.getTime()
-        );
-    }
-
-    private void sendInvoice(
-            String mailUrl) {
-
-        try {
-
-            String email =
-                    getEmailAddress(
-                            mailUrl
-                    );
-
-            String invoiceBody =
-                    getQueryValue(
-                            mailUrl,
-                            "body"
-                    );
-
-            int invoiceNumber =
-                    getNextInvoiceNumber();
-
-            String invoiceDate =
-                    getInvoiceDate();
-
-            String dueDate =
-                    getDueDate();
 
             File folder =
                     new File(
@@ -325,7 +196,6 @@ public class MainActivity extends Activity {
                     );
 
             if (!folder.exists()) {
-
                 folder.mkdirs();
             }
 
@@ -339,10 +209,12 @@ public class MainActivity extends Activity {
 
             makePdf(
                     pdf,
-                    invoiceBody,
+                    customerName,
                     invoiceNumber,
                     invoiceDate,
-                    dueDate
+                    dueDate,
+                    description,
+                    amount
             );
 
             Uri pdfUri =
@@ -359,7 +231,9 @@ public class MainActivity extends Activity {
                             + " - Steven's Pure Clean Exteriors";
 
             String emailMessage =
-                    "Hi,\n\n"
+                    "Hi "
+                            + customerName
+                            + ",\n\n"
                             + "Please find invoice #"
                             + invoiceNumber
                             + " attached.\n\n"
@@ -368,6 +242,9 @@ public class MainActivity extends Activity {
                             + "\n"
                             + "Payment due: "
                             + dueDate
+                            + "\n"
+                            + "Amount due: £"
+                            + amount
                             + "\n\n"
                             + "Please make payment within 7 days.\n\n"
                             + "Thank you for your custom.\n\n"
@@ -378,25 +255,15 @@ public class MainActivity extends Activity {
                             Intent.ACTION_SEND
                     );
 
-            /*
-             * Important:
-             * Give Gmail the recipient in the mailto URI
-             * AND as EXTRA_EMAIL.
-             */
-            emailIntent.setData(
-                    Uri.parse(
-                            "mailto:"
-                                    + Uri.encode(email)
-                    )
-            );
-
             emailIntent.setType(
                     "application/pdf"
             );
 
             emailIntent.putExtra(
                     Intent.EXTRA_EMAIL,
-                    new String[]{email}
+                    new String[]{
+                            email
+                    }
             );
 
             emailIntent.putExtra(
@@ -425,6 +292,9 @@ public class MainActivity extends Activity {
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
             );
 
+            /*
+             * Gmail first.
+             */
             emailIntent.setPackage(
                     "com.google.android.gm"
             );
@@ -455,27 +325,78 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void sendReminderEmail(
-            String mailUrl) {
+    private void createReminder(
+            String email,
+            String customerName,
+            String invoiceNumber,
+            String invoiceDate,
+            String dueDate,
+            String amount,
+            String description,
+            boolean overdue) {
 
         try {
 
-            String email =
-                    getEmailAddress(
-                            mailUrl
-                    );
+            String subject;
 
-            String subject =
-                    getQueryValue(
-                            mailUrl,
-                            "subject"
-                    );
+            if (overdue) {
 
-            String body =
-                    getQueryValue(
-                            mailUrl,
-                            "body"
-                    );
+                subject =
+                        "Overdue Invoice #"
+                                + invoiceNumber
+                                + " - Steven's Pure Clean Exteriors";
+
+            } else {
+
+                subject =
+                        "Invoice Reminder #"
+                                + invoiceNumber
+                                + " - Steven's Pure Clean Exteriors";
+            }
+
+            String message =
+                    "Hi "
+                            + customerName
+                            + ",\n\n"
+                            + "This is a friendly reminder regarding invoice #"
+                            + invoiceNumber
+                            + ".\n\n"
+                            + "Invoice date: "
+                            + invoiceDate
+                            + "\n"
+                            + "Due date: "
+                            + dueDate
+                            + "\n"
+                            + "Amount due: £"
+                            + amount
+                            + "\n";
+
+            if (
+                    description != null
+                    &&
+                    !description.trim().isEmpty()
+            ) {
+
+                message +=
+                        "Description: "
+                                + description
+                                + "\n";
+            }
+
+            if (overdue) {
+
+                message +=
+                        "\nThis invoice is now overdue.";
+
+            } else {
+
+                message +=
+                        "\nPlease make payment by the due date.";
+            }
+
+            message +=
+                    "\n\nThank you,\n"
+                            + "Steven's Pure Clean Exteriors";
 
             Uri mailUri =
                     Uri.parse(
@@ -484,12 +405,12 @@ public class MainActivity extends Activity {
                                     + "?subject="
                                     + Uri.encode(subject)
                                     + "&body="
-                                    + Uri.encode(body)
+                                    + Uri.encode(message)
                     );
 
             Intent reminderIntent =
                     new Intent(
-                            Intent.ACTION_VIEW,
+                            Intent.ACTION_SENDTO,
                             mailUri
                     );
 
@@ -522,10 +443,12 @@ public class MainActivity extends Activity {
 
     private void makePdf(
             File file,
-            String text,
-            int invoiceNumber,
+            String customerName,
+            String invoiceNumber,
             String invoiceDate,
-            String dueDate) {
+            String dueDate,
+            String description,
+            String amount) {
 
         PdfDocument document =
                 new PdfDocument();
@@ -633,19 +556,25 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "Invoice #"
                         + invoiceNumber,
-                380,
+                360,
                 145,
                 paint
         );
 
         paint.setFakeBoldText(false);
-        paint.setTextSize(13);
+        paint.setTextSize(12);
 
         canvas.drawText(
-                "Invoice date: "
-                        + invoiceDate,
-                380,
+                "Invoice date:",
+                360,
                 170,
+                paint
+        );
+
+        canvas.drawText(
+                invoiceDate,
+                360,
+                188,
                 paint
         );
 
@@ -653,81 +582,88 @@ public class MainActivity extends Activity {
         paint.setFakeBoldText(true);
 
         canvas.drawText(
-                "Due: "
-                        + dueDate,
-                380,
-                195,
+                "Due:",
+                360,
+                213,
+                paint
+        );
+
+        canvas.drawText(
+                dueDate,
+                400,
+                213,
                 paint
         );
 
         paint.setColor(Color.BLACK);
-        paint.setFakeBoldText(false);
+        paint.setFakeBoldText(true);
         paint.setTextSize(15);
 
-        float y = 235;
+        canvas.drawText(
+                "Bill To",
+                40,
+                235,
+                paint
+        );
 
-        String[] lines =
-                text.split("\n");
+        paint.setFakeBoldText(false);
 
-        for (String line : lines) {
+        canvas.drawText(
+                customerName,
+                40,
+                260,
+                paint
+        );
 
-            String clean =
-                    line.trim();
+        paint.setFakeBoldText(true);
+        paint.setTextSize(15);
 
-            if (clean.isEmpty()) {
+        canvas.drawText(
+                "Description",
+                40,
+                315,
+                paint
+        );
 
-                y += 15;
-                continue;
-            }
+        paint.setFakeBoldText(false);
 
-            if (
-                    clean.startsWith(
-                            "Amount due:"
-                    )
-            ) {
+        String cleanDescription =
+                description == null
+                        ? ""
+                        : description.trim();
 
-                paint.setColor(green);
-                paint.setTextSize(22);
-                paint.setFakeBoldText(true);
+        if (cleanDescription.isEmpty()) {
 
-                canvas.drawText(
-                        clean,
-                        40,
-                        y,
-                        paint
-                );
-
-                paint.setColor(Color.BLACK);
-                paint.setTextSize(15);
-                paint.setFakeBoldText(false);
-
-                y += 35;
-
-            } else {
-
-                canvas.drawText(
-                        clean,
-                        40,
-                        y,
-                        paint
-                );
-
-                y += 24;
-            }
-
-            if (y > 500) {
-                break;
-            }
+            cleanDescription =
+                    "Exterior cleaning service";
         }
+
+        canvas.drawText(
+                cleanDescription,
+                40,
+                345,
+                paint
+        );
+
+        paint.setColor(green);
+        paint.setFakeBoldText(true);
+        paint.setTextSize(24);
+
+        canvas.drawText(
+                "Amount Due: £"
+                        + amount,
+                40,
+                405,
+                paint
+        );
 
         paint.setColor(Color.BLACK);
         paint.setTextSize(15);
-        paint.setFakeBoldText(true);
 
         canvas.drawText(
                 "Payment terms",
                 40,
-                560,
+                520,
                 paint
         );
 
@@ -736,7 +672,7 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "Please make payment within 7 days",
                 40,
-                585,
+                545,
                 paint
         );
 
@@ -746,7 +682,7 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "Bank Transfer Details",
                 40,
-                635,
+                605,
                 paint
         );
 
@@ -756,28 +692,28 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "Account name: Steven B Attew",
                 40,
-                665,
+                635,
                 paint
         );
 
         canvas.drawText(
                 "Bank: Monzo",
                 40,
-                690,
+                660,
                 paint
         );
 
         canvas.drawText(
                 "Sort code: 04-00-06",
                 40,
-                715,
+                685,
                 paint
         );
 
         canvas.drawText(
                 "Account number: 34121651",
                 40,
-                740,
+                710,
                 paint
         );
 
@@ -787,7 +723,7 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "Thank you for your custom.",
                 40,
-                795,
+                790,
                 paint
         );
 
@@ -813,4 +749,4 @@ public class MainActivity extends Activity {
 
         document.close();
     }
-}
+    }
