@@ -240,6 +240,16 @@ background:#7c4dff;
 color:#fff;
 }
 
+.backupbtn{
+background:var(--lime);
+color:#000;
+}
+
+.restorebtn{
+background:#2e5fa8;
+color:#fff;
+}
+
 .customer-list,
 .invoice-list,
 .job-list{
@@ -357,6 +367,26 @@ margin-top:8px;
 
 .exportDates.show{
 display:grid;
+}
+
+.backup-box{
+margin-top:12px;
+}
+
+.backup-box h3{
+color:var(--lime);
+margin:0 0 6px;
+}
+
+.backup-buttons{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:8px;
+margin-top:10px;
+}
+
+.backup-buttons .action{
+margin-top:0;
 }
 
 #customerMap{
@@ -519,6 +549,40 @@ View all
 id="dashInvoices"
 class="muted">
 No unpaid invoices
+</div>
+
+</div>
+
+<div class="card backup-box">
+
+<h3>
+Business Backup
+</h3>
+
+<div class="muted">
+Keep a copy of your customers, invoices, payment records and cleaning schedule.
+</div>
+
+<div class="backup-buttons">
+
+<button
+class="action backupbtn"
+onclick="backupBusinessData()">
+Backup Data
+</button>
+
+<button
+class="action restorebtn"
+onclick="restoreBusinessData()">
+Restore Data
+</button>
+
+</div>
+
+<div
+class="muted"
+style="margin-top:9px;">
+Keep your backup somewhere safe such as Google Drive or your phone's Documents folder.
 </div>
 
 </div>
@@ -952,6 +1016,224 @@ JSON.stringify(invoices)
 );
 
 updateDashboard();
+
+}
+
+function backupBusinessData(){
+
+let backup={
+
+app:
+"Steven's Pure Clean Exteriors",
+
+backupVersion:
+1,
+
+created:
+new Date().toISOString(),
+
+customers:
+customers,
+
+invoices:
+invoices,
+
+nextInvoiceNumber:
+Number(
+localStorage.getItem(
+"pcNextInvoiceNumber"
+)
+||
+1001
+)
+
+};
+
+let backupJson=
+JSON.stringify(
+backup,
+null,
+2
+);
+
+if(
+typeof Android!=="undefined"
+&&
+Android.backupBusinessData
+){
+
+Android.backupBusinessData(
+backupJson
+);
+
+}else{
+
+alert(
+"Android backup system is not available."
+);
+
+}
+
+}
+
+function restoreBusinessData(){
+
+if(
+!confirm(
+"Restore a business backup?\n\nYour current customers and invoices will be replaced by the data in the backup file."
+)
+){
+
+return;
+
+}
+
+if(
+typeof Android!=="undefined"
+&&
+Android.restoreBusinessData
+){
+
+Android.restoreBusinessData();
+
+}else{
+
+alert(
+"Android restore system is not available."
+);
+
+}
+
+}
+
+function restoreBusinessBackup(
+backupText
+){
+
+try{
+
+let backup=
+JSON.parse(
+backupText
+);
+
+if(
+!backup
+||
+!Array.isArray(
+backup.customers
+)
+||
+!Array.isArray(
+backup.invoices
+)
+){
+
+alert(
+"This is not a valid Pure Clean business backup."
+);
+
+return;
+
+}
+
+let restoredCustomers=
+backup.customers;
+
+let restoredInvoices=
+backup.invoices;
+
+let restoredNextNumber=
+Number(
+backup.nextInvoiceNumber
+);
+
+if(
+!Number.isFinite(
+restoredNextNumber
+)
+||
+restoredNextNumber<1
+){
+
+let numbers=
+restoredInvoices
+.map(
+i=>
+Number(
+i.invoiceNumber
+)
+)
+.filter(
+n=>
+Number.isFinite(n)
+);
+
+restoredNextNumber=
+numbers.length
+?
+Math.max(
+...numbers
+)+1
+:
+1001;
+
+}
+
+customers=
+restoredCustomers;
+
+invoices=
+restoredInvoices;
+
+localStorage.setItem(
+"pcCustomers",
+JSON.stringify(
+customers
+)
+);
+
+localStorage.setItem(
+"pcInvoices",
+JSON.stringify(
+invoices
+)
+);
+
+localStorage.setItem(
+"pcNextInvoiceNumber",
+String(
+restoredNextNumber
+)
+);
+
+renderCustomers();
+
+renderPlanner();
+
+renderInvoices();
+
+updateDashboard();
+
+alert(
+"Business data restored successfully.\n\nCustomers: "
++
+customers.length
++
+"\nInvoices: "
++
+invoices.length
+);
+
+}catch(error){
+
+console.log(error);
+
+alert(
+"The backup file could not be restored. Please choose a valid Pure Clean backup file."
+);
+
+}
 
 }
 
@@ -3226,14 +3508,29 @@ n=>
 Number.isFinite(n)
 );
 
+let storedNext=
+Number(
+localStorage.getItem(
+"pcNextInvoiceNumber"
+)
+||
+1001
+);
+
 let nextNumber=
 usedNumbers.length
 ?
 Math.max(
+Math.max(
 ...usedNumbers
-)+1
+)+1,
+storedNext
+)
 :
-1001;
+Math.max(
+1001,
+storedNext
+);
 
 invoices
 .sort(
@@ -3312,4 +3609,4 @@ updateDashboard();
 </script>
 
 </body>
-  </html>
+</html>
