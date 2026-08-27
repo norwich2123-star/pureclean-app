@@ -1,3406 +1,805 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-
-<meta charset="UTF-8">
-
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1.0"
->
-
-<title>Steven's Pure Clean Exteriors</title>
-
-<link
-rel="stylesheet"
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
->
-
-<style>
-
-*{
-box-sizing:border-box;
-}
-
-:root{
---lime:#9bd600;
---lime2:#b8e63e;
---bg:#050505;
---panel:#111;
---border:#303030;
---muted:#999;
---white:#f5f5f5;
-}
-
-html,
-body{
-margin:0;
-padding:0;
-background:var(--bg);
-color:var(--white);
-font-family:Arial,sans-serif;
-font-size:14px;
-}
-
-header{
-display:flex;
-align-items:center;
-gap:12px;
-padding:34px 14px 12px;
-background:#101010;
-border-bottom:1px solid #242424;
-}
-
-.logo{
-width:64px;
-height:64px;
-border-radius:50%;
-object-fit:cover;
-flex-shrink:0;
-}
-
-.brand h1{
-margin:0;
-color:var(--lime2);
-font-size:18px;
-line-height:1.2;
-}
-
-.brand p{
-margin:5px 0 0;
-color:#939393;
-font-size:12px;
-}
-
-nav{
-display:flex;
-overflow-x:auto;
-background:#090909;
-border-bottom:1px solid #282828;
-padding:7px;
-gap:4px;
-}
-
-nav button{
-border:0;
-background:transparent;
-color:var(--lime);
-padding:10px 12px;
-border-radius:10px;
-font-weight:bold;
-font-size:13px;
-min-width:84px;
-white-space:nowrap;
-}
-
-nav button.active{
-background:var(--lime);
-color:#000;
-}
-
-main{
-padding:14px 14px 100px;
-max-width:850px;
-margin:auto;
-}
-
-.screen{
-display:none;
-}
-
-.screen.active{
-display:block;
-}
-
-h2{
-margin:5px 0 16px;
-color:var(--lime);
-font-size:24px;
-}
-
-.grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:9px;
-}
-
-.card,
-.item{
-background:var(--panel);
-border:1px solid var(--border);
-border-radius:14px;
-padding:14px;
-}
-
-.stat{
-min-height:105px;
-}
-
-.label{
-color:#a4ce3d;
-font-size:12px;
-}
-
-.value{
-margin-top:14px;
-color:var(--lime);
-font-size:28px;
-font-weight:bold;
-}
-
-.orange{
-color:#ffc33d;
-}
-
-.green{
-color:#41dc83;
-}
-
-.red{
-color:#ff5572;
-}
-
-.section{
-margin-top:12px;
-}
-
-.row{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:8px;
-}
-
-.muted{
-color:var(--muted);
-font-size:12px;
-line-height:1.5;
-}
-
-input,
-textarea,
-select{
-width:100%;
-background:#1b1b1b;
-color:#fff;
-border:1px solid #3d3d3d;
-border-radius:10px;
-padding:11px;
-margin-top:7px;
-font-size:14px;
-}
-
-textarea{
-min-height:70px;
-}
-
-.action{
-width:100%;
-border:0;
-border-radius:10px;
-padding:12px;
-margin-top:8px;
-background:var(--lime);
-color:#000;
-font-weight:bold;
-font-size:14px;
-}
-
-.small{
-width:auto;
-display:inline-block;
-padding:8px 10px;
-margin:4px 3px 0 0;
-font-size:12px;
-}
-
-.secondary{
-background:#292929;
-color:#fff;
-border:1px solid #444;
-}
-
-.danger{
-background:#a52b3d;
-color:#fff;
-}
-
-.blue{
-background:#356fa8;
-color:#fff;
-}
-
-.emailbtn{
-background:#1565c0;
-color:#fff;
-}
-
-.reminderbtn{
-background:#7c4dff;
-color:#fff;
-}
-
-.restorebtn{
-background:#2e5fa8;
-color:#fff;
-}
-
-.customer-list,
-.invoice-list,
-.job-list{
-display:grid;
-gap:8px;
-margin-top:10px;
-}
-
-.customer-name{
-color:var(--lime2);
-font-size:16px;
-font-weight:bold;
-}
-
-.price{
-color:#49df88;
-font-weight:bold;
-}
-
-.two{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:8px;
-}
-
-.formBox{
-display:none;
-margin-top:12px;
-}
-
-.formBox.show{
-display:block;
-}
-
-.badge{
-display:inline-block;
-padding:4px 8px;
-border-radius:20px;
-font-size:11px;
-font-weight:bold;
-}
-
-.paid{
-background:#183c27;
-color:#63e99d;
-}
-
-.unpaid{
-background:#4c2b10;
-color:#ffc45e;
-}
-
-.overdue{
-background:#4a1520;
-color:#ff6d86;
-}
-
-.filterbar{
-display:flex;
-gap:6px;
-flex-wrap:wrap;
-margin-top:10px;
-}
-
-.filterbar button{
-width:auto;
-margin:0;
-}
-
-.filterbar button.selected{
-background:var(--lime);
-color:#000;
-}
-
-.invoice-summary{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:8px;
-margin-top:10px;
-}
-
-.mini-stat{
-background:#0d0d0d;
-border:1px solid #292929;
-border-radius:12px;
-padding:12px;
-}
-
-.mini-stat .num{
-margin-top:5px;
-font-size:22px;
-font-weight:bold;
-}
-
-.invoice-meta{
-margin-top:7px;
-line-height:1.6;
-}
-
-.overdue-text{
-color:#ff6d86;
-font-weight:bold;
-}
-
-.exportBox{
-margin-top:12px;
-}
-
-.exportDates{
-display:none;
-grid-template-columns:1fr 1fr;
-gap:8px;
-margin-top:8px;
-}
-
-.exportDates.show{
-display:grid;
-}
-
-.backup-buttons{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:8px;
-margin-top:10px;
-}
-
-.backup-buttons button{
-margin-top:0;
-}
-
-.email-help{
-color:#888;
-font-size:11px;
-margin-top:5px;
-}
-
-#customerMap{
-width:100%;
-height:430px;
-border-radius:12px;
-overflow:hidden;
-background:#181818;
-border:1px solid var(--border);
-}
-
-.map-status{
-color:#aaa;
-font-size:12px;
-margin-bottom:10px;
-}
-
-.empty{
-color:#999;
-padding:16px 4px;
-}
-
-</style>
-
-</head>
-
-<body>
-
-<header>
-
-<img
-src="logo.jpg"
-class="logo"
-alt="logo"
->
-
-<div class="brand">
-
-<h1>
-Steven's Pure Clean Exteriors
-</h1>
-
-<p>
-Pure Results • Clean Exteriors
-</p>
-
-</div>
-
-</header>
-
-<nav>
-
-<button
-class="active"
-onclick="openPage('dashboard',this)">
-Dashboard
-</button>
-
-<button
-onclick="openPage('customers',this)">
-Customers
-</button>
-
-<button
-onclick="openPage('planner',this)">
-Planner
-</button>
-
-<button
-onclick="openPage('invoices',this)">
-Invoices
-</button>
-
-<button
-onclick="openPage('map',this)">
-Map
-</button>
-
-</nav>
-
-<main>
-
-<!-- DASHBOARD -->
-
-<section
-id="dashboard"
-class="screen active">
-
-<h2>Dashboard</h2>
-
-<div class="grid">
-
-<div class="card stat">
-<div class="label">CUSTOMERS</div>
-<div class="value" id="dashCustomers">0</div>
-</div>
-
-<div class="card stat">
-<div class="label">UNPAID</div>
-<div class="value orange" id="dashUnpaid">£0.00</div>
-</div>
-
-<div class="card stat">
-<div class="label">PAID THIS MONTH</div>
-<div class="value green" id="dashPaid">£0.00</div>
-</div>
-
-<div class="card stat">
-<div class="label">DUE SOON</div>
-<div class="value red" id="dashDue">0</div>
-</div>
-
-</div>
-
-<div class="card section">
-
-<div class="row">
-
-<h3 style="color:#9bd600">
-Today's Round
-</h3>
-
-<button
-class="action small secondary"
-onclick="openPage('planner')">
-View all
-</button>
-
-</div>
-
-<div
-id="todayJobs"
-class="muted">
-No jobs due today
-</div>
-
-</div>
-
-<div class="card section">
-
-<div class="row">
-
-<h3 style="color:#9bd600">
-Unpaid Invoices
-</h3>
-
-<button
-class="action small secondary"
-onclick="openPage('invoices')">
-View all
-</button>
-
-</div>
-
-<div
-id="dashInvoices"
-class="muted">
-No unpaid invoices
-</div>
-
-</div>
-
-<div class="card section">
-
-<h3 style="color:#9bd600;margin-top:0;">
-Business Backup
-</h3>
-
-<div class="muted">
-Save a copy of your customers, invoices and cleaning schedule.
-</div>
-
-<div class="backup-buttons">
-
-<button
-class="action"
-onclick="backupBusinessData()">
-Backup Data
-</button>
-
-<button
-class="action restorebtn"
-onclick="restoreBusinessData()">
-Restore Data
-</button>
-
-</div>
-
-</div>
-
-</section>
-
-<!-- CUSTOMERS -->
-
-<section
-id="customers"
-class="screen">
-
-<h2>Customers</h2>
-
-<input
-id="customerSearch"
-placeholder="Search name, address or postcode..."
-oninput="renderCustomers()"
->
-
-<button
-class="action"
-onclick="newCustomer()">
-+ Add Customer
-</button>
-
-<div
-id="customerForm"
-class="formBox card">
-
-<h3
-id="customerFormTitle"
-style="color:#9bd600">
-Add Customer
-</h3>
-
-<input
-type="hidden"
-id="customerId"
->
-
-<label>Name</label>
-<input id="customerName">
-
-<label>Address</label>
-<input id="customerAddress">
-
-<label>Postcode</label>
-<input id="customerPostcode">
-
-<label>Phone</label>
-
-<input
-id="customerPhone"
-type="tel"
->
-
-<label>Email</label>
-
-<input
-id="customerEmail"
-type="email"
-inputmode="email"
-autocapitalize="none"
-spellcheck="false"
-placeholder="customer@example.com"
->
-
-<div class="email-help">
-Enter the customer's full email address.
-</div>
-
-<div class="two">
-
-<div>
-
-<label>Price £</label>
-
-<input
-id="customerPrice"
-type="number"
-step="0.01"
->
-
-</div>
-
-<div>
-
-<label>Frequency</label>
-
-<select id="customerFrequency">
-
-<option value="1">Weekly</option>
-<option value="2">2 Weekly</option>
-<option value="4">4 Weekly</option>
-<option value="6">6 Weekly</option>
-<option value="8">8 Weekly</option>
-<option value="10">10 Weekly</option>
-<option value="12">12 Weekly</option>
-
-</select>
-
-</div>
-
-</div>
-
-<label>Next Clean</label>
-
-<input
-type="date"
-id="customerNextClean"
->
-
-<label>Services</label>
-
-<input
-id="customerServices"
-placeholder="Windows, gutters, fascia, soffits..."
->
-
-<label>Access Notes</label>
-
-<textarea id="customerNotes"></textarea>
-
-<button
-class="action"
-onclick="saveCustomer()">
-Save Customer
-</button>
-
-<button
-class="action secondary"
-onclick="closeCustomerForm()">
-Cancel
-</button>
-
-</div>
-
-<div
-id="customerList"
-class="customer-list">
-</div>
-
-</section>
-
-<!-- PLANNER -->
-
-<section
-id="planner"
-class="screen">
-
-<h2>Planner</h2>
-
-<label>Date</label>
-
-<input
-type="date"
-id="plannerDate"
-onchange="renderPlanner()"
->
-
-<div
-id="plannerJobs"
-class="job-list">
-</div>
-
-</section>
-
-<!-- INVOICES -->
-
-<section
-id="invoices"
-class="screen">
-
-<h2>Invoices</h2>
-
-<button
-class="action"
-onclick="openInvoiceForm()">
-+ New Invoice
-</button>
-
-<div
-id="invoiceForm"
-class="formBox card">
-
-<h3 style="color:#9bd600">
-Create Invoice
-</h3>
-
-<label>Customer</label>
-
-<select id="invoiceCustomer"></select>
-
-<label>Amount £</label>
-
-<input
-id="invoiceAmount"
-type="number"
-step="0.01"
->
-
-<label>Description</label>
-
-<textarea
-id="invoiceDescription"
-placeholder="Type your invoice description here...">
-</textarea>
-
-<button
-class="action"
-onclick="saveInvoice()">
-Create Invoice
-</button>
-
-<button
-class="action secondary"
-onclick="closeInvoiceForm()">
-Cancel
-</button>
-
-</div>
-
-<div class="card section">
-
-<div class="invoice-summary">
-
-<div class="mini-stat">
-
-<div class="label">
-OUTSTANDING
-</div>
-
-<div
-class="num orange"
-id="invoiceOutstanding">
-£0.00
-</div>
-
-</div>
-
-<div class="mini-stat">
-
-<div class="label">
-OVERDUE
-</div>
-
-<div
-class="num red"
-id="invoiceOverdueTotal">
-£0.00
-</div>
-
-</div>
-
-</div>
-
-<input
-id="invoiceSearch"
-placeholder="Search customer, description or invoice number..."
-oninput="renderInvoices()"
->
-
-<div class="filterbar">
-
-<button
-class="action small selected"
-data-filter="all"
-onclick="setInvoiceFilter('all',this)">
-All
-</button>
-
-<button
-class="action small secondary"
-data-filter="unpaid"
-onclick="setInvoiceFilter('unpaid',this)">
-Unpaid
-</button>
-
-<button
-class="action small secondary"
-data-filter="overdue"
-onclick="setInvoiceFilter('overdue',this)">
-Overdue
-</button>
-
-<button
-class="action small secondary"
-data-filter="paid"
-onclick="setInvoiceFilter('paid',this)">
-Paid
-</button>
-
-</div>
-
-</div>
-
-<button
-class="action"
-onclick="toggleAccountantExport()">
-Accountant Export
-</button>
-
-<div
-id="accountantExportBox"
-class="card exportBox"
-style="display:none;">
-
-<h3
-style="color:#9bd600;margin-top:0;">
-Accountant Export
-</h3>
-
-<label>Export period</label>
-
-<select
-id="exportRange"
-onchange="toggleExportDates()">
-
-<option value="all">All invoices</option>
-<option value="month">This month</option>
-<option value="taxyear">Current UK tax year</option>
-<option value="custom">Custom dates</option>
-
-</select>
-
-<div
-id="exportDates"
-class="exportDates">
-
-<div>
-
-<label>From</label>
-
-<input
-type="date"
-id="exportFrom"
->
-
-</div>
-
-<div>
-
-<label>To</label>
-
-<input
-type="date"
-id="exportTo"
->
+package com.stevenspureclean.app;
 
-</div>
+import android.app.Activity;
+import android.os.Bundle;
+import android.view.Window;
 
-</div>
+import android.content.Intent;
+import android.content.ClipData;
 
-<button
-class="action"
-onclick="exportInvoicesCsv()">
-Export CSV for Accountant
-</button>
+import android.net.Uri;
 
-</div>
+import android.util.Patterns;
+import android.widget.Toast;
 
-<div
-id="invoiceList"
-class="invoice-list">
-</div>
-
-</section>
+import android.webkit.JavascriptInterface;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
-<!-- MAP -->
-
-<section
-id="map"
-class="screen">
-
-<h2>Customer Map</h2>
-
-<div
-id="mapStatus"
-class="map-status">
-Customer postcodes will appear as pins on the map.
-</div>
-
-<div id="customerMap"></div>
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.pdf.PdfDocument;
 
-<button
-class="action"
-onclick="renderMap()">
-Refresh Customer Pins
-</button>
+import androidx.core.content.FileProvider;
 
-</section>
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-</main>
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 
-<script
-src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-</script>
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
-<script>
+public class MainActivity extends Activity {
 
-let customers =
-JSON.parse(
-localStorage.getItem("pcCustomers") || "[]"
-);
+    private WebView webView;
 
-let invoices =
-JSON.parse(
-localStorage.getItem("pcInvoices") || "[]"
-);
+    private static final int CREATE_BACKUP_FILE = 5001;
+    private static final int OPEN_BACKUP_FILE = 5002;
 
-let invoiceFilter="all";
+    private String pendingBackupJson = "";
 
-let map=null;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
 
-let mapMarkers=[];
+        super.onCreate(savedInstanceState);
 
-function saveData(){
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-localStorage.setItem(
-"pcCustomers",
-JSON.stringify(customers)
-);
+        webView = new WebView(this);
 
-localStorage.setItem(
-"pcInvoices",
-JSON.stringify(invoices)
-);
+        setContentView(webView);
 
-updateDashboard();
+        WebSettings settings = webView.getSettings();
 
-}
-
-/* =========================
-   BACKUP + RESTORE
-========================= */
-
-function backupBusinessData(){
-
-let backup={
-
-app:"Steven's Pure Clean Exteriors",
-
-backupVersion:1,
-
-created:
-new Date().toISOString(),
-
-customers:customers,
-
-invoices:invoices,
-
-nextInvoiceNumber:
-Number(
-localStorage.getItem(
-"pcNextInvoiceNumber"
-) || 1001
-)
-
-};
-
-if(
-typeof Android!=="undefined"
-&&
-Android.backupBusinessData
-){
-
-Android.backupBusinessData(
-JSON.stringify(
-backup,
-null,
-2
-)
-);
-
-}else{
-
-alert(
-"Backup system is not available."
-);
-
-}
-
-}
-
-function restoreBusinessData(){
-
-if(
-typeof Android!=="undefined"
-&&
-Android.restoreBusinessData
-){
-
-Android.restoreBusinessData();
-
-}else{
-
-alert(
-"Restore system is not available."
-);
-
-}
-
-}
-
-function restoreBusinessBackup(
-backupText
-){
-
-try{
-
-let backup=
-JSON.parse(
-backupText
-);
-
-if(
-!backup
-||
-!Array.isArray(
-backup.customers
-)
-||
-!Array.isArray(
-backup.invoices
-)
-){
-
-alert(
-"This is not a valid Pure Clean backup."
-);
-
-return;
-
-}
-
-customers=
-backup.customers;
-
-invoices=
-backup.invoices;
-
-let next=
-Number(
-backup.nextInvoiceNumber
-);
-
-if(
-!Number.isFinite(next)
-||
-next<1001
-){
-
-let nums=
-invoices
-.map(
-x=>Number(x.invoiceNumber)
-)
-.filter(
-x=>Number.isFinite(x)
-);
-
-next=
-nums.length
-?
-Math.max(...nums)+1
-:
-1001;
-
-}
-
-localStorage.setItem(
-"pcCustomers",
-JSON.stringify(customers)
-);
-
-localStorage.setItem(
-"pcInvoices",
-JSON.stringify(invoices)
-);
-
-localStorage.setItem(
-"pcNextInvoiceNumber",
-String(next)
-);
-
-renderCustomers();
-renderPlanner();
-renderInvoices();
-updateDashboard();
-
-alert(
-"Backup restored successfully."
-);
-
-}catch(error){
-
-alert(
-"Could not restore this backup."
-);
-
-}
-
-}
-
-/* =========================
-   NAVIGATION
-========================= */
-
-function openPage(
-id,
-button
-){
-
-document
-.querySelectorAll(".screen")
-.forEach(
-x=>x.classList.remove("active")
-);
-
-document
-.getElementById(id)
-.classList.add("active");
-
-document
-.querySelectorAll("nav button")
-.forEach(
-x=>x.classList.remove("active")
-);
-
-if(button){
-button.classList.add("active");
-}
-
-if(id==="customers"){
-renderCustomers();
-}
-
-if(id==="planner"){
-renderPlanner();
-}
-
-if(id==="invoices"){
-renderInvoices();
-}
-
-if(id==="map"){
-
-setTimeout(
-renderMap,
-250
-);
-
-}
-
-}
-
-/* =========================
-   DATES
-========================= */
-
-function today(){
-
-return new Date()
-.toISOString()
-.split("T")[0];
-
-}
-
-function addDays(
-dateString,
-days
-){
-
-let d=
-new Date(
-dateString+"T12:00:00"
-);
-
-if(
-Number.isNaN(
-d.getTime()
-)
-){
-return "";
-}
-
-d.setDate(
-d.getDate()+days
-);
-
-return d
-.toISOString()
-.split("T")[0];
-
-}
-
-/* =========================
-   INVOICE NUMBERS
-========================= */
-
-function getNextInvoiceNumber(){
-
-let next=
-Number(
-localStorage.getItem(
-"pcNextInvoiceNumber"
-)
-||
-1001
-);
-
-localStorage.setItem(
-"pcNextInvoiceNumber",
-String(next+1)
-);
-
-return next;
-
-}
-
-function invoiceNumber(inv){
-
-return inv.invoiceNumber || inv.id;
-
-}
-
-function invoiceDueDate(inv){
-
-if(inv.dueDate){
-return inv.dueDate;
-}
-
-return addDays(
-inv.date,
-7
-);
-
-}
-
-function invoiceStatus(inv){
-
-if(inv.paid){
-return "paid";
-}
-
-let due=
-invoiceDueDate(inv);
-
-if(
-due
-&&
-due<today()
-){
-return "overdue";
-}
-
-return "unpaid";
-
-}
-
-function daysOverdue(inv){
-
-if(
-invoiceStatus(inv)
-!=="overdue"
-){
-return 0;
-}
-
-let due=
-new Date(
-invoiceDueDate(inv)
-+
-"T12:00:00"
-);
-
-let now=
-new Date(
-today()
-+
-"T12:00:00"
-);
-
-return Math.max(
-1,
-Math.floor(
-(now-due)/86400000
-)
-);
-
-}
-
-/* =========================
-   EMAIL VALIDATION
-========================= */
-
-function validEmail(email){
-
-if(!email){
-return true;
-}
-
-let atCount=
-(email.match(/@/g) || []).length;
-
-if(atCount!==1){
-return false;
-}
-
-return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-}
-
-/* =========================
-   CUSTOMERS
-========================= */
-
-function newCustomer(){
-
-document
-.getElementById("customerForm")
-.classList.add("show");
-
-document
-.getElementById("customerFormTitle")
-.innerText=
-"Add Customer";
-
-document.getElementById("customerId").value="";
-document.getElementById("customerName").value="";
-document.getElementById("customerAddress").value="";
-document.getElementById("customerPostcode").value="";
-document.getElementById("customerPhone").value="";
-document.getElementById("customerEmail").value="";
-document.getElementById("customerPrice").value="";
-document.getElementById("customerFrequency").value="4";
-document.getElementById("customerNextClean").value=today();
-document.getElementById("customerServices").value="Window Cleaning";
-document.getElementById("customerNotes").value="";
-
-}
-
-function closeCustomerForm(){
-
-document
-.getElementById("customerForm")
-.classList.remove("show");
-
-}
-
-function saveCustomer(){
-
-let id=
-document
-.getElementById("customerId")
-.value;
-
-let name=
-document
-.getElementById("customerName")
-.value
-.trim();
-
-if(!name){
-
-alert(
-"Please enter the customer's name."
-);
-
-return;
-
-}
-
-let email=
-document
-.getElementById("customerEmail")
-.value
-.trim()
-.toLowerCase();
-
-if(
-email
-&&
-!validEmail(email)
-){
-
-alert(
-"That email address does not look right."
-);
-
-return;
-
-}
-
-let customer={
-
-id:
-id || Date.now().toString(),
-
-name:name,
-
-address:
-document
-.getElementById("customerAddress")
-.value
-.trim(),
-
-postcode:
-document
-.getElementById("customerPostcode")
-.value
-.trim()
-.toUpperCase(),
-
-phone:
-document
-.getElementById("customerPhone")
-.value
-.trim(),
-
-email:email,
-
-price:
-Number(
-document
-.getElementById("customerPrice")
-.value || 0
-),
-
-frequency:
-Number(
-document
-.getElementById("customerFrequency")
-.value || 4
-),
-
-nextClean:
-document
-.getElementById("customerNextClean")
-.value,
-
-services:
-document
-.getElementById("customerServices")
-.value
-.trim(),
-
-notes:
-document
-.getElementById("customerNotes")
-.value
-.trim()
-
-};
-
-let existing=
-customers.findIndex(
-c=>c.id===customer.id
-);
-
-if(existing>=0){
-
-customers[existing]=customer;
-
-}else{
-
-customers.push(customer);
-
-}
-
-saveData();
-
-closeCustomerForm();
-
-renderCustomers();
-
-}
-
-function editCustomer(id){
-
-let c=
-customers.find(
-x=>x.id===id
-);
-
-if(!c){
-return;
-}
-
-newCustomer();
-
-document
-.getElementById("customerFormTitle")
-.innerText=
-"Edit Customer";
-
-document.getElementById("customerId").value=c.id;
-document.getElementById("customerName").value=c.name;
-document.getElementById("customerAddress").value=c.address || "";
-document.getElementById("customerPostcode").value=c.postcode || "";
-document.getElementById("customerPhone").value=c.phone || "";
-document.getElementById("customerEmail").value=c.email || "";
-document.getElementById("customerPrice").value=c.price || "";
-document.getElementById("customerFrequency").value=c.frequency || 4;
-document.getElementById("customerNextClean").value=c.nextClean || "";
-document.getElementById("customerServices").value=c.services || "";
-document.getElementById("customerNotes").value=c.notes || "";
-
-}
-
-function deleteCustomer(id){
-
-if(
-!confirm(
-"Delete this customer?"
-)
-){
-return;
-}
-
-customers=
-customers.filter(
-c=>c.id!==id
-);
-
-saveData();
-
-renderCustomers();
-
-}
-
-function renderCustomers(){
-
-let search=
-(
-document
-.getElementById("customerSearch")
-.value || ""
-)
-.toLowerCase();
-
-let list=
-document
-.getElementById("customerList");
-
-let filtered=
-customers.filter(
-c=>
-
-(c.name || "")
-.toLowerCase()
-.includes(search)
-
-||
-
-(c.address || "")
-.toLowerCase()
-.includes(search)
-
-||
-
-(c.postcode || "")
-.toLowerCase()
-.includes(search)
-
-);
-
-if(
-filtered.length===0
-){
-
-list.innerHTML=
-'<div class="item empty">No customers found.</div>';
-
-return;
-
-}
-
-list.innerHTML=
-filtered.map(
-c=>`
-
-<div class="item">
-
-<div class="row">
-
-<div>
-
-<div class="customer-name">
-${safe(c.name)}
-</div>
-
-<div class="muted">
-
-${safe(c.address)}
-
-${c.postcode
-? "<br>"+safe(c.postcode)
-: ""}
-
-</div>
-
-</div>
-
-<div class="price">
-
-£${Number(
-c.price || 0
-).toFixed(2)}
-
-</div>
-
-</div>
-
-<div
-class="muted"
-style="margin-top:7px">
-
-${c.services
-? safe(c.services)+" • "
-: ""}
-
-Every ${c.frequency || 4} weeks
-
-${c.nextClean
-? " • Next: "+formatDate(c.nextClean)
-: ""}
-
-</div>
-
-<button
-class="action small"
-onclick="editCustomer('${c.id}')">
-Edit
-</button>
-
-<button
-class="action small blue"
-onclick="openCustomerMap('${c.id}')">
-Map
-</button>
-
-<button
-class="action small secondary"
-onclick="quickInvoice('${c.id}')">
-Invoice
-</button>
-
-<button
-class="action small danger"
-onclick="deleteCustomer('${c.id}')">
-Delete
-</button>
-
-</div>
-
-`
-).join("");
-
-}
-
-/* =========================
-   PLANNER
-========================= */
-
-function renderPlanner(){
-
-let input=
-document
-.getElementById("plannerDate");
-
-if(!input.value){
-input.value=today();
-}
-
-let date=
-input.value;
-
-let jobs=
-customers.filter(
-c=>c.nextClean===date
-);
-
-let list=
-document
-.getElementById("plannerJobs");
-
-if(
-jobs.length===0
-){
-
-list.innerHTML=
-'<div class="item empty">No jobs scheduled for this date.</div>';
-
-return;
-
-}
-
-list.innerHTML=
-jobs.map(
-c=>`
-
-<div class="item">
-
-<div class="row">
-
-<div>
-
-<div class="customer-name">
-${safe(c.name)}
-</div>
-
-<div class="muted">
-
-${safe(c.address)}
-
-<br>
-
-${safe(c.postcode)}
-
-</div>
-
-</div>
-
-<div class="price">
-
-£${Number(
-c.price || 0
-).toFixed(2)}
-
-</div>
-
-</div>
-
-<button
-class="action"
-onclick="completeJob('${c.id}')">
-✓ Complete Job
-</button>
-
-<button
-class="action secondary"
-onclick="openCustomerMap('${c.id}')">
-Directions
-</button>
-
-</div>
-
-`
-).join("");
-
-}
-
-function completeJob(id){
-
-let c=
-customers.find(
-x=>x.id===id
-);
-
-if(!c){
-return;
-}
-
-if(
-confirm(
-"Create an invoice for this completed clean?"
-)
-){
-
-let invoiceDate=
-today();
-
-invoices.push({
-
-id:
-Date.now().toString(),
-
-invoiceNumber:
-getNextInvoiceNumber(),
-
-customerId:c.id,
-
-customerName:c.name,
-
-amount:
-Number(c.price || 0),
-
-description:"",
-
-date:invoiceDate,
-
-dueDate:
-addDays(
-invoiceDate,
-7
-),
-
-paid:false,
-
-paidDate:""
-
-});
-
-}
-
-let d=
-new Date(
-(c.nextClean || today())
-+
-"T12:00:00"
-);
-
-d.setDate(
-d.getDate()
-+
-(
-Number(c.frequency || 4)
-*7
-)
-);
-
-c.nextClean=
-d.toISOString()
-.split("T")[0];
-
-saveData();
-
-renderPlanner();
-
-alert(
-"Job completed. Next clean: "
-+
-formatDate(
-c.nextClean
-)
-);
-
-}
-
-/* =========================
-   INVOICE FORM
-========================= */
-
-function openInvoiceForm(){
-
-document
-.getElementById("invoiceForm")
-.classList.add("show");
-
-let select=
-document
-.getElementById("invoiceCustomer");
-
-select.innerHTML=
-customers.map(
-c=>`
-
-<option value="${c.id}">
-${safe(c.name)}
-</option>
-
-`
-)
-.join("");
-
-document
-.getElementById("invoiceAmount")
-.value="";
-
-document
-.getElementById("invoiceDescription")
-.value="";
-
-}
-
-function closeInvoiceForm(){
-
-document
-.getElementById("invoiceForm")
-.classList.remove("show");
-
-}
-
-function quickInvoice(id){
-
-openPage("invoices");
-
-openInvoiceForm();
-
-document
-.getElementById("invoiceCustomer")
-.value=id;
-
-let c=
-customers.find(
-x=>x.id===id
-);
-
-if(c){
-
-document
-.getElementById("invoiceAmount")
-.value=
-c.price || "";
-
-}
-
-}
-
-function saveInvoice(){
-
-let customerId=
-document
-.getElementById("invoiceCustomer")
-.value;
-
-let c=
-customers.find(
-x=>x.id===customerId
-);
-
-if(!c){
-
-alert(
-"Please select a customer."
-);
-
-return;
-
-}
-
-let invoiceDate=
-today();
-
-invoices.push({
-
-id:
-Date.now().toString(),
-
-invoiceNumber:
-getNextInvoiceNumber(),
-
-customerId:c.id,
-
-customerName:c.name,
-
-amount:
-Number(
-document
-.getElementById("invoiceAmount")
-.value || 0
-),
-
-description:
-document
-.getElementById("invoiceDescription")
-.value
-.trim(),
-
-date:invoiceDate,
-
-dueDate:
-addDays(
-invoiceDate,
-7
-),
-
-paid:false,
-
-paidDate:""
-
-});
-
-saveData();
-
-closeInvoiceForm();
-
-renderInvoices();
-
-}
-
-/* =========================
-   INVOICES
-========================= */
-
-function setInvoiceFilter(
-filter,
-button
-){
-
-invoiceFilter=
-filter;
-
-document
-.querySelectorAll("[data-filter]")
-.forEach(
-b=>{
-
-b.classList.remove("selected");
-b.classList.add("secondary");
-
-}
-);
-
-if(button){
-
-button.classList.add("selected");
-button.classList.remove("secondary");
-
-}
-
-renderInvoices();
-
-}
-
-function updateInvoiceTotals(){
-
-let outstanding=
-invoices
-.filter(
-i=>!i.paid
-)
-.reduce(
-(sum,i)=>
-sum+
-Number(i.amount || 0),
-0
-);
-
-let overdue=
-invoices
-.filter(
-i=>
-invoiceStatus(i)==="overdue"
-)
-.reduce(
-(sum,i)=>
-sum+
-Number(i.amount || 0),
-0
-);
-
-document
-.getElementById("invoiceOutstanding")
-.innerText=
-"£"+
-outstanding.toFixed(2);
-
-document
-.getElementById("invoiceOverdueTotal")
-.innerText=
-"£"+
-overdue.toFixed(2);
-
-}
-
-function renderInvoices(){
-
-updateInvoiceTotals();
-
-let search=
-(
-document
-.getElementById("invoiceSearch")
-.value || ""
-)
-.toLowerCase()
-.trim();
-
-let filtered=
-invoices.filter(
-inv=>{
-
-let status=
-invoiceStatus(inv);
-
-if(
-invoiceFilter!=="all"
-&&
-status!==invoiceFilter
-){
-return false;
-}
-
-let text=
-[
-inv.customerName || "",
-inv.description || "",
-String(invoiceNumber(inv))
-]
-.join(" ")
-.toLowerCase();
-
-return text.includes(search);
-
-}
-);
-
-let list=
-document
-.getElementById("invoiceList");
-
-if(
-filtered.length===0
-){
-
-list.innerHTML=
-'<div class="item empty">No invoices match this view.</div>';
-
-return;
-
-}
-
-let ordered=
-[...filtered]
-.sort(
-(a,b)=>
-String(b.date || "")
-.localeCompare(
-String(a.date || "")
-)
-);
-
-list.innerHTML=
-ordered.map(
-inv=>{
-
-let status=
-invoiceStatus(inv);
-
-let overdueDays=
-daysOverdue(inv);
-
-return `
-
-<div class="item">
-
-<div class="row">
-
-<div>
-
-<div class="customer-name">
-${safe(inv.customerName)}
-</div>
-
-<div class="muted invoice-meta">
-
-Invoice #${safe(
-invoiceNumber(inv)
-)}
-
-<br>
-
-Invoice date:
-${formatDate(inv.date)}
-
-<br>
-
-Due date:
-${formatDate(
-invoiceDueDate(inv)
-)}
-
-${inv.paidDate
-? "<br>Paid date: "+formatDate(inv.paidDate)
-: ""}
-
-</div>
-
-</div>
-
-<div class="price">
-
-£${Number(
-inv.amount || 0
-).toFixed(2)}
-
-</div>
-
-</div>
-
-<div
-class="muted"
-style="margin-top:6px">
-
-${safe(
-inv.description || ""
-)}
-
-</div>
-
-<div
-style="margin-top:8px">
-
-<span
-class="badge ${status}">
-
-${status==="paid"
-? "PAID"
-: status==="overdue"
-? "OVERDUE"
-: "UNPAID"}
-
-</span>
-
-${status==="overdue"
-
-? `<span
-class="overdue-text"
-style="margin-left:6px;">
-${overdueDays}
-day${overdueDays===1 ? "" : "s"}
-overdue
-</span>`
-
-: ""
-
-}
-
-</div>
-
-${!inv.paid
-? `
-
-<button
-class="action small"
-onclick="markPaid('${inv.id}')">
-Mark Paid
-</button>
-
-`
-: ""}
-
-<button
-class="action small emailbtn"
-onclick="emailInvoice('${inv.id}')">
-Email Customer
-</button>
-
-${!inv.paid
-? `
-
-<button
-class="action small reminderbtn"
-onclick="sendReminder('${inv.id}')">
-Send Reminder
-</button>
-
-`
-: ""}
-
-</div>
-
-`;
-
-}
-)
-.join("");
-
-}
-
-function markPaid(id){
-
-let inv=
-invoices.find(
-x=>x.id===id
-);
-
-if(!inv){
-return;
-}
-
-inv.paid=true;
-
-inv.paidDate=
-today();
-
-saveData();
-
-renderInvoices();
-
-}
-
-/* =========================
-   EMAIL INVOICE
-========================= */
-
-function emailInvoice(id){
-
-let inv=
-invoices.find(
-x=>x.id===id
-);
-
-if(!inv){
-return;
-}
-
-let customer=
-customers.find(
-c=>c.id===inv.customerId
-);
-
-if(!customer){
-
-alert(
-"Customer details could not be found."
-);
-
-return;
-
-}
-
-if(!customer.email){
-
-alert(
-"This customer does not have an email address saved."
-);
-
-return;
-
-}
-
-if(
-!validEmail(
-customer.email
-)
-){
-
-alert(
-"The customer's saved email address is invalid."
-);
-
-return;
-
-}
-
-if(
-typeof Android!=="undefined"
-&&
-Android.emailCustomer
-){
-
-Android.emailCustomer(
-
-customer.email,
-
-customer.name,
-
-String(
-invoiceNumber(inv)
-),
-
-formatDate(inv.date),
-
-formatDate(
-invoiceDueDate(inv)
-),
-
-Number(
-inv.amount || 0
-)
-.toFixed(2),
-
-inv.description || ""
-
-);
-
-}else{
-
-alert(
-"Android email system is not available."
-);
-
-}
-
-}
-
-/* =========================
-   REMINDERS
-========================= */
-
-function sendReminder(id){
-
-let inv=
-invoices.find(
-x=>x.id===id
-);
-
-if(!inv){
-return;
-}
-
-let customer=
-customers.find(
-c=>c.id===inv.customerId
-);
-
-if(!customer){
-
-alert(
-"Customer details could not be found."
-);
-
-return;
-
-}
-
-if(!customer.email){
-
-alert(
-"This customer does not have an email address saved."
-);
-
-return;
-
-}
-
-let overdue=
-invoiceStatus(inv)
-===
-"overdue";
-
-if(
-typeof Android!=="undefined"
-&&
-Android.sendReminder
-){
-
-Android.sendReminder(
-
-customer.email,
-
-customer.name,
-
-String(
-invoiceNumber(inv)
-),
-
-formatDate(inv.date),
-
-formatDate(
-invoiceDueDate(inv)
-),
-
-Number(
-inv.amount || 0
-)
-.toFixed(2),
-
-inv.description || "",
-
-overdue
-
-);
-
-}else{
-
-alert(
-"Android reminder system is not available."
-);
-
-}
-
-}
-
-/* =========================
-   ACCOUNTANT EXPORT
-========================= */
-
-function toggleAccountantExport(){
-
-let box=
-document
-.getElementById(
-"accountantExportBox"
-);
-
-box.style.display=
-box.style.display==="block"
-?
-"none"
-:
-"block";
-
-}
-
-function toggleExportDates(){
-
-let show=
-document
-.getElementById("exportRange")
-.value
-===
-"custom";
-
-document
-.getElementById("exportDates")
-.classList.toggle(
-"show",
-show
-);
-
-}
-
-function getUkTaxYearRange(){
-
-let now=
-new Date();
-
-let year=
-now.getFullYear();
-
-let start=
-new Date(
-year,
-3,
-6
-);
-
-let startYear=
-now>=start
-?
-year
-:
-year-1;
-
-return{
-
-from:
-startYear+
-"-04-06",
-
-to:
-(startYear+1)+
-"-04-05"
-
-};
-
-}
-
-function invoicesForExport(){
-
-let range=
-document
-.getElementById("exportRange")
-.value;
-
-let from="";
-let to="";
-
-if(range==="month"){
-
-let now=
-new Date();
-
-let y=
-now.getFullYear();
-
-let m=
-String(
-now.getMonth()+1
-)
-.padStart(2,"0");
-
-from=
-y+"-"+m+"-01";
-
-let last=
-new Date(
-y,
-now.getMonth()+1,
-0
-)
-.getDate();
-
-to=
-y+
-"-"+
-m+
-"-"+
-String(last)
-.padStart(2,"0");
-
-}
-
-if(range==="taxyear"){
-
-let tax=
-getUkTaxYearRange();
-
-from=tax.from;
-to=tax.to;
-
-}
-
-if(range==="custom"){
-
-from=
-document
-.getElementById("exportFrom")
-.value;
-
-to=
-document
-.getElementById("exportTo")
-.value;
-
-if(!from || !to){
-
-alert(
-"Please choose both From and To dates."
-);
-
-return null;
-
-}
-
-}
-
-return invoices.filter(
-inv=>{
-
-if(!from && !to){
-return true;
-}
-
-return(
-(inv.date || "")>=from
-&&
-(inv.date || "")<=to
-);
-
-}
-);
-
-}
-
-function csvCell(value){
-
-return '"'
-+
-String(
-value || ""
-)
-.replace(
-/"/g,
-'""'
-)
-+
-'"';
-
-}
-
-function exportInvoicesCsv(){
-
-let rows=
-invoicesForExport();
-
-if(rows===null){
-return;
-}
-
-if(rows.length===0){
-
-alert(
-"There are no invoices in that export period."
-);
-
-return;
-
-}
-
-let csv=[];
-
-csv.push(
-[
-"Invoice Number",
-"Customer",
-"Customer Email",
-"Invoice Date",
-"Due Date",
-"Description",
-"Amount",
-"Status",
-"Paid Date"
-]
-.map(csvCell)
-.join(",")
-);
-
-rows.forEach(
-inv=>{
-
-let customer=
-customers.find(
-c=>c.id===inv.customerId
-);
-
-csv.push(
-[
-invoiceNumber(inv),
-inv.customerName || "",
-customer ? customer.email || "" : "",
-formatDate(inv.date),
-formatDate(invoiceDueDate(inv)),
-inv.description || "",
-Number(inv.amount || 0).toFixed(2),
-invoiceStatus(inv).toUpperCase(),
-inv.paidDate
-? formatDate(inv.paidDate)
-: ""
-]
-.map(csvCell)
-.join(",")
-);
-
-}
-);
-
-let blob=
-new Blob(
-[
-"\uFEFF"+
-csv.join("\r\n")
-],
-{
-type:
-"text/csv;charset=utf-8;"
-}
-);
-
-let url=
-URL.createObjectURL(blob);
-
-let a=
-document.createElement("a");
-
-a.href=url;
-
-a.download=
-"PureClean-Accountant-Invoices-"
-+
-today()
-+
-".csv";
-
-document.body.appendChild(a);
-
-a.click();
-
-document.body.removeChild(a);
-
-setTimeout(
-function(){
-
-URL.revokeObjectURL(url);
-
-},
-1000
-);
-
-}
-
-/* =========================
-   DASHBOARD
-========================= */
-
-function updateDashboard(){
-
-document
-.getElementById("dashCustomers")
-.innerText=
-customers.length;
-
-let unpaid=
-invoices
-.filter(
-i=>!i.paid
-)
-.reduce(
-(sum,i)=>
-sum+
-Number(i.amount || 0),
-0
-);
-
-document
-.getElementById("dashUnpaid")
-.innerText=
-"£"+
-unpaid.toFixed(2);
-
-let now=
-new Date();
-
-let paidMonth=
-invoices
-.filter(
-i=>{
-
-if(!i.paid){
-return false;
-}
-
-let d=
-new Date(
-(i.paidDate || i.date)
-+
-"T12:00:00"
-);
-
-return(
-d.getMonth()
-===
-now.getMonth()
-&&
-d.getFullYear()
-===
-now.getFullYear()
-);
-
-}
-)
-.reduce(
-(sum,i)=>
-sum+
-Number(i.amount || 0),
-0
-);
-
-document
-.getElementById("dashPaid")
-.innerText=
-"£"+
-paidMonth.toFixed(2);
-
-let limit=
-new Date(
-today()+
-"T12:00:00"
-);
-
-limit.setDate(
-limit.getDate()+7
-);
-
-let dueSoon=
-customers.filter(
-c=>{
-
-if(!c.nextClean){
-return false;
-}
-
-let d=
-new Date(
-c.nextClean+
-"T12:00:00"
-);
-
-return(
-d>=
-new Date(
-today()+
-"T12:00:00"
-)
-&&
-d<=limit
-);
-
-}
-)
-.length;
-
-document
-.getElementById("dashDue")
-.innerText=
-dueSoon;
-
-let todays=
-customers.filter(
-c=>c.nextClean===today()
-);
-
-document
-.getElementById("todayJobs")
-.innerHTML=
-todays.length
-?
-todays.map(
-c=>
-safe(c.name)
-+
-" — £"
-+
-Number(c.price || 0).toFixed(2)
-)
-.join("<br>")
-:
-"No jobs due today";
-
-let unpaidInvoices=
-invoices.filter(
-i=>!i.paid
-);
-
-document
-.getElementById("dashInvoices")
-.innerHTML=
-unpaidInvoices.length
-?
-unpaidInvoices
-.slice(-4)
-.reverse()
-.map(
-i=>
-safe(i.customerName)
-+
-" — £"
-+
-Number(i.amount || 0).toFixed(2)
-)
-.join("<br>")
-:
-"No unpaid invoices";
-
-}
-
-/* =========================
-   MAP
-========================= */
-
-async function postcodeCoordinates(
-postcode
-){
-
-let cleaned=
-(postcode || "")
-.trim()
-.replace(
-/\s+/g,
-""
-);
-
-if(!cleaned){
-return null;
-}
-
-try{
-
-let response=
-await fetch(
-"https://api.postcodes.io/postcodes/"
-+
-encodeURIComponent(cleaned)
-);
-
-let data=
-await response.json();
-
-if(
-data.status===200
-&&
-data.result
-){
-
-return{
-
-lat:
-data.result.latitude,
-
-lng:
-data.result.longitude
-
-};
-
-}
-
-}catch(error){
-
-console.log(error);
-
-}
-
-return null;
-
-}
-
-function initialiseMap(){
-
-if(map){
-return;
-}
-
-if(
-typeof L==="undefined"
-){
-
-document
-.getElementById("mapStatus")
-.innerText=
-"Map could not load. Check your internet connection.";
-
-return;
-
-}
-
-map=
-L.map("customerMap")
-.setView(
-[
-52.6309,
-1.2974
-],
-10
-);
-
-L.tileLayer(
-"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-{
-maxZoom:19,
-attribution:"© OpenStreetMap"
-}
-)
-.addTo(map);
-
-}
-
-async function renderMap(){
-
-initialiseMap();
-
-if(!map){
-return;
-}
-
-setTimeout(
-function(){
-
-map.invalidateSize();
-
-},
-200
-);
-
-mapMarkers.forEach(
-marker=>
-map.removeLayer(marker)
-);
-
-mapMarkers=[];
-
-let withPostcodes=
-customers.filter(
-c=>c.postcode
-);
-
-let status=
-document
-.getElementById("mapStatus");
-
-if(withPostcodes.length===0){
-
-status.innerText=
-"Add customer postcodes to show pins on the map.";
-
-return;
-
-}
-
-status.innerText=
-"Loading customer locations...";
-
-let bounds=[];
-
-for(
-let c of withPostcodes
-){
-
-let coords=
-await postcodeCoordinates(
-c.postcode
-);
-
-if(!coords){
-continue;
-}
-
-let marker=
-L.marker(
-[
-coords.lat,
-coords.lng
-]
-)
-.addTo(map);
-
-marker.bindPopup(
-
-"<strong>"
-+
-safe(c.name)
-+
-"</strong><br>"
-+
-safe(c.address)
-+
-"<br>"
-+
-safe(c.postcode)
-+
-"<br>£"
-+
-Number(c.price || 0).toFixed(2)
-
-);
-
-mapMarkers.push(marker);
-
-bounds.push(
-[
-coords.lat,
-coords.lng
-]
-);
-
-}
-
-if(bounds.length){
-
-map.fitBounds(
-bounds,
-{
-padding:[35,35],
-maxZoom:15
-}
-);
-
-status.innerText=
-bounds.length
-+
-" customer location"
-+
-(bounds.length===1 ? "" : "s")
-+
-" shown.";
-
-}else{
-
-status.innerText=
-"No customer postcodes could be located.";
-
-}
-
-}
-
-function openCustomerMap(id){
-
-let c=
-customers.find(
-x=>x.id===id
-);
-
-if(!c){
-return;
-}
-
-let query=
-[
-c.address,
-c.postcode
-]
-.filter(Boolean)
-.join(" ");
-
-if(!query){
-
-alert(
-"This customer has no address or postcode."
-);
-
-return;
-
-}
-
-window.location.href=
-"https://www.google.com/maps/search/?api=1&query="
-+
-encodeURIComponent(query);
-
-}
-
-/* =========================
-   HELPERS
-========================= */
-
-function safe(value){
-
-return String(
-value || ""
-)
-.replace(/&/g,"&amp;")
-.replace(/</g,"&lt;")
-.replace(/>/g,"&gt;")
-.replace(/"/g,"&quot;");
-
-}
-
-function formatDate(value){
-
-if(!value){
-return "";
-}
-
-let d=
-new Date(
-value+
-"T00:00:00"
-);
-
-return d.toLocaleDateString(
-"en-GB",
-{
-day:"2-digit",
-month:"short",
-year:"numeric"
-}
-);
-
-}
-
-/* =========================
-   OLD INVOICE UPGRADE
-========================= */
-
-let changed=false;
-
-let usedNumbers=
-invoices
-.map(
-i=>Number(i.invoiceNumber)
-)
-.filter(
-n=>Number.isFinite(n)
-);
-
-let storedNext=
-Number(
-localStorage.getItem(
-"pcNextInvoiceNumber"
-)
-||
-1001
-);
-
-let nextNumber=
-usedNumbers.length
-?
-Math.max(
-Math.max(...usedNumbers)+1,
-storedNext
-)
-:
-Math.max(
-1001,
-storedNext
-);
-
-invoices.forEach(
-inv=>{
-
-if(!inv.invoiceNumber){
-
-inv.invoiceNumber=
-nextNumber++;
-
-changed=true;
-
-}
-
-if(
-!inv.dueDate
-&&
-inv.date
-){
-
-inv.dueDate=
-addDays(
-inv.date,
-7
-);
-
-changed=true;
-
-}
-
-if(
-typeof inv.paidDate
-===
-"undefined"
-){
-
-inv.paidDate="";
-
-changed=true;
-
-}
-
-}
-);
-
-localStorage.setItem(
-"pcNextInvoiceNumber",
-String(nextNumber)
-);
-
-if(changed){
-
-saveData();
-
-}
-
-document
-.getElementById("plannerDate")
-.value=
-today();
-
-renderCustomers();
-renderPlanner();
-renderInvoices();
-updateDashboard();
-
-</script>
-
-</body>
-</html>
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
+        settings.setAllowFileAccess(true);
+        settings.setAllowContentAccess(true);
+
+        webView.addJavascriptInterface(
+                new AndroidBridge(),
+                "Android"
+        );
+
+        webView.setWebViewClient(
+                new WebViewClient() {
+
+                    @Override
+                    public boolean shouldOverrideUrlLoading(
+                            WebView view,
+                            WebResourceRequest request) {
+
+                        return handleUrl(
+                                request.getUrl().toString()
+                        );
+                    }
+
+                    @Override
+                    public boolean shouldOverrideUrlLoading(
+                            WebView view,
+                            String url) {
+
+                        return handleUrl(url);
+                    }
+                }
+        );
+
+        webView.loadUrl(
+                "file:///android_asset/pureclean.html"
+        );
+    }
+
+    private boolean handleUrl(String url) {
+
+        if (url == null) {
+            return false;
+        }
+
+        if (
+                url.contains("google.com/maps")
+                        ||
+                url.contains("maps.google.com")
+        ) {
+
+            try {
+
+                Intent mapIntent =
+                        new Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse(url)
+                        );
+
+                startActivity(mapIntent);
+
+            } catch (Exception e) {
+
+                e.printStackTrace();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public class AndroidBridge {
+
+        @JavascriptInterface
+        public void emailCustomer(
+                String email,
+                String customerName,
+                String invoiceNumber,
+                String invoiceDate,
+                String dueDate,
+                String amount,
+                String description) {
+
+            runOnUiThread(
+                    () -> emailInvoiceWithPdf(
+                            email,
+                            customerName,
+                            invoiceNumber,
+                            invoiceDate,
+                            dueDate,
+                            amount,
+                            description
+                    )
+            );
+        }
+
+        @JavascriptInterface
+        public void sendReminder(
+                String email,
+                String customerName,
+                String invoiceNumber,
+                String invoiceDate,
+                String dueDate,
+                String amount,
+                String description,
+                boolean overdue) {
+
+            runOnUiThread(
+                    () -> openReminderEmail(
+                            email,
+                            customerName,
+                            invoiceNumber,
+                            invoiceDate,
+                            dueDate,
+                            amount,
+                            description,
+                            overdue
+                    )
+            );
+        }
+
+        @JavascriptInterface
+        public void backupBusinessData(
+                String jsonData) {
+
+            runOnUiThread(
+                    () -> createBackupFile(
+                            jsonData
+                    )
+            );
+        }
+
+        @JavascriptInterface
+        public void restoreBusinessData() {
+
+            runOnUiThread(
+                    this::openRestorePicker
+            );
+        }
+
+        private void openRestorePicker() {
+
+            chooseBackupFile();
+        }
+    }
+
+    private void createBackupFile(
+            String jsonData) {
+
+        if (
+                jsonData == null
+                        ||
+                jsonData.trim().isEmpty()
+        ) {
+
+            Toast.makeText(
+                    this,
+                    "There is no business data to back up.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
+        pendingBackupJson = jsonData;
+
+        String date =
+                new SimpleDateFormat(
+                        "yyyy-MM-dd",
+                        Locale.UK
+                ).format(
+                        new Date()
+                );
+
+        String fileName =
+                "PureClean-Backup-"
+                        + date
+                        + ".json";
+
+        Intent intent =
+                new Intent(
+                        Intent.ACTION_CREATE_DOCUMENT
+                );
+
+        intent.addCategory(
+                Intent.CATEGORY_OPENABLE
+        );
+
+        intent.setType(
+                "application/json"
+        );
+
+        intent.putExtra(
+                Intent.EXTRA_TITLE,
+                fileName
+        );
+
+        try {
+
+            startActivityForResult(
+                    intent,
+                    CREATE_BACKUP_FILE
+            );
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            Toast.makeText(
+                    this,
+                    "Could not open backup save screen.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    private void chooseBackupFile() {
+
+        Intent intent =
+                new Intent(
+                        Intent.ACTION_OPEN_DOCUMENT
+                );
+
+        intent.addCategory(
+                Intent.CATEGORY_OPENABLE
+        );
+
+        intent.setType(
+                "*/*"
+        );
+
+        String[] mimeTypes = {
+                "application/json",
+                "text/plain",
+                "application/octet-stream"
+        };
+
+        intent.putExtra(
+                Intent.EXTRA_MIME_TYPES,
+                mimeTypes
+        );
+
+        try {
+
+            startActivityForResult(
+                    intent,
+                    OPEN_BACKUP_FILE
+            );
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            Toast.makeText(
+                    this,
+                    "Could not open restore file picker.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(
+            int requestCode,
+            int resultCode,
+            Intent data) {
+
+        super.onActivityResult(
+                requestCode,
+                resultCode,
+                data
+        );
+
+        if (
+                resultCode != RESULT_OK
+                        ||
+                data == null
+                        ||
+                data.getData() == null
+        ) {
+
+            return;
+        }
+
+        Uri uri = data.getData();
+
+        if (
+                requestCode
+                        ==
+                CREATE_BACKUP_FILE
+        ) {
+
+            saveBackupToUri(uri);
+
+            return;
+        }
+
+        if (
+                requestCode
+                        ==
+                OPEN_BACKUP_FILE
+        ) {
+
+            restoreBackupFromUri(uri);
+        }
+    }
+
+    private void saveBackupToUri(
+            Uri uri) {
+
+        try {
+
+            OutputStream outputStream =
+                    getContentResolver()
+                            .openOutputStream(
+                                    uri
+                            );
+
+            if (
+                    outputStream
+                            ==
+                    null
+            ) {
+
+                Toast.makeText(
+                        this,
+                        "Could not save backup.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+            outputStream.write(
+                    pendingBackupJson
+                            .getBytes(
+                                    "UTF-8"
+                            )
+            );
+
+            outputStream.flush();
+            outputStream.close();
+
+            pendingBackupJson = "";
+
+            Toast.makeText(
+                    this,
+                    "Business backup saved successfully.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            Toast.makeText(
+                    this,
+                    "Backup could not be saved.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    private void restoreBackupFromUri(
+            Uri uri) {
+
+        try {
+
+            InputStream inputStream =
+                    getContentResolver()
+                            .openInputStream(
+                                    uri
+                            );
+
+            if (
+                    inputStream
+                            ==
+                    null
+            ) {
+
+                Toast.makeText(
+                        this,
+                        "Could not read backup file.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+            BufferedReader reader =
+                    new BufferedReader(
+                            new InputStreamReader(
+                                    inputStream,
+                                    "UTF-8"
+                            )
+                    );
+
+            StringBuilder builder =
+                    new StringBuilder();
+
+            String line;
+
+            while (
+                    (line = reader.readLine())
+                            !=
+                    null
+            ) {
+
+                builder.append(line);
+            }
+
+            reader.close();
+            inputStream.close();
+
+            String backupJson =
+                    builder.toString()
+                            .trim();
+
+            if (
+                    backupJson.isEmpty()
+            ) {
+
+                Toast.makeText(
+                        this,
+                        "The selected backup file is empty.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+            JSONObject backup =
+                    new JSONObject(
+                            backupJson
+                    );
+
+            JSONArray customers =
+                    backup.optJSONArray(
+                            "customers"
+                    );
+
+            JSONArray invoices =
+                    backup.optJSONArray(
+                            "invoices"
+                    );
+
+            if (
+                    customers == null
+                            ||
+                    invoices == null
+            ) {
+
+                Toast.makeText(
+                        this,
+                        "This is not a valid Pure Clean backup file.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+            String javascript =
+                    "restoreBusinessBackup("
+                            + JSONObject.quote(
+                                    backupJson
+                            )
+                            + ");";
+
+            webView.post(
+                    () -> webView.evaluateJavascript(
+                            javascript,
+                            null
+                    )
+            );
+
+            Toast.makeText(
+                    this,
+                    "Backup loaded: "
+                            + customers.length()
+                            + " customers, "
+                            + invoices.length()
+                            + " invoices",
+                    Toast.LENGTH_LONG
+            ).show();
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            Toast.makeText(
+                    this,
+                    "Could not restore this backup file.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    private void emailInvoiceWithPdf(
+            String email,
+            String customerName,
+            String invoiceNumber,
+            String invoiceDate,
+            String dueDate,
+            String amount,
+            String description) {
+
+        try {
+
+            if (email == null) {
+                email = "";
+            }
+
+            email = email.trim();
+
+            if (
+                    email.isEmpty()
+                            ||
+                    !Patterns.EMAIL_ADDRESS
+                            .matcher(email)
+                            .matches()
+            ) {
+
+                Toast.makeText(
+                        this,
+                        "Invalid customer email: "
+                                + email,
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+            File folder =
+                    new File(
+                            getCacheDir(),
+                            "invoices"
+                    );
+
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+
+            File pdf =
+                    new File(
+                            folder,
+                            "PureClean-Invoice-"
+                                    + invoiceNumber
+                                    + ".pdf"
+                    );
+
+            makePdf(
+                    pdf,
+                    customerName,
+                    invoiceNumber,
+                    invoiceDate,
+                    dueDate,
+                    description,
+                    amount
+            );
+
+            Uri pdfUri =
+                    FileProvider.getUriForFile(
+                            this,
+                            getPackageName()
+                                    + ".fileprovider",
+                            pdf
+                    );
+
+            String subject =
+                    "Invoice #"
+                            + invoiceNumber
+                            + " - Steven's Pure Clean Exteriors";
+
+            String message =
+                    "Hi "
+                            + customerName
+                            + ",\n\n"
+                            + "Please find attached invoice #"
+                            + invoiceNumber
+                            + " for £"
+                            + amount
+                            + ".\n\n"
+                            + "Invoice date: "
+                            + invoiceDate
+                            + "\n"
+                            + "Payment due: "
+                            + dueDate
+                            + "\n";
+
+            if (
+                    description != null
+                            &&
+                    !description.trim().isEmpty()
+            ) {
+
+                message +=
+                        "Description: "
+                                + description.trim()
+                                + "\n";
+            }
+
+            message +=
+                    "\nPlease make payment within 7 days.\n\n"
+                            + "Thank you for your custom.\n\n"
+                            + "Steven's Pure Clean Exteriors";
+
+            Intent emailIntent =
+                    new Intent(
+                            Intent.ACTION_SEND
+                    );
+
+            emailIntent.setType(
+                    "application/pdf"
+            );
+
+            emailIntent.putExtra(
+                    Intent.EXTRA_EMAIL,
+                    new String[]{
+                            email
+                    }
+            );
+
+            emailIntent.putExtra(
+                    Intent.EXTRA_SUBJECT,
+                    subject
+            );
+
+            emailIntent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    message
+            );
+
+            emailIntent.putExtra(
+                    Intent.EXTRA_STREAM,
+                    pdfUri
+            );
+
+            emailIntent.setClipData(
+                    ClipData.newRawUri(
+                            "Invoice PDF",
+                            pdfUri
+                    )
+            );
+
+            emailIntent.addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+            );
+
+            try {
+
+                emailIntent.setPackage(
+                        "com.google.android.gm"
+                );
+
+                startActivity(
+                        emailIntent
+                );
+
+            } catch (Exception gmailError) {
+
+                emailIntent.setPackage(null);
+
+                startActivity(
+                        Intent.createChooser(
+                                emailIntent,
+                                "Email Invoice"
+                        )
+                );
+            }
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            Toast.makeText(
+                    this,
+                    "Could not create or email invoice.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    private void openReminderEmail(
+            String email,
+            String customerName,
+            String invoiceNumber,
+            String invoiceDate,
+            String dueDate,
+            String amount,
+            String description,
+            boolean overdue) {
+
+        try {
+
+            if (email == null) {
+                email = "";
+            }
+
+            email = email.trim();
+
+            if (
+                    email.isEmpty()
+                            ||
+                    !Patterns.EMAIL_ADDRESS
+                            .matcher(email)
+                            .matches()
+            ) {
+
+                Toast.makeText(
+                        this,
+                        "Invalid customer email: "
+                                + email,
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+            String subject;
+
+            if (overdue) {
+
+                subject =
+                        "Overdue Invoice #"
+                                + invoiceNumber
+                                + " - Steven's Pure Clean Exteriors";
+
+            } else {
+
+                subject =
+                        "Invoice Reminder #"
+                                + invoiceNumber
+                                + " - Steven's Pure Clean Exteriors";
+            }
+
+            String message =
+                    "Hi "
+                            + customerName
+                            + ",\n\n"
+                            + "This is a friendly reminder regarding invoice
