@@ -580,7 +580,7 @@ Backup Data
 <button
 type="button"
 class="action restorebtn"
-onclick="requestRestoreBackup()">
+onclick="Android.restoreBusinessData()">
 Restore Data
 </button>
 
@@ -1039,13 +1039,7 @@ updateDashboard();
 
 }
 
-/* ================================
-   BACKUP
-================================ */
-
 function backupBusinessData(){
-
-try{
 
 let backup={
 
@@ -1083,103 +1077,24 @@ null,
 );
 
 if(
-typeof Android==="undefined"
+typeof Android!=="undefined"
+&&
+Android.backupBusinessData
 ){
-
-alert(
-"Android backup system is not connected."
-);
-
-return;
-}
-
-if(
-typeof Android.backupBusinessData
-!==
-"function"
-){
-
-alert(
-"Backup function is not available in this version of the app."
-);
-
-return;
-}
 
 Android.backupBusinessData(
 backupJson
 );
 
-}catch(error){
+}else{
 
 alert(
-"Backup could not start: "
-+
-error.message
+"Android backup system is not available."
 );
 
 }
 
 }
-
-/* ================================
-   RESTORE BUTTON
-================================ */
-
-function requestRestoreBackup(){
-
-try{
-
-let answer=
-window.confirm(
-"Restore a business backup?\n\nYour current customers and invoices will be replaced by the data in the backup file."
-);
-
-if(!answer){
-return;
-}
-
-if(
-typeof Android==="undefined"
-){
-
-alert(
-"Android restore system is not connected."
-);
-
-return;
-}
-
-if(
-typeof Android.restoreBusinessData
-!==
-"function"
-){
-
-alert(
-"Restore function is not available in this version of the app."
-);
-
-return;
-}
-
-Android.restoreBusinessData();
-
-}catch(error){
-
-alert(
-"Restore could not start: "
-+
-error.message
-);
-
-}
-
-}
-
-/* ================================
-   RECEIVE RESTORED BACKUP
-================================ */
 
 function restoreBusinessBackup(
 backupText
@@ -1212,10 +1127,10 @@ return;
 
 }
 
-let restoredCustomers=
+customers=
 backup.customers;
 
-let restoredInvoices=
+invoices=
 backup.invoices;
 
 let restoredNextNumber=
@@ -1232,7 +1147,7 @@ restoredNextNumber<1
 ){
 
 let numbers=
-restoredInvoices
+invoices
 .map(
 i=>
 Number(
@@ -1255,20 +1170,18 @@ Math.max(
 
 }
 
-customers=
-restoredCustomers;
-
-invoices=
-restoredInvoices;
-
 localStorage.setItem(
 "pcCustomers",
-JSON.stringify(customers)
+JSON.stringify(
+customers
+)
 );
 
 localStorage.setItem(
 "pcInvoices",
-JSON.stringify(invoices)
+JSON.stringify(
+invoices
+)
 );
 
 localStorage.setItem(
@@ -1279,11 +1192,8 @@ restoredNextNumber
 );
 
 renderCustomers();
-
 renderPlanner();
-
 renderInvoices();
-
 updateDashboard();
 
 alert(
@@ -1343,12 +1253,10 @@ renderInvoices();
 }
 
 if(id==="map"){
-
 setTimeout(
 renderMap,
 250
 );
-
 }
 
 }
@@ -1589,8 +1497,7 @@ let customer={
 id:
 id || Date.now().toString(),
 
-name:
-name,
+name:name,
 
 address:
 document
@@ -1611,8 +1518,7 @@ document
 .value
 .trim(),
 
-email:
-email,
+email:email,
 
 price:
 Number(
@@ -1966,20 +1872,16 @@ Date.now().toString(),
 invoiceNumber:
 getNextInvoiceNumber(),
 
-customerId:
-c.id,
+customerId:c.id,
 
-customerName:
-c.name,
+customerName:c.name,
 
 amount:
 Number(c.price || 0),
 
-description:
-"",
+description:"",
 
-date:
-invoiceDate,
+date:invoiceDate,
 
 dueDate:
 addDays(
@@ -1987,11 +1889,9 @@ invoiceDate,
 7
 ),
 
-paid:
-false,
+paid:false,
 
-paidDate:
-""
+paidDate:""
 
 });
 
@@ -2132,14 +2032,11 @@ Date.now().toString(),
 invoiceNumber:
 getNextInvoiceNumber(),
 
-customerId:
-c.id,
+customerId:c.id,
 
-customerName:
-c.name,
+customerName:c.name,
 
-amount:
-amount,
+amount:amount,
 
 description:
 document
@@ -2147,8 +2044,7 @@ document
 .value
 .trim(),
 
-date:
-invoiceDate,
+date:invoiceDate,
 
 dueDate:
 addDays(
@@ -2156,11 +2052,9 @@ invoiceDate,
 7
 ),
 
-paid:
-false,
+paid:false,
 
-paidDate:
-""
+paidDate:""
 
 });
 
@@ -3435,257 +3329,4 @@ c.price || 0
 
 mapMarkers.push(marker);
 
-bounds.push(
-[
-coords.lat,
-coords.lng
-]
-);
-
-}
-
-if(bounds.length){
-
-map.fitBounds(
-
-bounds,
-
-{
-
-padding:
-[35,35],
-
-maxZoom:
-15
-
-}
-
-);
-
-status.innerText=
-
-bounds.length+
-" customer location"+
-(bounds.length===1
-? ""
-: "s")
-+
-" shown.";
-
-}else{
-
-status.innerText=
-"No customer postcodes could be located.";
-
-}
-
-}
-
-function openCustomerMap(id){
-
-let c=
-customers.find(
-x=>x.id===id
-);
-
-if(!c){
-return;
-}
-
-let query=
-[
-c.address,
-c.postcode
-]
-.filter(Boolean)
-.join(" ");
-
-if(!query){
-
-alert(
-"This customer has no address or postcode."
-);
-
-return;
-
-}
-
-window.location.href=
-
-"https://www.google.com/maps/search/?api=1&query="
-+
-encodeURIComponent(query);
-
-}
-
-function safe(value){
-
-return String(
-value || ""
-)
-.replace(
-/&/g,
-"&amp;"
-)
-.replace(
-/</g,
-"&lt;"
-)
-.replace(
-/>/g,
-"&gt;"
-)
-.replace(
-/"/g,
-"&quot;"
-);
-
-}
-
-function formatDate(value){
-
-if(!value){
-return "";
-}
-
-let d=
-new Date(
-value+
-"T00:00:00"
-);
-
-return d.toLocaleDateString(
-
-"en-GB",
-
-{
-
-day:"2-digit",
-month:"short",
-year:"numeric"
-
-}
-
-);
-
-}
-
-/* Upgrade older invoices safely */
-
-let changed=false;
-
-let usedNumbers=
-invoices
-.map(
-i=>
-Number(
-i.invoiceNumber
-)
-)
-.filter(
-n=>
-Number.isFinite(n)
-);
-
-let storedNext=
-Number(
-localStorage.getItem(
-"pcNextInvoiceNumber"
-)
-||
-1001
-);
-
-let nextNumber=
-usedNumbers.length
-?
-Math.max(
-Math.max(
-...usedNumbers
-)+1,
-storedNext
-)
-:
-Math.max(
-1001,
-storedNext
-);
-
-invoices
-.sort(
-(a,b)=>
-String(a.date || "")
-.localeCompare(
-String(b.date || "")
-)
-)
-.forEach(
-inv=>{
-
-if(
-!inv.invoiceNumber
-){
-
-inv.invoiceNumber=
-nextNumber++;
-
-changed=true;
-
-}
-
-if(
-!inv.dueDate
-&&
-inv.date
-){
-
-inv.dueDate=
-addDays(
-inv.date,
-7
-);
-
-changed=true;
-
-}
-
-if(
-typeof inv.paidDate
-===
-"undefined"
-){
-
-inv.paidDate="";
-
-changed=true;
-
-}
-
-}
-);
-
-localStorage.setItem(
-"pcNextInvoiceNumber",
-String(nextNumber)
-);
-
-if(changed){
-saveData();
-}
-
-document
-.getElementById(
-"plannerDate"
-)
-.value=
-today();
-
-renderCustomers();
-renderPlanner();
-renderInvoices();
-updateDashboard();
-
-</script>
-
-</body>
-  </html>
+bounds.push
