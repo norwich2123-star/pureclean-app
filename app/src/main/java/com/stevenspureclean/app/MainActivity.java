@@ -28,9 +28,6 @@ public class MainActivity extends Activity {
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
 
-        webView.clearCache(true);
-        webView.clearHistory();
-
         webView.setWebViewClient(new WebViewClient() {
 
             @Override
@@ -40,27 +37,42 @@ public class MainActivity extends Activity {
 
                 String url = request.getUrl().toString();
 
-                // Handle Android intent links
+                if (url.startsWith("mailto:")) {
+
+                    try {
+                        Intent emailIntent =
+                                new Intent(
+                                        Intent.ACTION_SENDTO,
+                                        Uri.parse(url)
+                                );
+
+                        startActivity(emailIntent);
+
+                    } catch (Exception e) {
+                        // No email app available
+                    }
+
+                    return true;
+                }
+
                 if (url.startsWith("intent://")) {
 
                     try {
 
-                        Intent intent = Intent.parseUri(
-                                url,
-                                Intent.URI_INTENT_SCHEME
-                        );
+                        Intent intent =
+                                Intent.parseUri(
+                                        url,
+                                        Intent.URI_INTENT_SCHEME
+                                );
 
                         startActivity(intent);
 
-                        return true;
-
                     } catch (Exception e) {
-
-                        return true;
                     }
+
+                    return true;
                 }
 
-                // Open Google Maps links outside the app
                 if (url.contains("google.com/maps")
                         || url.contains("maps.google.com")) {
 
@@ -75,20 +87,11 @@ public class MainActivity extends Activity {
                         startActivity(mapIntent);
 
                     } catch (Exception e) {
-
-                        Intent browserIntent =
-                                new Intent(
-                                        Intent.ACTION_VIEW,
-                                        Uri.parse(url)
-                                );
-
-                        startActivity(browserIntent);
                     }
 
                     return true;
                 }
 
-                // Keep normal web content inside the app
                 return false;
             }
         });
