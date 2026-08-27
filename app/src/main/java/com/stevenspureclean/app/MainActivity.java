@@ -37,11 +37,16 @@ public class MainActivity extends Activity {
 
         super.onCreate(savedInstanceState);
 
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        requestWindowFeature(
+                Window.FEATURE_NO_TITLE
+        );
 
-        webView = new WebView(this);
+        webView =
+                new WebView(this);
 
-        setContentView(webView);
+        setContentView(
+                webView
+        );
 
         WebSettings settings =
                 webView.getSettings();
@@ -84,7 +89,8 @@ public class MainActivity extends Activity {
         );
     }
 
-    private boolean handleUrl(String url) {
+    private boolean handleUrl(
+            String url) {
 
         if (url == null) {
             return false;
@@ -104,7 +110,9 @@ public class MainActivity extends Activity {
                                 Uri.parse(url)
                         );
 
-                startActivity(mapIntent);
+                startActivity(
+                        mapIntent
+                );
 
             } catch (Exception e) {
 
@@ -197,11 +205,10 @@ public class MainActivity extends Activity {
 
         try {
 
-            if (email == null) {
-                email = "";
-            }
-
-            email = email.trim();
+            email =
+                    email == null
+                            ? ""
+                            : email.trim();
 
             String subject =
                     "Invoice #"
@@ -227,53 +234,51 @@ public class MainActivity extends Activity {
                             + "Thank you for your custom.\n\n"
                             + "Steven's Pure Clean Exteriors";
 
-            /*
-             * IMPORTANT:
-             * Do not encode the customer email address.
-             * Gmail receives the real address directly.
-             */
-            String mailto =
-                    "mailto:"
-                            + email
-                            + "?subject="
-                            + Uri.encode(subject)
-                            + "&body="
-                            + Uri.encode(message);
-
-            Uri mailUri =
-                    Uri.parse(mailto);
-
-            Intent emailIntent =
+            Intent sendIntent =
                     new Intent(
-                            Intent.ACTION_SENDTO
+                            Intent.ACTION_SEND
                     );
 
-            emailIntent.setData(
-                    mailUri
+            sendIntent.setType(
+                    "text/plain"
             );
 
-            /*
-             * Also supply the recipient as an extra
-             * as a second method.
-             */
-            emailIntent.putExtra(
+            sendIntent.putExtra(
                     Intent.EXTRA_EMAIL,
-                    new String[]{email}
+                    new String[]{
+                            email
+                    }
             );
 
-            emailIntent.putExtra(
+            sendIntent.putExtra(
                     Intent.EXTRA_SUBJECT,
                     subject
             );
 
-            emailIntent.putExtra(
+            sendIntent.putExtra(
                     Intent.EXTRA_TEXT,
                     message
             );
 
+            /*
+             * Email-only selector.
+             */
+            Intent selector =
+                    new Intent(
+                            Intent.ACTION_SENDTO
+                    );
+
+            selector.setData(
+                    Uri.parse("mailto:")
+            );
+
+            sendIntent.setSelector(
+                    selector
+            );
+
             startActivity(
                     Intent.createChooser(
-                            emailIntent,
+                            sendIntent,
                             "Email Customer"
                     )
             );
@@ -296,11 +301,10 @@ public class MainActivity extends Activity {
 
         try {
 
-            if (email == null) {
-                email = "";
-            }
-
-            email = email.trim();
+            email =
+                    email == null
+                            ? ""
+                            : email.trim();
 
             String subject;
 
@@ -363,44 +367,48 @@ public class MainActivity extends Activity {
                     "\n\nThank you,\n"
                             + "Steven's Pure Clean Exteriors";
 
-            String mailto =
-                    "mailto:"
-                            + email
-                            + "?subject="
-                            + Uri.encode(subject)
-                            + "&body="
-                            + Uri.encode(message);
-
-            Uri mailUri =
-                    Uri.parse(mailto);
-
-            Intent reminderIntent =
+            Intent sendIntent =
                     new Intent(
-                            Intent.ACTION_SENDTO
+                            Intent.ACTION_SEND
                     );
 
-            reminderIntent.setData(
-                    mailUri
+            sendIntent.setType(
+                    "text/plain"
             );
 
-            reminderIntent.putExtra(
+            sendIntent.putExtra(
                     Intent.EXTRA_EMAIL,
-                    new String[]{email}
+                    new String[]{
+                            email
+                    }
             );
 
-            reminderIntent.putExtra(
+            sendIntent.putExtra(
                     Intent.EXTRA_SUBJECT,
                     subject
             );
 
-            reminderIntent.putExtra(
+            sendIntent.putExtra(
                     Intent.EXTRA_TEXT,
                     message
             );
 
+            Intent selector =
+                    new Intent(
+                            Intent.ACTION_SENDTO
+                    );
+
+            selector.setData(
+                    Uri.parse("mailto:")
+            );
+
+            sendIntent.setSelector(
+                    selector
+            );
+
             startActivity(
                     Intent.createChooser(
-                            reminderIntent,
+                            sendIntent,
                             "Send Reminder"
                     )
             );
@@ -692,7 +700,9 @@ public class MainActivity extends Activity {
                         ? ""
                         : description.trim();
 
-        if (cleanDescription.isEmpty()) {
+        if (
+                cleanDescription.isEmpty()
+        ) {
 
             cleanDescription =
                     "Exterior cleaning service";
