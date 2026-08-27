@@ -33,7 +33,6 @@ public class MainActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         WebView webView = new WebView(this);
-
         setContentView(webView);
 
         WebSettings settings = webView.getSettings();
@@ -50,62 +49,81 @@ public class MainActivity extends Activity {
                     WebView view,
                     WebResourceRequest request) {
 
-                String url =
-                        request.getUrl().toString();
+                return handleUrl(
+                        request.getUrl().toString()
+                );
+            }
 
-                if (url.startsWith("mailto:")) {
+            @Override
+            public boolean shouldOverrideUrlLoading(
+                    WebView view,
+                    String url) {
 
-                    createAndSendInvoice(
-                            request.getUrl()
-                    );
-
-                    return true;
-                }
-
-                if (url.startsWith("intent://")) {
-
-                    try {
-
-                        Intent intent =
-                                Intent.parseUri(
-                                        url,
-                                        Intent.URI_INTENT_SCHEME
-                                );
-
-                        startActivity(intent);
-
-                    } catch (Exception e) {
-                    }
-
-                    return true;
-                }
-
-                if (url.contains("google.com/maps")
-                        || url.contains("maps.google.com")) {
-
-                    try {
-
-                        Intent mapIntent =
-                                new Intent(
-                                        Intent.ACTION_VIEW,
-                                        Uri.parse(url)
-                                );
-
-                        startActivity(mapIntent);
-
-                    } catch (Exception e) {
-                    }
-
-                    return true;
-                }
-
-                return false;
+                return handleUrl(url);
             }
         });
 
         webView.loadUrl(
                 "file:///android_asset/pureclean.html"
         );
+    }
+
+
+    private boolean handleUrl(String url) {
+
+        if (url == null) {
+            return false;
+        }
+
+        if (url.startsWith("mailto:")) {
+
+            createAndSendInvoice(
+                    Uri.parse(url)
+            );
+
+            return true;
+        }
+
+        if (url.startsWith("intent://")) {
+
+            try {
+
+                Intent intent =
+                        Intent.parseUri(
+                                url,
+                                Intent.URI_INTENT_SCHEME
+                        );
+
+                startActivity(intent);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return true;
+        }
+
+        if (url.contains("google.com/maps")
+                || url.contains("maps.google.com")) {
+
+            try {
+
+                Intent mapIntent =
+                        new Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse(url)
+                        );
+
+                startActivity(mapIntent);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
 
@@ -155,13 +173,11 @@ public class MainActivity extends Activity {
 
 
             if (subject == null) {
-
                 subject =
                         "Invoice from Steven's Pure Clean Exteriors";
             }
 
             if (body == null) {
-
                 body = "";
             }
 
@@ -173,7 +189,6 @@ public class MainActivity extends Activity {
                     );
 
             if (!invoiceFolder.exists()) {
-
                 invoiceFolder.mkdirs();
             }
 
@@ -181,9 +196,7 @@ public class MainActivity extends Activity {
             File pdfFile =
                     new File(
                             invoiceFolder,
-                            "PureClean-Invoice-" +
-                            System.currentTimeMillis() +
-                            ".pdf"
+                            "PureClean-Invoice.pdf"
                     );
 
 
@@ -196,8 +209,8 @@ public class MainActivity extends Activity {
             Uri pdfUri =
                     FileProvider.getUriForFile(
                             this,
-                            getPackageName() +
-                            ".fileprovider",
+                            getPackageName()
+                                    + ".fileprovider",
                             pdfFile
                     );
 
@@ -223,7 +236,7 @@ public class MainActivity extends Activity {
 
             emailIntent.putExtra(
                     Intent.EXTRA_TEXT,
-                    "Hi,\n\nPlease find your invoice attached from Steven's Pure Clean Exteriors.\n\nThank you for your custom."
+                    "Hi,\n\nPlease find your invoice attached.\n\nThank you for your custom.\n\nSteven's Pure Clean Exteriors"
             );
 
             emailIntent.putExtra(
@@ -247,6 +260,17 @@ public class MainActivity extends Activity {
         } catch (Exception e) {
 
             e.printStackTrace();
+
+            Intent normalEmail =
+                    new Intent(
+                            Intent.ACTION_VIEW,
+                            mailUri
+                    );
+
+            try {
+                startActivity(normalEmail);
+            } catch (Exception ignored) {
+            }
         }
     }
 
@@ -300,15 +324,11 @@ public class MainActivity extends Activity {
 
             InputStream input =
                     getAssets()
-                            .open(
-                                    "logo.jpg"
-                            );
+                            .open("logo.jpg");
 
             Bitmap logo =
                     BitmapFactory
-                            .decodeStream(
-                                    input
-                            );
+                            .decodeStream(input);
 
             if (logo != null) {
 
@@ -331,16 +351,17 @@ public class MainActivity extends Activity {
             input.close();
 
         } catch (Exception e) {
+            e.printStackTrace();
         }
 
 
         paint.setColor(green);
-        paint.setTextSize(24);
+        paint.setTextSize(23);
         paint.setFakeBoldText(true);
 
         canvas.drawText(
                 "Steven's Pure Clean Exteriors",
-                155,
+                150,
                 65,
                 paint
         );
@@ -351,8 +372,8 @@ public class MainActivity extends Activity {
 
         canvas.drawText(
                 "Pure Results • Clean Exteriors",
-                155,
-                91,
+                150,
+                90,
                 paint
         );
 
@@ -374,8 +395,6 @@ public class MainActivity extends Activity {
 
         paint.setFakeBoldText(false);
 
-        paint.setStrokeWidth(2);
-
         canvas.drawLine(
                 40,
                 180,
@@ -391,24 +410,17 @@ public class MainActivity extends Activity {
 
 
         String[] lines =
-                invoiceText.split(
-                        "\n"
-                );
+                invoiceText.split("\n");
 
 
         for (String line : lines) {
 
             if (line.trim().isEmpty()) {
-
                 y += 16;
-
                 continue;
             }
 
-
-            if (line.startsWith(
-                    "Amount due:"
-            )) {
+            if (line.startsWith("Amount due:")) {
 
                 paint.setColor(green);
                 paint.setTextSize(22);
@@ -421,10 +433,7 @@ public class MainActivity extends Activity {
                         paint
                 );
 
-                paint.setColor(
-                        Color.BLACK
-                );
-
+                paint.setColor(Color.BLACK);
                 paint.setTextSize(15);
                 paint.setFakeBoldText(false);
 
@@ -442,9 +451,7 @@ public class MainActivity extends Activity {
                 y += 24;
             }
 
-
-            if (y > 770) {
-
+            if (y > 760) {
                 break;
             }
         }
@@ -464,26 +471,19 @@ public class MainActivity extends Activity {
         );
 
 
-        document.finishPage(
-                page
-        );
+        document.finishPage(page);
 
 
         try {
 
             FileOutputStream output =
-                    new FileOutputStream(
-                            file
-                    );
+                    new FileOutputStream(file);
 
-            document.writeTo(
-                    output
-            );
+            document.writeTo(output);
 
             output.close();
 
         } catch (Exception e) {
-
             e.printStackTrace();
         }
 
