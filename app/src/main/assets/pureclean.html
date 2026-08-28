@@ -386,6 +386,12 @@ color:#79bdff;
 border:1px solid #285170;
 }
 
+.dayBadge{
+background:#3d2d14;
+color:#ffd36c;
+border:1px solid #674c1e;
+}
+
 .paymentBadge{
 background:#1f3c27;
 color:#6ee59b;
@@ -578,8 +584,6 @@ font-size:11px;
 margin-top:6px;
 }
 
-/* PAYMENT POPUP */
-
 .modalOverlay{
 display:none;
 position:fixed;
@@ -730,7 +734,7 @@ No unpaid invoices
 <h3>Business Backup</h3>
 
 <div class="muted">
-Keep a copy of your customers, archived customers, round areas, invoices, payment records and cleaning schedule.
+Keep a copy of your customers, archived customers, round areas, preferred cleaning days, invoices, payment records and cleaning schedule.
 </div>
 
 <div class="backup-buttons">
@@ -805,6 +809,19 @@ list="roundAreaSuggestions"
 placeholder="e.g. Norwich, Cromer, North Walsham">
 
 <datalist id="roundAreaSuggestions"></datalist>
+
+<label>Preferred Cleaning Day</label>
+
+<select id="customerPreferredDay">
+<option value="">No Preference</option>
+<option value="1">Monday</option>
+<option value="2">Tuesday</option>
+<option value="3">Wednesday</option>
+<option value="4">Thursday</option>
+<option value="5">Friday</option>
+<option value="6">Saturday</option>
+<option value="0">Sunday</option>
+</select>
 
 <label>Phone</label>
 <input id="customerPhone" type="tel">
@@ -1110,8 +1127,6 @@ Refresh Customer Pins
 
 </main>
 
-<!-- PAYMENT CHOICE -->
-
 <div id="paymentModalOverlay" class="modalOverlay">
 
 <div class="paymentModal">
@@ -1126,27 +1141,19 @@ Refresh Customer Pins
 How was this job paid?
 </div>
 
-<button
-class="action cashbtn"
-onclick="finishCompletedJob('Cash')">
+<button class="action cashbtn" onclick="finishCompletedJob('Cash')">
 Paid Cash
 </button>
 
-<button
-class="action bankbtn"
-onclick="finishCompletedJob('Bank Transfer')">
+<button class="action bankbtn" onclick="finishCompletedJob('Bank Transfer')">
 Paid Bank
 </button>
 
-<button
-class="action unpaidbtn"
-onclick="finishCompletedJob('Unpaid')">
+<button class="action unpaidbtn" onclick="finishCompletedJob('Unpaid')">
 Unpaid
 </button>
 
-<button
-class="action secondary"
-onclick="closePaymentModal()">
+<button class="action secondary" onclick="closePaymentModal()">
 Cancel
 </button>
 
@@ -1184,6 +1191,71 @@ function archivedCustomers(){
 
 return customers.filter(
 c=>c.archived===true
+);
+
+}
+
+function weekdayName(value){
+
+let names={
+"0":"Sunday",
+"1":"Monday",
+"2":"Tuesday",
+"3":"Wednesday",
+"4":"Thursday",
+"5":"Friday",
+"6":"Saturday"
+};
+
+return names[String(value)] || "";
+
+}
+
+function nextRecurringDate(customer,baseDate){
+
+let frequency=
+Number(customer.frequency || 4);
+
+let nominal=
+addDays(
+baseDate || today(),
+frequency*7
+);
+
+if(
+customer.preferredDay===""
+||
+customer.preferredDay===null
+||
+typeof customer.preferredDay==="undefined"
+){
+
+return nominal;
+
+}
+
+let d=
+new Date(
+nominal+"T12:00:00"
+);
+
+if(Number.isNaN(d.getTime())){
+return nominal;
+}
+
+let target=
+Number(customer.preferredDay);
+
+let difference=
+(target-d.getDay()+7)%7;
+
+if(difference===0){
+return nominal;
+}
+
+return addDays(
+nominal,
+difference
 );
 
 }
@@ -1359,6 +1431,10 @@ c.archived=false;
 
 if(typeof c.roundArea==="undefined"){
 c.roundArea="";
+}
+
+if(typeof c.preferredDay==="undefined"){
+c.preferredDay="";
 }
 
 }
@@ -1808,9 +1884,7 @@ ${status==="paid"
 </span>
 
 ${inv.paid && inv.paymentMethod
-? `<span class="badge paymentBadge">
-${safe(inv.paymentMethod)}
-</span>`
+? `<span class="badge paymentBadge">${safe(inv.paymentMethod)}</span>`
 : ""}
 
 </div>
@@ -1894,14 +1968,14 @@ refreshRoundAreas();
 
 customerForm.classList.add("show");
 
-customerFormTitle.innerText=
-"Add Customer";
+customerFormTitle.innerText="Add Customer";
 
 customerId.value="";
 customerName.value="";
 customerAddress.value="";
 customerPostcode.value="";
 customerRoundArea.value="";
+customerPreferredDay.value="";
 customerPhone.value="";
 customerEmail.value="";
 customerPrice.value="";
@@ -1969,6 +2043,9 @@ customerPostcode.value
 roundArea:
 customerRoundArea.value.trim(),
 
+preferredDay:
+customerPreferredDay.value,
+
 phone:
 customerPhone.value.trim(),
 
@@ -2033,14 +2110,20 @@ refreshRoundAreas();
 
 customerForm.classList.add("show");
 
-customerFormTitle.innerText=
-"Edit Customer";
+customerFormTitle.innerText="Edit Customer";
 
 customerId.value=c.id;
 customerName.value=c.name || "";
 customerAddress.value=c.address || "";
 customerPostcode.value=c.postcode || "";
 customerRoundArea.value=c.roundArea || "";
+customerPreferredDay.value=
+typeof c.preferredDay==="undefined"
+?
+""
+:
+String(c.preferredDay);
+
 customerPhone.value=c.phone || "";
 customerEmail.value=c.email || "";
 customerPrice.value=c.price || "";
@@ -2146,6 +2229,12 @@ c=>
 .toLowerCase()
 .includes(search)
 
+||
+
+weekdayName(c.preferredDay)
+.toLowerCase()
+.includes(search)
+
 );
 
 if(filtered.length===0){
@@ -2189,6 +2278,13 @@ c.roundArea
 :
 '<span class="badge areaBadge">UNASSIGNED</span>';
 
+let dayStatus=
+weekdayName(c.preferredDay)
+?
+`<span class="badge dayBadge">${safe(weekdayName(c.preferredDay))}</span>`
+:
+"";
+
 return `
 
 <div class="item">
@@ -2217,6 +2313,7 @@ ${c.postcode ? "<br>"+safe(c.postcode) : ""}
 <div style="margin-top:8px">
 ${paymentStatus}
 ${areaStatus}
+${dayStatus}
 ${archiveStatus}
 </div>
 
@@ -2386,6 +2483,12 @@ ${c.postcode ? "<br>"+safe(c.postcode) : ""}
 ${safe(c.roundArea || "Unassigned")}
 </span>
 
+${weekdayName(c.preferredDay)
+? `<span class="badge dayBadge">
+${safe(weekdayName(c.preferredDay))}
+</span>`
+: ""}
+
 </div>
 
 <div class="job-detail muted">
@@ -2403,6 +2506,13 @@ Frequency:
 </strong>
 
 Every ${c.frequency || 4} weeks
+
+${weekdayName(c.preferredDay)
+? `<br><strong style="color:#b8e63e">
+Preferred day:
+</strong>
+${safe(weekdayName(c.preferredDay))}`
+: ""}
 
 </div>
 
@@ -2459,8 +2569,6 @@ Cancel
 ).join("");
 
 }
-
-/* NEW COMPLETION / PAYMENT SYSTEM */
 
 function completeJob(id){
 
@@ -2519,11 +2627,9 @@ Date.now().toString(),
 invoiceNumber:
 getNextInvoiceNumber(),
 
-customerId:
-c.id,
+customerId:c.id,
 
-customerName:
-c.name,
+customerName:c.name,
 
 amount:
 Number(c.price || 0),
@@ -2549,9 +2655,9 @@ paid ? paymentChoice : ""
 });
 
 c.nextClean=
-addDays(
-c.nextClean || today(),
-Number(c.frequency || 4)*7
+nextRecurringDate(
+c,
+c.nextClean || today()
 );
 
 let nextDate=
@@ -2587,6 +2693,15 @@ message+=
 +
 formatDate(nextDate);
 
+if(weekdayName(c.preferredDay)){
+
+message+=
+"\nPreferred day: "
++
+weekdayName(c.preferredDay);
+
+}
+
 alert(message);
 
 }
@@ -2601,9 +2716,9 @@ return;
 }
 
 c.nextClean=
-addDays(
-c.nextClean || today(),
-Number(c.frequency || 4)*7
+nextRecurringDate(
+c,
+c.nextClean || today()
 );
 
 saveData();
@@ -2657,11 +2772,23 @@ c.nextClean=input.value;
 saveData();
 renderPlanner();
 
-alert(
+let message=
 "Job moved to "
 +
-formatDate(c.nextClean)
-);
+formatDate(c.nextClean);
+
+if(weekdayName(c.preferredDay)){
+
+message+=
+"\n\nAfter this clean, future cleans will return to "
++
+weekdayName(c.preferredDay)
++
+".";
+
+}
+
+alert(message);
 
 }
 
@@ -3018,9 +3145,7 @@ confirm(
 );
 
 inv.paid=true;
-
-inv.paidDate=
-today();
+inv.paidDate=today();
 
 inv.paymentMethod=
 bank
@@ -3861,6 +3986,9 @@ safe(c.postcode)+
 (c.roundArea
 ? "<br><strong>Area:</strong> "+safe(c.roundArea)
 : "")+
+(weekdayName(c.preferredDay)
+? "<br><strong>Day:</strong> "+safe(weekdayName(c.preferredDay))
+: "")+
 "<br>£"+
 Number(c.price || 0).toFixed(2)
 );
@@ -3975,6 +4103,13 @@ changed=true;
 
 }
 
+if(typeof c.preferredDay==="undefined"){
+
+c.preferredDay="";
+changed=true;
+
+}
+
 }
 );
 
@@ -4068,4 +4203,4 @@ updateEarnings();
 </script>
 
 </body>
-  </html>
+</html>
