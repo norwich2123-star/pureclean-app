@@ -231,6 +231,11 @@ background:#2e5fa8;
 color:#fff;
 }
 
+.undopaidbtn{
+background:#8a5a16;
+color:#fff;
+}
+
 .customer-list,.invoice-list,.job-list{
 display:grid;
 gap:8px;
@@ -2081,7 +2086,15 @@ Mark Paid
 </button>
 
 `
-: ""}
+: `
+
+<button
+class="action small undopaidbtn"
+onclick="undoPaid('${inv.id}')">
+Undo Paid
+</button>
+
+`}
 
 <button
 class="action small emailbtn"
@@ -2121,6 +2134,31 @@ return;
 
 inv.paid=true;
 inv.paidDate=today();
+
+saveData();
+renderInvoices();
+
+}
+
+function undoPaid(id){
+
+let inv=
+invoices.find(x=>x.id===id);
+
+if(!inv){
+return;
+}
+
+if(
+!confirm(
+"Change this invoice back to unpaid?"
+)
+){
+return;
+}
+
+inv.paid=false;
+inv.paidDate="";
 
 saveData();
 renderInvoices();
@@ -2923,4 +2961,4 @@ updateDashboard();
 </script>
 
 </body>
-</html>
+  </html>
