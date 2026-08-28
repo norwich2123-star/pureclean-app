@@ -10,9 +10,9 @@ import android.net.Uri;
 
 import android.util.Patterns;
 
-import android.view.View;
 import android.view.Window;
 import android.view.WindowInsets;
+import android.view.View;
 
 import android.widget.Toast;
 
@@ -58,25 +58,28 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+        /*
+         * IMPORTANT:
+         * Remove Android's own title bar before anything is drawn.
+         */
+        requestWindowFeature(
+                Window.FEATURE_NO_TITLE
+        );
+
         super.onCreate(savedInstanceState);
 
-        /*
-         * Make Android's top status bar black.
-         */
-        Window window = getWindow();
+        getWindow().setStatusBarColor(
+                Color.rgb(20, 20, 20)
+        );
 
-        window.setStatusBarColor(Color.BLACK);
-        window.setNavigationBarColor(Color.BLACK);
+        getWindow().setNavigationBarColor(
+                Color.BLACK
+        );
 
         webView = new WebView(this);
 
         /*
-         * IMPORTANT:
-         * Android 15 / targetSdk 35 can place apps underneath
-         * the status bar.
-         *
-         * This adds the real status-bar height to the WebView
-         * so the logo/header sits underneath it instead.
+         * Keep the app below the phone status bar.
          */
         webView.setOnApplyWindowInsetsListener(
                 new View.OnApplyWindowInsetsListener() {
@@ -130,7 +133,9 @@ public class MainActivity extends Activity {
                             WebResourceRequest request) {
 
                         return openExternalLink(
-                                request.getUrl().toString()
+                                request
+                                        .getUrl()
+                                        .toString()
                         );
                     }
 
@@ -363,10 +368,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    /*
-     * BACKUP
-     */
-
     private void startBackup(String json) {
 
         if (
@@ -432,10 +433,6 @@ public class MainActivity extends Activity {
             ).show();
         }
     }
-
-    /*
-     * RESTORE
-     */
 
     private void startRestore() {
 
@@ -520,13 +517,6 @@ public class MainActivity extends Activity {
                             .openOutputStream(uri);
 
             if (output == null) {
-
-                Toast.makeText(
-                        this,
-                        "Could not save backup.",
-                        Toast.LENGTH_LONG
-                ).show();
-
                 return;
             }
 
@@ -566,13 +556,6 @@ public class MainActivity extends Activity {
                             .openInputStream(uri);
 
             if (input == null) {
-
-                Toast.makeText(
-                        this,
-                        "Could not read backup.",
-                        Toast.LENGTH_LONG
-                ).show();
-
                 return;
             }
 
@@ -603,17 +586,6 @@ public class MainActivity extends Activity {
 
             String json =
                     text.toString().trim();
-
-            if (json.isEmpty()) {
-
-                Toast.makeText(
-                        this,
-                        "Backup file is empty.",
-                        Toast.LENGTH_LONG
-                ).show();
-
-                return;
-            }
 
             JSONObject backup =
                     new JSONObject(json);
@@ -679,12 +651,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    /*
-     * EMAIL VALIDATION
-     */
-
-    private boolean validEmail(
-            String email) {
+    private boolean validEmail(String email) {
 
         return email != null
                 &&
@@ -696,10 +663,6 @@ public class MainActivity extends Activity {
                         )
                         .matches();
     }
-
-    /*
-     * EMAIL INVOICE
-     */
 
     private void emailInvoice(
             String email,
@@ -776,24 +739,9 @@ public class MainActivity extends Activity {
                             +
                             dueDate
                             +
-                            "\n";
-
-            if (
-                    description != null
-                            &&
-                    !description.trim().isEmpty()
-            ) {
-
-                message +=
-                        "Description: "
-                                +
-                                description.trim()
-                                +
-                                "\n";
-            }
-
-            message +=
-                    "\nPlease make payment within 7 days."
+                            "\n\n"
+                            +
+                            "Please make payment within 7 days."
                             +
                             "\n\nThank you for your custom."
                             +
@@ -849,7 +797,7 @@ public class MainActivity extends Activity {
 
                 startActivity(intent);
 
-            } catch (Exception gmailError) {
+            } catch (Exception e) {
 
                 intent.setPackage(null);
 
@@ -871,10 +819,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    /*
-     * REMINDER
-     */
-
     private void reminderEmail(
             String email,
             String customerName,
@@ -886,36 +830,19 @@ public class MainActivity extends Activity {
             boolean overdue) {
 
         if (!validEmail(email)) {
-
-            Toast.makeText(
-                    this,
-                    "Invalid customer email.",
-                    Toast.LENGTH_LONG
-            ).show();
-
             return;
         }
 
-        String subject;
-
-        if (overdue) {
-
-            subject =
-                    "Overdue Invoice #"
-                            +
-                            invoiceNumber
-                            +
-                            " - Steven's Pure Clean Exteriors";
-
-        } else {
-
-            subject =
-                    "Invoice Reminder #"
-                            +
-                            invoiceNumber
-                            +
-                            " - Steven's Pure Clean Exteriors";
-        }
+        String subject =
+                overdue
+                        ?
+                        "Overdue Invoice #"
+                                +
+                                invoiceNumber
+                        :
+                        "Invoice Reminder #"
+                                +
+                                invoiceNumber;
 
         String message =
                 "Hi "
@@ -930,9 +857,9 @@ public class MainActivity extends Activity {
                         +
                         ".\n\n"
                         +
-                        "Invoice date: "
+                        "Amount due: £"
                         +
-                        invoiceDate
+                        amount
                         +
                         "\n"
                         +
@@ -940,47 +867,28 @@ public class MainActivity extends Activity {
                         +
                         dueDate
                         +
-                        "\n"
+                        "\n\n"
                         +
-                        "Amount due: £"
-                        +
-                        amount
-                        +
-                        "\n\n";
-
-        if (overdue) {
-
-            message +=
-                    "This invoice is now overdue.\n\n";
-
-        } else {
-
-            message +=
-                    "Please make payment by the due date.\n\n";
-        }
-
-        message +=
-                "Thank you,\n"
+                        "Thank you,\n"
                         +
                         "Steven's Pure Clean Exteriors";
-
-        String mailto =
-                "mailto:"
-                        +
-                        email.trim()
-                        +
-                        "?subject="
-                        +
-                        Uri.encode(subject)
-                        +
-                        "&body="
-                        +
-                        Uri.encode(message);
 
         Intent intent =
                 new Intent(
                         Intent.ACTION_VIEW,
-                        Uri.parse(mailto)
+                        Uri.parse(
+                                "mailto:"
+                                        +
+                                        email.trim()
+                                        +
+                                        "?subject="
+                                        +
+                                        Uri.encode(subject)
+                                        +
+                                        "&body="
+                                        +
+                                        Uri.encode(message)
+                        )
                 );
 
         try {
@@ -995,24 +903,9 @@ public class MainActivity extends Activity {
 
             intent.setPackage(null);
 
-            try {
-
-                startActivity(intent);
-
-            } catch (Exception ignored) {
-
-                Toast.makeText(
-                        this,
-                        "Could not open email app.",
-                        Toast.LENGTH_LONG
-                ).show();
-            }
+            startActivity(intent);
         }
     }
-
-    /*
-     * CREATE INVOICE PDF
-     */
 
     private File createInvoicePdf(
             String customerName,
@@ -1030,7 +923,6 @@ public class MainActivity extends Activity {
                 );
 
         if (!folder.exists()) {
-
             folder.mkdirs();
         }
 
@@ -1088,7 +980,9 @@ public class MainActivity extends Activity {
 
             Bitmap logo =
                     BitmapFactory
-                            .decodeStream(input);
+                            .decodeStream(
+                                    input
+                            );
 
             if (logo != null) {
 
@@ -1300,10 +1194,7 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(
-                Color.DKGRAY
-        );
-
+        paint.setColor(Color.DKGRAY);
         paint.setTextSize(12);
 
         canvas.drawText(
@@ -1323,7 +1214,6 @@ public class MainActivity extends Activity {
         document.writeTo(output);
 
         output.close();
-
         document.close();
 
         return file;
