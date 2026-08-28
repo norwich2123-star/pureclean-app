@@ -563,6 +563,35 @@ border-color:#526d1d;
 background:linear-gradient(135deg,#182008,#0d1205);
 }
 
+.profit-section-title{
+color:var(--lime);
+margin:18px 0 0;
+font-size:18px;
+}
+
+.profit-card{
+border-color:#34431a;
+}
+
+.profit-positive{
+color:var(--green);
+}
+
+.profit-negative{
+color:var(--red);
+}
+
+.tax-year-info{
+margin-top:10px;
+padding:11px;
+background:#10150a;
+border:1px solid #38451e;
+border-radius:11px;
+color:#b6d36d;
+font-size:12px;
+line-height:1.5;
+}
+
 .modalOverlay{
 display:none;
 position:fixed;
@@ -723,7 +752,7 @@ oninput="pinConfirmInput.value=pinConfirmInput.value.replace(/\D/g,'').slice(0,4
 <button onclick="openPage('customers',this)">Customers</button>
 <button onclick="openPage('planner',this)">Planner</button>
 <button onclick="openPage('invoices',this)">Invoices</button>
-<button onclick="openPage('earnings',this)">Earnings</button>
+<button onclick="openPage('earnings',this)">Profit</button>
 <button onclick="openPage('expenses',this)">Expenses</button>
 <button onclick="openPage('map',this)">Map</button>
 
@@ -803,35 +832,20 @@ Money Owed
 
 </div>
 
-<div class="card">
-
-<h3 style="color:#9bd600;margin:0">Business Backup</h3>
-
-<div class="muted">
-Standard backup contains your business records, including expenses, but not receipt photos.
-</div>
-
-<div class="two">
-<button class="action" onclick="backupBusinessData()">Backup Data</button>
-<button class="action secondary" onclick="restoreBusinessData()">Restore Data</button>
-</div>
-
-</div>
-
 <div class="card full-backup-box">
 
-<h3 style="color:#9bd600;margin:0">📦 Full Backup + Receipt Photos</h3>
+<h3 style="color:#9bd600;margin:0">📦 Full Business Backup</h3>
 
 <div class="muted" style="margin-top:7px">
-Recommended backup. Saves your customers, invoices, expenses and all expense receipt photos together in one ZIP file.
+Backs up your customers, invoices, expenses and all saved receipt photos together in one file.
 </div>
 
 <button class="action" onclick="backupBusinessDataWithPhotos()">
-Full Backup + Photos
+📦 Backup Everything
 </button>
 
 <button class="action secondary" onclick="restoreBusinessDataWithPhotos()">
-Restore Full Backup
+Restore Backup
 </button>
 
 </div>
@@ -1111,39 +1125,76 @@ Accountant Invoice CSV
 
 <section id="earnings" class="screen">
 
-<h2>Earnings</h2>
+<h2>Profit</h2>
+
+<h3 class="profit-section-title">This Month</h3>
 
 <div class="grid">
 
 <div class="card stat">
-<div class="label">PAID THIS MONTH</div>
+<div class="label">INCOME</div>
 <div id="earnPaidMonth" class="value green">£0.00</div>
 </div>
 
 <div class="card stat">
-<div class="label">EXPENSES THIS MONTH</div>
+<div class="label">EXPENSES</div>
 <div id="earnExpensesMonth" class="value red">£0.00</div>
 </div>
 
-<div class="card stat">
-<div class="label">MONTH PROFIT</div>
+<div class="card stat profit-card" style="grid-column:1/-1">
+<div class="label">PROFIT THIS MONTH</div>
 <div id="earnProfitMonth" class="value">£0.00</div>
 </div>
 
+</div>
+
+<h3 class="profit-section-title">This Calendar Year</h3>
+
+<div class="grid">
+
 <div class="card stat">
-<div class="label">PAID THIS YEAR</div>
+<div class="label">INCOME</div>
 <div id="earnPaidYear" class="value green">£0.00</div>
 </div>
 
 <div class="card stat">
-<div class="label">EXPENSES THIS YEAR</div>
+<div class="label">EXPENSES</div>
 <div id="earnExpensesYear" class="value red">£0.00</div>
 </div>
 
-<div class="card stat">
-<div class="label">YEAR PROFIT</div>
+<div class="card stat profit-card" style="grid-column:1/-1">
+<div class="label">PROFIT THIS YEAR</div>
 <div id="earnProfitYear" class="value">£0.00</div>
 </div>
+
+</div>
+
+<h3 class="profit-section-title">Current UK Tax Year</h3>
+
+<div id="taxYearDates" class="tax-year-info"></div>
+
+<div class="grid">
+
+<div class="card stat">
+<div class="label">TAX YEAR INCOME</div>
+<div id="earnTaxIncome" class="value green">£0.00</div>
+</div>
+
+<div class="card stat">
+<div class="label">TAX YEAR EXPENSES</div>
+<div id="earnTaxExpenses" class="value red">£0.00</div>
+</div>
+
+<div class="card stat profit-card" style="grid-column:1/-1">
+<div class="label">TAX YEAR PROFIT</div>
+<div id="earnTaxProfit" class="value">£0.00</div>
+</div>
+
+</div>
+
+<h3 class="profit-section-title">Other Figures</h3>
+
+<div class="grid">
 
 <div class="card stat">
 <div class="label">OUTSTANDING</div>
@@ -1158,8 +1209,6 @@ Accountant Invoice CSV
 </div>
 
 </section>
-
-<!-- EXPENSES -->
 
 <section id="expenses" class="screen">
 
@@ -3318,10 +3367,6 @@ alert("Photo picker is not available.");
 }
 }
 
-/*
-Called by MainActivity after the camera/picker saves a photo.
-*/
-
 function expenseReceiptSaved(expenseIdFromAndroid,fileName){
 
 if(
@@ -4075,7 +4120,7 @@ Android.shareCsv(
 );
 }
 
-/* DASHBOARD & EARNINGS */
+/* DASHBOARD & PROFIT */
 
 function updateDashboard(){
 
@@ -4174,6 +4219,20 @@ Number(i.amount || 0).toFixed(2)
 "No unpaid invoices";
 }
 
+function setProfitColour(element,value){
+
+element.classList.remove(
+"profit-positive",
+"profit-negative"
+);
+
+if(value<0){
+element.classList.add("profit-negative");
+}else{
+element.classList.add("profit-positive");
+}
+}
+
 function updateEarnings(){
 
 if(!document.getElementById("earnPaidMonth")){
@@ -4193,28 +4252,109 @@ let year=String(now.getFullYear());
 
 let paidMonth=
 invoices
-.filter(i=>i.paid && monthKey(i.paidDate || i.date)===month)
-.reduce((s,i)=>s+Number(i.amount || 0),0);
+.filter(
+i=>
+i.paid
+&&
+monthKey(i.paidDate || i.date)===month
+)
+.reduce(
+(s,i)=>s+Number(i.amount || 0),
+0
+);
 
 let paidYear=
 invoices
-.filter(i=>i.paid && String(i.paidDate || i.date).startsWith(year))
-.reduce((s,i)=>s+Number(i.amount || 0),0);
+.filter(
+i=>
+i.paid
+&&
+String(i.paidDate || i.date).startsWith(year)
+)
+.reduce(
+(s,i)=>s+Number(i.amount || 0),
+0
+);
 
 let expenseMonth=
 expenses
-.filter(e=>monthKey(e.date)===month)
-.reduce((s,e)=>s+Number(e.total || 0),0);
+.filter(
+e=>
+monthKey(e.date)===month
+)
+.reduce(
+(s,e)=>s+Number(e.total || 0),
+0
+);
 
 let expenseYear=
 expenses
-.filter(e=>String(e.date || "").startsWith(year))
-.reduce((s,e)=>s+Number(e.total || 0),0);
+.filter(
+e=>
+String(e.date || "").startsWith(year)
+)
+.reduce(
+(s,e)=>s+Number(e.total || 0),
+0
+);
+
+let monthProfit=
+paidMonth-expenseMonth;
+
+let yearProfit=
+paidYear-expenseYear;
+
+let tax=
+getUkTaxYearRange();
+
+let taxIncome=
+invoices
+.filter(i=>{
+
+if(!i.paid){
+return false;
+}
+
+let paidDate=
+i.paidDate || i.date || "";
+
+return(
+paidDate>=tax.from
+&&
+paidDate<=tax.to
+);
+
+})
+.reduce(
+(s,i)=>s+Number(i.amount || 0),
+0
+);
+
+let taxExpenses=
+expenses
+.filter(
+e=>
+e.date
+&&
+e.date>=tax.from
+&&
+e.date<=tax.to
+)
+.reduce(
+(s,e)=>s+Number(e.total || 0),
+0
+);
+
+let taxProfit=
+taxIncome-taxExpenses;
 
 let outstanding=
 invoices
 .filter(i=>!i.paid)
-.reduce((s,i)=>s+Number(i.amount || 0),0);
+.reduce(
+(s,i)=>s+Number(i.amount || 0),
+0
+);
 
 let end=
 addDays(today(),7);
@@ -4229,18 +4369,67 @@ c.nextClean>=today()
 &&
 c.nextClean<=end
 )
-.reduce((s,c)=>s+Number(c.price || 0),0);
+.reduce(
+(s,c)=>s+Number(c.price || 0),
+0
+);
 
-earnPaidMonth.innerText="£"+paidMonth.toFixed(2);
-earnExpensesMonth.innerText="£"+expenseMonth.toFixed(2);
-earnProfitMonth.innerText="£"+(paidMonth-expenseMonth).toFixed(2);
+earnPaidMonth.innerText=
+"£"+paidMonth.toFixed(2);
 
-earnPaidYear.innerText="£"+paidYear.toFixed(2);
-earnExpensesYear.innerText="£"+expenseYear.toFixed(2);
-earnProfitYear.innerText="£"+(paidYear-expenseYear).toFixed(2);
+earnExpensesMonth.innerText=
+"£"+expenseMonth.toFixed(2);
 
-earnOutstanding.innerText="£"+outstanding.toFixed(2);
-earnNext7.innerText="£"+next7.toFixed(2);
+earnProfitMonth.innerText=
+"£"+monthProfit.toFixed(2);
+
+setProfitColour(
+earnProfitMonth,
+monthProfit
+);
+
+earnPaidYear.innerText=
+"£"+paidYear.toFixed(2);
+
+earnExpensesYear.innerText=
+"£"+expenseYear.toFixed(2);
+
+earnProfitYear.innerText=
+"£"+yearProfit.toFixed(2);
+
+setProfitColour(
+earnProfitYear,
+yearProfit
+);
+
+earnTaxIncome.innerText=
+"£"+taxIncome.toFixed(2);
+
+earnTaxExpenses.innerText=
+"£"+taxExpenses.toFixed(2);
+
+earnTaxProfit.innerText=
+"£"+taxProfit.toFixed(2);
+
+setProfitColour(
+earnTaxProfit,
+taxProfit
+);
+
+taxYearDates.innerText=
+"UK tax year: "
++
+formatDate(tax.from)
++
+" to "
++
+formatDate(tax.to);
+
+earnOutstanding.innerText=
+"£"+outstanding.toFixed(2);
+
+earnNext7.innerText=
+"£"+next7.toFixed(2);
 }
 
 /* MAP */
