@@ -393,6 +393,60 @@ margin-top:8px;
 
 .exportDates.show{display:grid}
 
+.export-section{
+margin-top:14px;
+padding-top:13px;
+border-top:1px solid #303030;
+}
+
+.export-section h4{
+margin:0 0 8px;
+color:var(--lime2);
+font-size:14px;
+}
+
+.check-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:8px;
+}
+
+.check-item{
+display:flex;
+align-items:center;
+gap:9px;
+background:#181818;
+border:1px solid #333;
+border-radius:10px;
+padding:10px;
+font-size:12px;
+font-weight:bold;
+color:#ddd;
+}
+
+.check-item input{
+width:18px;
+height:18px;
+margin:0;
+accent-color:var(--lime);
+flex-shrink:0;
+}
+
+.check-item span{
+line-height:1.2;
+}
+
+.export-preview{
+background:#0b0b0b;
+border:1px solid #292929;
+border-radius:11px;
+padding:11px;
+margin-top:12px;
+color:#aaa;
+font-size:12px;
+line-height:1.55;
+}
+
 .backup-box{margin-top:13px}
 
 .backup-box h3{
@@ -576,6 +630,14 @@ font-size:28px;
 font-weight:bold;
 color:var(--green);
 margin-top:5px;
+}
+
+@media(max-width:420px){
+
+.check-grid{
+grid-template-columns:1fr;
+}
+
 }
 
 </style>
@@ -958,10 +1020,29 @@ Accountant Export
 Accountant Export
 </h3>
 
-<label>Export period</label>
+<div class="muted">
+Choose exactly what you want to send to your accountant.
+</div>
+
+<div class="export-section">
+
+<h4>Which invoices?</h4>
+
+<select id="exportStatus">
+<option value="all">All invoices</option>
+<option value="paid">Paid invoices only</option>
+<option value="unpaid">Unpaid invoices only</option>
+<option value="overdue">Overdue invoices only</option>
+</select>
+
+</div>
+
+<div class="export-section">
+
+<h4>Date range</h4>
 
 <select id="exportRange" onchange="toggleExportDates()">
-<option value="all">All invoices</option>
+<option value="all">All time</option>
 <option value="month">This month</option>
 <option value="taxyear">Current UK tax year</option>
 <option value="custom">Custom dates</option>
@@ -981,8 +1062,100 @@ Accountant Export
 
 </div>
 
+</div>
+
+<div class="export-section">
+
+<h4>Choose columns</h4>
+
+<div class="check-grid">
+
+<label class="check-item">
+<input type="checkbox" id="expInvoiceNumber" checked>
+<span>Invoice Number</span>
+</label>
+
+<label class="check-item">
+<input type="checkbox" id="expCustomerName" checked>
+<span>Customer Name</span>
+</label>
+
+<label class="check-item">
+<input type="checkbox" id="expAddress">
+<span>Address</span>
+</label>
+
+<label class="check-item">
+<input type="checkbox" id="expPostcode">
+<span>Postcode</span>
+</label>
+
+<label class="check-item">
+<input type="checkbox" id="expEmail" checked>
+<span>Email</span>
+</label>
+
+<label class="check-item">
+<input type="checkbox" id="expRoundArea">
+<span>Round Area</span>
+</label>
+
+<label class="check-item">
+<input type="checkbox" id="expInvoiceDate" checked>
+<span>Invoice Date</span>
+</label>
+
+<label class="check-item">
+<input type="checkbox" id="expDueDate" checked>
+<span>Due Date</span>
+</label>
+
+<label class="check-item">
+<input type="checkbox" id="expDescription" checked>
+<span>Description</span>
+</label>
+
+<label class="check-item">
+<input type="checkbox" id="expAmount" checked>
+<span>Amount</span>
+</label>
+
+<label class="check-item">
+<input type="checkbox" id="expStatus" checked>
+<span>Status</span>
+</label>
+
+<label class="check-item">
+<input type="checkbox" id="expPaymentMethod" checked>
+<span>Payment Method</span>
+</label>
+
+<label class="check-item">
+<input type="checkbox" id="expPaidDate" checked>
+<span>Paid Date</span>
+</label>
+
+</div>
+
+</div>
+
+<div class="export-section">
+
+<h4>Extra</h4>
+
+<label class="check-item">
+<input type="checkbox" id="expSummary" checked>
+<span>Add summary totals at bottom</span>
+</label>
+
+</div>
+
+<div class="export-preview">
+The CSV will only contain the invoices and columns you select above.
+</div>
+
 <button class="action" onclick="exportInvoicesCsv()">
-Share CSV for Accountant
+Share Selected CSV
 </button>
 
 </div>
@@ -1099,8 +1272,6 @@ Next 7 Days Work and Yearly Round Estimate only include active customers.
 </div>
 
 </section>
-
-<!-- MONTHLY REPORT -->
 
 <section id="monthlyReport" class="screen">
 
@@ -3970,6 +4141,8 @@ alert("Android reminder system is not available.");
 
 }
 
+/* ACCOUNTANT EXPORT */
+
 function toggleAccountantExport(){
 
 accountantExportBox.style.display=
@@ -4015,6 +4188,9 @@ function invoicesForExport(){
 
 let range=
 exportRange.value;
+
+let statusFilter=
+exportStatus.value;
 
 let from="";
 let to="";
@@ -4081,14 +4257,37 @@ return null;
 return invoices.filter(
 inv=>{
 
-if(!from && !to){
-return true;
-}
-
 let d=
 inv.date || "";
 
-return d>=from && d<=to;
+if(from && d<from){
+return false;
+}
+
+if(to && d>to){
+return false;
+}
+
+let status=
+invoiceStatus(inv);
+
+if(statusFilter==="all"){
+return true;
+}
+
+if(statusFilter==="paid"){
+return inv.paid===true;
+}
+
+if(statusFilter==="unpaid"){
+return inv.paid!==true;
+}
+
+if(statusFilter==="overdue"){
+return status==="overdue";
+}
+
+return true;
 
 }
 );
@@ -4104,6 +4303,105 @@ String(value ?? "")
 
 }
 
+function selectedExportColumns(){
+
+let cols=[];
+
+if(expInvoiceNumber.checked){
+cols.push({
+title:"Invoice Number",
+value:(inv,c)=>invoiceNumber(inv)
+});
+}
+
+if(expCustomerName.checked){
+cols.push({
+title:"Customer",
+value:(inv,c)=>inv.customerName || (c ? c.name || "" : "")
+});
+}
+
+if(expAddress.checked){
+cols.push({
+title:"Address",
+value:(inv,c)=>c ? c.address || "" : ""
+});
+}
+
+if(expPostcode.checked){
+cols.push({
+title:"Postcode",
+value:(inv,c)=>c ? c.postcode || "" : ""
+});
+}
+
+if(expEmail.checked){
+cols.push({
+title:"Customer Email",
+value:(inv,c)=>c ? c.email || "" : ""
+});
+}
+
+if(expRoundArea.checked){
+cols.push({
+title:"Round Area",
+value:(inv,c)=>c ? c.roundArea || "" : ""
+});
+}
+
+if(expInvoiceDate.checked){
+cols.push({
+title:"Invoice Date",
+value:(inv,c)=>formatDate(inv.date)
+});
+}
+
+if(expDueDate.checked){
+cols.push({
+title:"Due Date",
+value:(inv,c)=>formatDate(invoiceDueDate(inv))
+});
+}
+
+if(expDescription.checked){
+cols.push({
+title:"Description",
+value:(inv,c)=>inv.description || ""
+});
+}
+
+if(expAmount.checked){
+cols.push({
+title:"Amount",
+value:(inv,c)=>Number(inv.amount || 0).toFixed(2)
+});
+}
+
+if(expStatus.checked){
+cols.push({
+title:"Status",
+value:(inv,c)=>invoiceStatus(inv).toUpperCase()
+});
+}
+
+if(expPaymentMethod.checked){
+cols.push({
+title:"Payment Method",
+value:(inv,c)=>inv.paymentMethod || ""
+});
+}
+
+if(expPaidDate.checked){
+cols.push({
+title:"Paid Date",
+value:(inv,c)=>inv.paidDate ? formatDate(inv.paidDate) : ""
+});
+}
+
+return cols;
+
+}
+
 function exportInvoicesCsv(){
 
 let rows=
@@ -4115,27 +4413,28 @@ return;
 
 if(rows.length===0){
 
-alert("There are no invoices in that export period.");
+alert("There are no invoices matching those export choices.");
 return;
 
 }
 
-let csv=[
-[
-"Invoice Number",
-"Customer",
-"Customer Email",
-"Invoice Date",
-"Due Date",
-"Description",
-"Amount",
-"Status",
-"Payment Method",
-"Paid Date"
-]
-.map(csvCell)
+let columns=
+selectedExportColumns();
+
+if(columns.length===0){
+
+alert("Please select at least one column to export.");
+return;
+
+}
+
+let csv=[];
+
+csv.push(
+columns
+.map(col=>csvCell(col.title))
 .join(",")
-];
+);
 
 rows.forEach(
 inv=>{
@@ -4146,31 +4445,155 @@ c=>c.id===inv.customerId
 );
 
 csv.push(
-[
-invoiceNumber(inv),
-inv.customerName || "",
-customer ? customer.email || "" : "",
-formatDate(inv.date),
-formatDate(invoiceDueDate(inv)),
-inv.description || "",
-Number(inv.amount || 0).toFixed(2),
-invoiceStatus(inv).toUpperCase(),
-inv.paymentMethod || "",
-inv.paidDate ? formatDate(inv.paidDate) : ""
-]
-.map(csvCell)
+columns
+.map(
+col=>csvCell(
+col.value(inv,customer)
+)
+)
 .join(",")
 );
 
 }
 );
 
+if(expSummary.checked){
+
+let total=
+rows.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+let paidTotal=
+rows
+.filter(inv=>inv.paid)
+.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+let unpaidTotal=
+rows
+.filter(inv=>!inv.paid)
+.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+let overdueTotal=
+rows
+.filter(inv=>invoiceStatus(inv)==="overdue")
+.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+let cashTotal=
+rows
+.filter(
+inv=>
+inv.paid
+&&
+String(inv.paymentMethod || "").toLowerCase()==="cash"
+)
+.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+let bankTotal=
+rows
+.filter(
+inv=>
+inv.paid
+&&
+String(inv.paymentMethod || "").toLowerCase()==="bank transfer"
+)
+.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+csv.push("");
+csv.push(csvCell("SUMMARY"));
+csv.push(
+csvCell("Invoices")
++
+","
++
+csvCell(rows.length)
+);
+
+csv.push(
+csvCell("Total Invoiced")
++
+","
++
+csvCell(total.toFixed(2))
+);
+
+csv.push(
+csvCell("Paid")
++
+","
++
+csvCell(paidTotal.toFixed(2))
+);
+
+csv.push(
+csvCell("Outstanding")
++
+","
++
+csvCell(unpaidTotal.toFixed(2))
+);
+
+csv.push(
+csvCell("Overdue")
++
+","
++
+csvCell(overdueTotal.toFixed(2))
+);
+
+csv.push(
+csvCell("Cash Received")
++
+","
++
+csvCell(cashTotal.toFixed(2))
+);
+
+csv.push(
+csvCell("Bank Transfer Received")
++
+","
++
+csvCell(bankTotal.toFixed(2))
+);
+
+}
+
 let csvText=
 "\uFEFF"+
 csv.join("\r\n");
 
+let statusName=
+exportStatus.value==="all"
+?
+"All"
+:
+exportStatus.value.charAt(0).toUpperCase()
++
+exportStatus.value.slice(1);
+
 let fileName=
-"PureClean-Accountant-Invoices-"
+"PureClean-Accountant-"
++
+statusName
++
+"-"
 +
 today()
 +
