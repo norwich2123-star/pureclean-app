@@ -8,6 +8,8 @@ import android.content.ClipData;
 
 import android.net.Uri;
 
+import android.provider.MediaStore;
+
 import android.util.Patterns;
 
 import android.view.Window;
@@ -19,6 +21,7 @@ import android.widget.Toast;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -27,9 +30,12 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.pdf.PdfDocument;
+
+import android.media.ExifInterface;
 
 import androidx.core.content.FileProvider;
 
@@ -38,6 +44,7 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -48,6 +55,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
+
 public class MainActivity extends Activity {
 
     private WebView webView;
@@ -55,7 +66,16 @@ public class MainActivity extends Activity {
     private static final int SAVE_BACKUP = 1001;
     private static final int RESTORE_BACKUP = 1002;
 
+    private static final int SAVE_FULL_BACKUP = 1003;
+    private static final int RESTORE_FULL_BACKUP = 1004;
+
+    private static final int TAKE_EXPENSE_PHOTO = 2001;
+    private static final int CHOOSE_EXPENSE_PHOTO = 2002;
+
     private String backupJson = "";
+
+    private String pendingExpenseId = "";
+    private File pendingCameraFile = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,6 +165,46 @@ public class MainActivity extends Activity {
 
                         return openExternalLink(url);
                     }
+
+                    @Override
+                    public WebResourceResponse shouldInterceptRequest(
+                            WebView view,
+                            WebResourceRequest request) {
+
+                        WebResourceResponse receipt =
+                                receiptResponse(
+                                        request
+                                                .getUrl()
+                                                .toString()
+                                );
+
+                        if (receipt != null) {
+                            return receipt;
+                        }
+
+                        return super.shouldInterceptRequest(
+                                view,
+                                request
+                        );
+                    }
+
+                    @Override
+                    public WebResourceResponse shouldInterceptRequest(
+                            WebView view,
+                            String url) {
+
+                        WebResourceResponse receipt =
+                                receiptResponse(url);
+
+                        if (receipt != null) {
+                            return receipt;
+                        }
+
+                        return super.shouldInterceptRequest(
+                                view,
+                                url
+                        );
+                    }
                 }
         );
 
@@ -156,6 +216,10 @@ public class MainActivity extends Activity {
     private boolean openExternalLink(String url) {
 
         if (url == null) {
+            return false;
+        }
+
+        if (url.startsWith("appreceipt:")) {
             return false;
         }
 
@@ -291,6 +355,135 @@ public class MainActivity extends Activity {
             );
         }
 
+        /*
+         * FULL BACKUP
+         * Includes normal business JSON plus receipt photos.
+         */
+
+        @JavascriptInterface
+        public void backupBusinessDataWithPhotos(
+                String json) {
+
+            runOnUiThread(
+                    () -> startFullBackup(json)
+            );
+        }
+
+        @JavascriptInterface
+        public void restoreBusinessDataWithPhotos() {
+
+            runOnUiThread(
+                    () -> startFullRestore()
+            );
+        }
+
+        /*
+         * EXPENSE RECEIPT PHOTOS
+         */
+
+        @JavascriptInterface
+        public void takeExpenseReceipt(
+                String expenseId) {
+
+            runOnUiThread(
+                    () -> startExpenseCamera(
+                            expenseId
+                    )
+            );
+        }
+
+        @JavascriptInterface
+        public void chooseExpenseReceipt(
+                String expenseId) {
+
+            runOnUiThread(
+                    () -> startExpensePhotoPicker(
+                            expenseId
+                    )
+            );
+        }
+
+        @JavascriptInterface
+        public String getExpenseReceiptUrl(
+                String fileName) {
+
+            if (
+                    fileName == null
+                            ||
+                    fileName.trim().isEmpty()
+            ) {
+                return "";
+            }
+
+            return "appreceipt://receipt/"
+                    +
+                    Uri.encode(
+                            new File(
+                                    fileName
+                            ).getName()
+                    );
+        }
+
+        @JavascriptInterface
+        public boolean expenseReceiptExists(
+                String fileName) {
+
+            File file =
+                    receiptFile(
+                            fileName
+                    );
+
+            return file.exists()
+                    &&
+                    file.isFile();
+        }
+
+        @JavascriptInterface
+        public void openExpenseReceipt(
+                String fileName) {
+
+            runOnUiThread(
+                    () -> openReceiptPhoto(
+                            fileName
+                    )
+            );
+        }
+
+        @JavascriptInterface
+        public boolean deleteExpenseReceipt(
+                String fileName) {
+
+            File file =
+                    receiptFile(
+                            fileName
+                    );
+
+            if (!file.exists()) {
+                return true;
+            }
+
+            return file.delete();
+        }
+
+        /*
+         * EXPENSE ACCOUNTANT PACK
+         */
+
+        @JavascriptInterface
+        public void shareExpenseAccountantPack(
+                String fileName,
+                String csvText,
+                String receiptNamesJson) {
+
+            runOnUiThread(
+                    () -> shareExpensePack(
+                            fileName,
+                            csvText,
+                            receiptNamesJson
+                    )
+            );
+        }
+
         @JavascriptInterface
         public void callPhone(String phone) {
 
@@ -336,6 +529,1553 @@ public class MainActivity extends Activity {
             );
         }
     }
+
+    /*
+     * =========================================================
+     * EXPENSE RECEIPT STORAGE
+     * =========================================================
+     */
+
+    private File receiptFolder() {
+
+        File folder =
+                new File(
+                        getFilesDir(),
+                        "expense_receipts"
+                );
+
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+
+        return folder;
+    }
+
+    private File receiptFile(
+            String fileName) {
+
+        String safeName =
+                new File(
+                        fileName == null
+                                ?
+                                ""
+                                :
+                                fileName
+                ).getName();
+
+        return new File(
+                receiptFolder(),
+                safeName
+        );
+    }
+
+    private String safeExpenseId(
+            String expenseId) {
+
+        if (expenseId == null) {
+            return "expense";
+        }
+
+        String clean =
+                expenseId.replaceAll(
+                        "[^A-Za-z0-9_-]",
+                        "_"
+                );
+
+        if (clean.trim().isEmpty()) {
+            clean = "expense";
+        }
+
+        return clean;
+    }
+
+    private String newReceiptFileName(
+            String expenseId) {
+
+        return "receipt_"
+                +
+                safeExpenseId(
+                        expenseId
+                )
+                +
+                "_"
+                +
+                System.currentTimeMillis()
+                +
+                ".jpg";
+    }
+
+    private WebResourceResponse receiptResponse(
+            String url) {
+
+        if (
+                url == null
+                        ||
+                !url.startsWith(
+                        "appreceipt://receipt/"
+                )
+        ) {
+            return null;
+        }
+
+        try {
+
+            Uri uri =
+                    Uri.parse(url);
+
+            String name =
+                    uri.getLastPathSegment();
+
+            if (name == null) {
+                return null;
+            }
+
+            name =
+                    Uri.decode(name);
+
+            File file =
+                    receiptFile(name);
+
+            if (
+                    !file.exists()
+                            ||
+                    !file.isFile()
+            ) {
+                return null;
+            }
+
+            InputStream input =
+                    new FileInputStream(
+                            file
+                    );
+
+            return new WebResourceResponse(
+                    "image/jpeg",
+                    null,
+                    input
+            );
+
+        } catch (Exception e) {
+
+            return null;
+        }
+    }
+
+    private void startExpenseCamera(
+            String expenseId) {
+
+        pendingExpenseId =
+                expenseId == null
+                        ?
+                        ""
+                        :
+                        expenseId;
+
+        try {
+
+            File file =
+                    new File(
+                            receiptFolder(),
+                            newReceiptFileName(
+                                    pendingExpenseId
+                            )
+                    );
+
+            pendingCameraFile = file;
+
+            Uri photoUri =
+                    FileProvider.getUriForFile(
+                            this,
+                            getPackageName()
+                                    +
+                                    ".fileprovider",
+                            file
+                    );
+
+            Intent intent =
+                    new Intent(
+                            MediaStore.ACTION_IMAGE_CAPTURE
+                    );
+
+            intent.putExtra(
+                    MediaStore.EXTRA_OUTPUT,
+                    photoUri
+            );
+
+            intent.setClipData(
+                    ClipData.newRawUri(
+                            "Expense Receipt",
+                            photoUri
+                    )
+            );
+
+            intent.addFlags(
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                            |
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+            );
+
+            if (
+                    intent.resolveActivity(
+                            getPackageManager()
+                    )
+                            ==
+                    null
+            ) {
+
+                pendingCameraFile = null;
+
+                Toast.makeText(
+                        this,
+                        "No camera app was found.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+            startActivityForResult(
+                    intent,
+                    TAKE_EXPENSE_PHOTO
+            );
+
+        } catch (Exception e) {
+
+            pendingCameraFile = null;
+
+            Toast.makeText(
+                    this,
+                    "Could not open the camera.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    private void startExpensePhotoPicker(
+            String expenseId) {
+
+        pendingExpenseId =
+                expenseId == null
+                        ?
+                        ""
+                        :
+                        expenseId;
+
+        try {
+
+            Intent intent =
+                    new Intent(
+                            Intent.ACTION_OPEN_DOCUMENT
+                    );
+
+            intent.addCategory(
+                    Intent.CATEGORY_OPENABLE
+            );
+
+            intent.setType(
+                    "image/*"
+            );
+
+            startActivityForResult(
+                    intent,
+                    CHOOSE_EXPENSE_PHOTO
+            );
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not open your photos.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    private void saveChosenExpensePhoto(
+            Uri sourceUri) {
+
+        File tempFile = null;
+
+        try {
+
+            tempFile =
+                    new File(
+                            getCacheDir(),
+                            "expense_photo_"
+                                    +
+                                    System.currentTimeMillis()
+                                    +
+                                    ".jpg"
+                    );
+
+            InputStream input =
+                    getContentResolver()
+                            .openInputStream(
+                                    sourceUri
+                            );
+
+            if (input == null) {
+
+                Toast.makeText(
+                        this,
+                        "Could not read that photo.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+            FileOutputStream tempOutput =
+                    new FileOutputStream(
+                            tempFile
+                    );
+
+            byte[] buffer =
+                    new byte[8192];
+
+            int length;
+
+            while (
+                    (length = input.read(buffer))
+                            >
+                    0
+            ) {
+
+                tempOutput.write(
+                        buffer,
+                        0,
+                        length
+                );
+            }
+
+            tempOutput.flush();
+            tempOutput.close();
+            input.close();
+
+            File destination =
+                    new File(
+                            receiptFolder(),
+                            newReceiptFileName(
+                                    pendingExpenseId
+                            )
+                    );
+
+            if (
+                    !compressReceiptImage(
+                            tempFile,
+                            destination
+                    )
+            ) {
+
+                copyFile(
+                        tempFile,
+                        destination
+                );
+            }
+
+            notifyExpenseReceiptSaved(
+                    pendingExpenseId,
+                    destination.getName()
+            );
+
+            Toast.makeText(
+                    this,
+                    "Receipt photo saved.",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not save that receipt photo.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+        } finally {
+
+            if (
+                    tempFile != null
+                            &&
+                    tempFile.exists()
+            ) {
+                tempFile.delete();
+            }
+        }
+    }
+
+    private boolean compressReceiptImage(
+            File source,
+            File destination) {
+
+        Bitmap bitmap = null;
+        Bitmap rotated = null;
+        Bitmap scaled = null;
+
+        try {
+
+            BitmapFactory.Options bounds =
+                    new BitmapFactory.Options();
+
+            bounds.inJustDecodeBounds = true;
+
+            BitmapFactory.decodeFile(
+                    source.getAbsolutePath(),
+                    bounds
+            );
+
+            if (
+                    bounds.outWidth <= 0
+                            ||
+                    bounds.outHeight <= 0
+            ) {
+                return false;
+            }
+
+            int maxDecodeSize = 2200;
+
+            int sample = 1;
+
+            while (
+                    bounds.outWidth / sample
+                            >
+                    maxDecodeSize
+                            ||
+                    bounds.outHeight / sample
+                            >
+                    maxDecodeSize
+            ) {
+
+                sample *= 2;
+            }
+
+            BitmapFactory.Options options =
+                    new BitmapFactory.Options();
+
+            options.inSampleSize = sample;
+
+            bitmap =
+                    BitmapFactory.decodeFile(
+                            source.getAbsolutePath(),
+                            options
+                    );
+
+            if (bitmap == null) {
+                return false;
+            }
+
+            int rotation = 0;
+
+            try {
+
+                ExifInterface exif =
+                        new ExifInterface(
+                                source.getAbsolutePath()
+                        );
+
+                int orientation =
+                        exif.getAttributeInt(
+                                ExifInterface.TAG_ORIENTATION,
+                                ExifInterface.ORIENTATION_NORMAL
+                        );
+
+                if (
+                        orientation
+                                ==
+                        ExifInterface.ORIENTATION_ROTATE_90
+                ) {
+
+                    rotation = 90;
+
+                } else if (
+                        orientation
+                                ==
+                        ExifInterface.ORIENTATION_ROTATE_180
+                ) {
+
+                    rotation = 180;
+
+                } else if (
+                        orientation
+                                ==
+                        ExifInterface.ORIENTATION_ROTATE_270
+                ) {
+
+                    rotation = 270;
+                }
+
+            } catch (Exception ignored) {
+            }
+
+            rotated = bitmap;
+
+            if (rotation != 0) {
+
+                Matrix matrix =
+                        new Matrix();
+
+                matrix.postRotate(
+                        rotation
+                );
+
+                rotated =
+                        Bitmap.createBitmap(
+                                bitmap,
+                                0,
+                                0,
+                                bitmap.getWidth(),
+                                bitmap.getHeight(),
+                                matrix,
+                                true
+                        );
+            }
+
+            int width =
+                    rotated.getWidth();
+
+            int height =
+                    rotated.getHeight();
+
+            int maxSide = 1600;
+
+            if (
+                    width > maxSide
+                            ||
+                    height > maxSide
+            ) {
+
+                float scale =
+                        Math.min(
+                                (float) maxSide
+                                        /
+                                width,
+                                (float) maxSide
+                                        /
+                                height
+                        );
+
+                int newWidth =
+                        Math.max(
+                                1,
+                                Math.round(
+                                        width * scale
+                                )
+                        );
+
+                int newHeight =
+                        Math.max(
+                                1,
+                                Math.round(
+                                        height * scale
+                                )
+                        );
+
+                scaled =
+                        Bitmap.createScaledBitmap(
+                                rotated,
+                                newWidth,
+                                newHeight,
+                                true
+                        );
+
+            } else {
+
+                scaled = rotated;
+            }
+
+            FileOutputStream output =
+                    new FileOutputStream(
+                            destination
+                    );
+
+            boolean success =
+                    scaled.compress(
+                            Bitmap.CompressFormat.JPEG,
+                            78,
+                            output
+                    );
+
+            output.flush();
+            output.close();
+
+            return success;
+
+        } catch (Exception e) {
+
+            return false;
+
+        } finally {
+
+            if (
+                    scaled != null
+                            &&
+                    scaled != rotated
+                            &&
+                    !scaled.isRecycled()
+            ) {
+
+                scaled.recycle();
+            }
+
+            if (
+                    rotated != null
+                            &&
+                    rotated != bitmap
+                            &&
+                    !rotated.isRecycled()
+            ) {
+
+                rotated.recycle();
+            }
+
+            if (
+                    bitmap != null
+                            &&
+                    !bitmap.isRecycled()
+            ) {
+
+                bitmap.recycle();
+            }
+        }
+    }
+
+    private void compressCameraReceipt() {
+
+        if (
+                pendingCameraFile == null
+                        ||
+                !pendingCameraFile.exists()
+        ) {
+            return;
+        }
+
+        try {
+
+            File compressed =
+                    new File(
+                            receiptFolder(),
+                            "compressed_"
+                                    +
+                                    pendingCameraFile
+                                            .getName()
+                    );
+
+            boolean success =
+                    compressReceiptImage(
+                            pendingCameraFile,
+                            compressed
+                    );
+
+            if (success) {
+
+                if (
+                        pendingCameraFile
+                                .delete()
+                ) {
+
+                    if (
+                            !compressed.renameTo(
+                                    pendingCameraFile
+                            )
+                    ) {
+
+                        copyFile(
+                                compressed,
+                                pendingCameraFile
+                        );
+
+                        compressed.delete();
+                    }
+                }
+
+            } else {
+
+                if (compressed.exists()) {
+                    compressed.delete();
+                }
+            }
+
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void notifyExpenseReceiptSaved(
+            String expenseId,
+            String fileName) {
+
+        String javascript =
+                "if(typeof expenseReceiptSaved==='function'){"
+                        +
+                        "expenseReceiptSaved("
+                        +
+                        JSONObject.quote(
+                                expenseId == null
+                                        ?
+                                        ""
+                                        :
+                                        expenseId
+                        )
+                        +
+                        ","
+                        +
+                        JSONObject.quote(
+                                fileName == null
+                                        ?
+                                        ""
+                                        :
+                                        fileName
+                        )
+                        +
+                        ");"
+                        +
+                        "}";
+
+        webView.evaluateJavascript(
+                javascript,
+                null
+        );
+    }
+
+    private void openReceiptPhoto(
+            String fileName) {
+
+        File file =
+                receiptFile(
+                        fileName
+                );
+
+        if (!file.exists()) {
+
+            Toast.makeText(
+                    this,
+                    "Receipt photo could not be found.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
+        try {
+
+            Uri uri =
+                    FileProvider.getUriForFile(
+                            this,
+                            getPackageName()
+                                    +
+                                    ".fileprovider",
+                            file
+                    );
+
+            Intent intent =
+                    new Intent(
+                            Intent.ACTION_VIEW
+                    );
+
+            intent.setDataAndType(
+                    uri,
+                    "image/jpeg"
+            );
+
+            intent.addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+            );
+
+            startActivity(intent);
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not open receipt photo.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    /*
+     * =========================================================
+     * FULL BUSINESS BACKUP WITH PHOTOS
+     * =========================================================
+     */
+
+    private void startFullBackup(
+            String json) {
+
+        if (
+                json == null
+                        ||
+                json.trim().isEmpty()
+        ) {
+
+            Toast.makeText(
+                    this,
+                    "No business data to back up.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
+        backupJson = json;
+
+        String date =
+                new SimpleDateFormat(
+                        "yyyy-MM-dd",
+                        Locale.UK
+                ).format(
+                        new Date()
+                );
+
+        Intent intent =
+                new Intent(
+                        Intent.ACTION_CREATE_DOCUMENT
+                );
+
+        intent.addCategory(
+                Intent.CATEGORY_OPENABLE
+        );
+
+        intent.setType(
+                "application/zip"
+        );
+
+        intent.putExtra(
+                Intent.EXTRA_TITLE,
+                "PureClean-Full-Backup-"
+                        +
+                        date
+                        +
+                        ".zip"
+        );
+
+        try {
+
+            startActivityForResult(
+                    intent,
+                    SAVE_FULL_BACKUP
+            );
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not open full backup screen.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    private void startFullRestore() {
+
+        Intent intent =
+                new Intent(
+                        Intent.ACTION_OPEN_DOCUMENT
+                );
+
+        intent.addCategory(
+                Intent.CATEGORY_OPENABLE
+        );
+
+        intent.setType(
+                "application/zip"
+        );
+
+        try {
+
+            startActivityForResult(
+                    intent,
+                    RESTORE_FULL_BACKUP
+            );
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not open full restore screen.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    private void saveFullBackup(
+            Uri uri) {
+
+        try {
+
+            OutputStream rawOutput =
+                    getContentResolver()
+                            .openOutputStream(uri);
+
+            if (rawOutput == null) {
+                return;
+            }
+
+            ZipOutputStream zip =
+                    new ZipOutputStream(
+                            rawOutput
+                    );
+
+            /*
+             * Business JSON
+             */
+
+            zip.putNextEntry(
+                    new ZipEntry(
+                            "business.json"
+                    )
+            );
+
+            byte[] jsonBytes =
+                    backupJson.getBytes(
+                            "UTF-8"
+                    );
+
+            zip.write(
+                    jsonBytes
+            );
+
+            zip.closeEntry();
+
+            /*
+             * Receipt photos
+             */
+
+            File[] receipts =
+                    receiptFolder()
+                            .listFiles();
+
+            int receiptCount = 0;
+
+            if (receipts != null) {
+
+                byte[] buffer =
+                        new byte[8192];
+
+                for (File receipt : receipts) {
+
+                    if (
+                            receipt == null
+                                    ||
+                            !receipt.isFile()
+                    ) {
+                        continue;
+                    }
+
+                    zip.putNextEntry(
+                            new ZipEntry(
+                                    "receipts/"
+                                            +
+                                            receipt.getName()
+                            )
+                    );
+
+                    FileInputStream input =
+                            new FileInputStream(
+                                    receipt
+                            );
+
+                    int length;
+
+                    while (
+                            (length = input.read(buffer))
+                                    >
+                            0
+                    ) {
+
+                        zip.write(
+                                buffer,
+                                0,
+                                length
+                        );
+                    }
+
+                    input.close();
+
+                    zip.closeEntry();
+
+                    receiptCount++;
+                }
+            }
+
+            zip.finish();
+            zip.close();
+
+            backupJson = "";
+
+            Toast.makeText(
+                    this,
+                    "Full backup saved with "
+                            +
+                            receiptCount
+                            +
+                            " receipt photo"
+                            +
+                            (
+                                    receiptCount
+                                            ==
+                                    1
+                                            ?
+                                    ""
+                                            :
+                                    "s"
+                            )
+                            +
+                            ".",
+                    Toast.LENGTH_LONG
+            ).show();
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Full backup could not be saved.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    private void restoreFullBackup(
+            Uri uri) {
+
+        File restoreFolder =
+                new File(
+                        getCacheDir(),
+                        "restore_receipts"
+                );
+
+        deleteFolder(
+                restoreFolder
+        );
+
+        restoreFolder.mkdirs();
+
+        String restoredJson = null;
+        int receiptCount = 0;
+
+        try {
+
+            InputStream rawInput =
+                    getContentResolver()
+                            .openInputStream(uri);
+
+            if (rawInput == null) {
+                return;
+            }
+
+            ZipInputStream zip =
+                    new ZipInputStream(
+                            rawInput
+                    );
+
+            ZipEntry entry;
+
+            byte[] buffer =
+                    new byte[8192];
+
+            while (
+                    (entry = zip.getNextEntry())
+                            !=
+                    null
+            ) {
+
+                String name =
+                        entry.getName();
+
+                if (
+                        "business.json"
+                                .equals(name)
+                ) {
+
+                    StringBuilder jsonText =
+                            new StringBuilder();
+
+                    byte[] textBuffer =
+                            new byte[8192];
+
+                    int length;
+
+                    while (
+                            (length = zip.read(textBuffer))
+                                    >
+                            0
+                    ) {
+
+                        jsonText.append(
+                                new String(
+                                        textBuffer,
+                                        0,
+                                        length,
+                                        "UTF-8"
+                                )
+                        );
+                    }
+
+                    restoredJson =
+                            jsonText
+                                    .toString()
+                                    .trim();
+
+                } else if (
+                        name != null
+                                &&
+                        name.startsWith(
+                                "receipts/"
+                        )
+                                &&
+                        !entry.isDirectory()
+                ) {
+
+                    String safeName =
+                            new File(name)
+                                    .getName();
+
+                    if (
+                            safeName.trim()
+                                    .isEmpty()
+                    ) {
+
+                        zip.closeEntry();
+                        continue;
+                    }
+
+                    File receipt =
+                            new File(
+                                    restoreFolder,
+                                    safeName
+                            );
+
+                    FileOutputStream output =
+                            new FileOutputStream(
+                                    receipt
+                            );
+
+                    int length;
+
+                    while (
+                            (length = zip.read(buffer))
+                                    >
+                            0
+                    ) {
+
+                        output.write(
+                                buffer,
+                                0,
+                                length
+                        );
+                    }
+
+                    output.flush();
+                    output.close();
+
+                    receiptCount++;
+                }
+
+                zip.closeEntry();
+            }
+
+            zip.close();
+            rawInput.close();
+
+            if (
+                    restoredJson == null
+                            ||
+                    restoredJson.trim()
+                            .isEmpty()
+            ) {
+
+                deleteFolder(
+                        restoreFolder
+                );
+
+                Toast.makeText(
+                        this,
+                        "This is not a Pure Clean full backup.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+            JSONObject backup =
+                    new JSONObject(
+                            restoredJson
+                    );
+
+            JSONArray customers =
+                    backup.optJSONArray(
+                            "customers"
+                    );
+
+            JSONArray invoices =
+                    backup.optJSONArray(
+                            "invoices"
+                    );
+
+            if (
+                    customers == null
+                            ||
+                    invoices == null
+            ) {
+
+                deleteFolder(
+                        restoreFolder
+                );
+
+                Toast.makeText(
+                        this,
+                        "This full backup is not valid.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+            /*
+             * Only replace receipt files after validating JSON.
+             */
+
+            File liveReceipts =
+                    receiptFolder();
+
+            File[] existing =
+                    liveReceipts.listFiles();
+
+            if (existing != null) {
+
+                for (File file : existing) {
+
+                    if (
+                            file != null
+                                    &&
+                            file.isFile()
+                    ) {
+
+                        file.delete();
+                    }
+                }
+            }
+
+            File[] restoredFiles =
+                    restoreFolder.listFiles();
+
+            if (restoredFiles != null) {
+
+                for (File file : restoredFiles) {
+
+                    if (
+                            file != null
+                                    &&
+                            file.isFile()
+                    ) {
+
+                        copyFile(
+                                file,
+                                new File(
+                                        liveReceipts,
+                                        file.getName()
+                                )
+                        );
+                    }
+                }
+            }
+
+            deleteFolder(
+                    restoreFolder
+            );
+
+            String javascript =
+                    "restoreBusinessBackup("
+                            +
+                            JSONObject.quote(
+                                    restoredJson
+                            )
+                            +
+                            ");";
+
+            webView.evaluateJavascript(
+                    javascript,
+                    null
+            );
+
+            Toast.makeText(
+                    this,
+                    "Full backup restored with "
+                            +
+                            receiptCount
+                            +
+                            " receipt photo"
+                            +
+                            (
+                                    receiptCount
+                                            ==
+                                    1
+                                            ?
+                                    ""
+                                            :
+                                    "s"
+                            )
+                            +
+                            ".",
+                    Toast.LENGTH_LONG
+            ).show();
+
+        } catch (Exception e) {
+
+            deleteFolder(
+                    restoreFolder
+            );
+
+            Toast.makeText(
+                    this,
+                    "Could not restore full backup.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    /*
+     * =========================================================
+     * EXPENSE ACCOUNTANT ZIP
+     * =========================================================
+     */
+
+    private void shareExpensePack(
+            String fileName,
+            String csvText,
+            String receiptNamesJson) {
+
+        if (
+                csvText == null
+                        ||
+                csvText.trim().isEmpty()
+        ) {
+
+            Toast.makeText(
+                    this,
+                    "There is no expense data to export.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
+        try {
+
+            String safeFileName =
+                    fileName;
+
+            if (
+                    safeFileName == null
+                            ||
+                    safeFileName.trim()
+                            .isEmpty()
+            ) {
+
+                safeFileName =
+                        "PureClean-Expenses.zip";
+            }
+
+            if (
+                    !safeFileName
+                            .toLowerCase()
+                            .endsWith(".zip")
+            ) {
+
+                safeFileName += ".zip";
+            }
+
+            File folder =
+                    new File(
+                            getCacheDir(),
+                            "expense_exports"
+                    );
+
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+
+            File zipFile =
+                    new File(
+                            folder,
+                            safeFileName
+                    );
+
+            ZipOutputStream zip =
+                    new ZipOutputStream(
+                            new FileOutputStream(
+                                    zipFile
+                            )
+                    );
+
+            /*
+             * CSV
+             */
+
+            zip.putNextEntry(
+                    new ZipEntry(
+                            "expenses.csv"
+                    )
+            );
+
+            zip.write(
+                    csvText.getBytes(
+                            "UTF-8"
+                    )
+            );
+
+            zip.closeEntry();
+
+            /*
+             * Selected receipt photos
+             */
+
+            JSONArray receiptNames;
+
+            try {
+
+                receiptNames =
+                        new JSONArray(
+                                receiptNamesJson == null
+                                        ?
+                                        "[]"
+                                        :
+                                        receiptNamesJson
+                        );
+
+            } catch (Exception e) {
+
+                receiptNames =
+                        new JSONArray();
+            }
+
+            byte[] buffer =
+                    new byte[8192];
+
+            for (
+                    int i = 0;
+                    i < receiptNames.length();
+                    i++
+            ) {
+
+                String name =
+                        receiptNames.optString(
+                                i,
+                                ""
+                        );
+
+                File receipt =
+                        receiptFile(name);
+
+                if (
+                        !receipt.exists()
+                                ||
+                        !receipt.isFile()
+                ) {
+                    continue;
+                }
+
+                zip.putNextEntry(
+                        new ZipEntry(
+                                "receipts/"
+                                        +
+                                        receipt.getName()
+                        )
+                );
+
+                FileInputStream input =
+                        new FileInputStream(
+                                receipt
+                        );
+
+                int length;
+
+                while (
+                        (length = input.read(buffer))
+                                >
+                        0
+                ) {
+
+                    zip.write(
+                            buffer,
+                            0,
+                            length
+                    );
+                }
+
+                input.close();
+
+                zip.closeEntry();
+            }
+
+            zip.finish();
+            zip.close();
+
+            Uri zipUri =
+                    FileProvider.getUriForFile(
+                            this,
+                            getPackageName()
+                                    +
+                                    ".fileprovider",
+                            zipFile
+                    );
+
+            Intent shareIntent =
+                    new Intent(
+                            Intent.ACTION_SEND
+                    );
+
+            shareIntent.setType(
+                    "application/zip"
+            );
+
+            shareIntent.putExtra(
+                    Intent.EXTRA_STREAM,
+                    zipUri
+            );
+
+            shareIntent.putExtra(
+                    Intent.EXTRA_SUBJECT,
+                    "Pure Clean Expenses"
+            );
+
+            shareIntent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    "Expense export and receipt photos attached."
+            );
+
+            shareIntent.setClipData(
+                    ClipData.newRawUri(
+                            "Expense Export",
+                            zipUri
+                    )
+            );
+
+            shareIntent.addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+            );
+
+            startActivity(
+                    Intent.createChooser(
+                            shareIntent,
+                            "Share Expenses"
+                    )
+            );
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not create expense accountant pack.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    /*
+     * =========================================================
+     * EXISTING PHONE / TEXT FEATURES
+     * =========================================================
+     */
 
     private void openDialler(String phone) {
 
@@ -438,6 +2178,12 @@ public class MainActivity extends Activity {
             ).show();
         }
     }
+
+    /*
+     * =========================================================
+     * EXISTING CSV EXPORT
+     * =========================================================
+     */
 
     private void shareCsvFile(
             String fileName,
@@ -573,6 +2319,12 @@ public class MainActivity extends Activity {
         }
     }
 
+    /*
+     * =========================================================
+     * EXISTING JSON BACKUP
+     * =========================================================
+     */
+
     private void startBackup(String json) {
 
         if (
@@ -669,6 +2421,12 @@ public class MainActivity extends Activity {
         }
     }
 
+    /*
+     * =========================================================
+     * ACTIVITY RESULTS
+     * =========================================================
+     */
+
     @Override
     protected void onActivityResult(
             int requestCode,
@@ -680,6 +2438,95 @@ public class MainActivity extends Activity {
                 resultCode,
                 data
         );
+
+        /*
+         * CAMERA
+         */
+
+        if (
+                requestCode
+                        ==
+                TAKE_EXPENSE_PHOTO
+        ) {
+
+            if (
+                    resultCode
+                            ==
+                    RESULT_OK
+            ) {
+
+                if (
+                        pendingCameraFile != null
+                                &&
+                        pendingCameraFile.exists()
+                ) {
+
+                    compressCameraReceipt();
+
+                    notifyExpenseReceiptSaved(
+                            pendingExpenseId,
+                            pendingCameraFile
+                                    .getName()
+                    );
+
+                    Toast.makeText(
+                            this,
+                            "Receipt photo saved.",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
+
+            } else {
+
+                if (
+                        pendingCameraFile != null
+                                &&
+                        pendingCameraFile.exists()
+                ) {
+
+                    pendingCameraFile.delete();
+                }
+            }
+
+            pendingCameraFile = null;
+            pendingExpenseId = "";
+
+            return;
+        }
+
+        /*
+         * CHOOSE EXISTING PHOTO
+         */
+
+        if (
+                requestCode
+                        ==
+                CHOOSE_EXPENSE_PHOTO
+        ) {
+
+            if (
+                    resultCode
+                            ==
+                    RESULT_OK
+                            &&
+                    data != null
+                            &&
+                    data.getData() != null
+            ) {
+
+                saveChosenExpensePhoto(
+                        data.getData()
+                );
+            }
+
+            pendingExpenseId = "";
+
+            return;
+        }
+
+        /*
+         * OTHER FILE ACTIONS REQUIRE A URI
+         */
 
         if (
                 resultCode != RESULT_OK
@@ -710,6 +2557,22 @@ public class MainActivity extends Activity {
         ) {
 
             loadBackup(uri);
+
+        } else if (
+                requestCode
+                        ==
+                SAVE_FULL_BACKUP
+        ) {
+
+            saveFullBackup(uri);
+
+        } else if (
+                requestCode
+                        ==
+                RESTORE_FULL_BACKUP
+        ) {
+
+            restoreFullBackup(uri);
         }
     }
 
@@ -855,6 +2718,91 @@ public class MainActivity extends Activity {
             ).show();
         }
     }
+
+    /*
+     * =========================================================
+     * FILE HELPERS
+     * =========================================================
+     */
+
+    private void copyFile(
+            File source,
+            File destination)
+            throws Exception {
+
+        FileInputStream input =
+                new FileInputStream(
+                        source
+                );
+
+        FileOutputStream output =
+                new FileOutputStream(
+                        destination
+                );
+
+        byte[] buffer =
+                new byte[8192];
+
+        int length;
+
+        while (
+                (length = input.read(buffer))
+                        >
+                0
+        ) {
+
+            output.write(
+                    buffer,
+                    0,
+                    length
+            );
+        }
+
+        output.flush();
+
+        input.close();
+        output.close();
+    }
+
+    private void deleteFolder(
+            File folder) {
+
+        if (
+                folder == null
+                        ||
+                !folder.exists()
+        ) {
+            return;
+        }
+
+        File[] files =
+                folder.listFiles();
+
+        if (files != null) {
+
+            for (File file : files) {
+
+                if (file.isDirectory()) {
+
+                    deleteFolder(
+                            file
+                    );
+
+                } else {
+
+                    file.delete();
+                }
+            }
+        }
+
+        folder.delete();
+    }
+
+    /*
+     * =========================================================
+     * EMAIL / INVOICES
+     * =========================================================
+     */
 
     private boolean validEmail(String email) {
 
@@ -1115,6 +3063,12 @@ public class MainActivity extends Activity {
             startActivity(intent);
         }
     }
+
+    /*
+     * =========================================================
+     * PDF INVOICE
+     * =========================================================
+     */
 
     private File createInvoicePdf(
             String customerName,
@@ -1606,4 +3560,4 @@ public class MainActivity extends Activity {
 
         return file;
     }
-            }
+                            }
