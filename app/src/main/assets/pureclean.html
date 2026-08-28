@@ -21,9 +21,7 @@ box-sizing:border-box;
 --limeDark:#6f9b00;
 --bg:#050505;
 --panel:#111;
---panel2:#161616;
 --border:#303030;
---borderLight:#3a3a3a;
 --muted:#999;
 --white:#f5f5f5;
 --green:#41dc83;
@@ -35,12 +33,7 @@ box-sizing:border-box;
 html,body{
 margin:0;
 padding:0;
-background:
-linear-gradient(
-180deg,
-#050505 0%,
-#080808 100%
-);
+background:linear-gradient(180deg,#050505 0%,#080808 100%);
 color:var(--white);
 font-family:Arial,sans-serif;
 font-size:14px;
@@ -56,15 +49,9 @@ display:flex;
 align-items:center;
 gap:14px;
 padding:46px 16px 18px;
-background:
-linear-gradient(
-135deg,
-#141414 0%,
-#090909 100%
-);
+background:linear-gradient(135deg,#141414 0%,#090909 100%);
 border-bottom:1px solid #252525;
-box-shadow:
-0 4px 16px rgba(0,0,0,.35);
+box-shadow:0 4px 16px rgba(0,0,0,.35);
 }
 
 .logo{
@@ -74,12 +61,6 @@ border-radius:50%;
 object-fit:cover;
 flex-shrink:0;
 border:2px solid rgba(155,214,0,.45);
-box-shadow:
-0 0 0 4px rgba(155,214,0,.05);
-}
-
-.brand{
-min-width:0;
 }
 
 .brand h1{
@@ -87,14 +68,12 @@ margin:0;
 color:var(--lime2);
 font-size:19px;
 line-height:1.18;
-letter-spacing:.1px;
 }
 
 .brand p{
 margin:6px 0 0;
 color:#929292;
 font-size:12px;
-letter-spacing:.25px;
 }
 
 nav{
@@ -107,8 +86,7 @@ padding:9px;
 position:sticky;
 top:0;
 z-index:20;
-box-shadow:
-0 4px 12px rgba(0,0,0,.28);
+box-shadow:0 4px 12px rgba(0,0,0,.28);
 }
 
 nav button{
@@ -120,19 +98,12 @@ border-radius:11px;
 font-weight:bold;
 font-size:13px;
 min-width:0;
-white-space:nowrap;
-transition:
-background .15s ease,
-color .15s ease,
-border-color .15s ease;
 }
 
 nav button.active{
 background:var(--lime);
 color:#000;
 border-color:var(--lime);
-box-shadow:
-0 3px 10px rgba(155,214,0,.16);
 }
 
 main{
@@ -141,35 +112,13 @@ max-width:850px;
 margin:auto;
 }
 
-.screen{
-display:none;
-}
-
-.screen.active{
-display:block;
-animation:fadeIn .15s ease;
-}
-
-@keyframes fadeIn{
-from{
-opacity:.65;
-transform:translateY(2px);
-}
-to{
-opacity:1;
-transform:none;
-}
-}
+.screen{display:none}
+.screen.active{display:block}
 
 h2{
 margin:4px 0 17px;
 color:var(--lime);
 font-size:25px;
-letter-spacing:-.3px;
-}
-
-h3{
-line-height:1.25;
 }
 
 .grid{
@@ -178,25 +127,12 @@ grid-template-columns:1fr 1fr;
 gap:10px;
 }
 
-.card,
-.item{
-background:
-linear-gradient(
-180deg,
-#141414 0%,
-#101010 100%
-);
+.card,.item{
+background:linear-gradient(180deg,#141414 0%,#101010 100%);
 border:1px solid var(--border);
 border-radius:15px;
 padding:15px;
-box-shadow:
-0 4px 13px rgba(0,0,0,.18);
-}
-
-.item{
-transition:
-border-color .15s ease,
-transform .15s ease;
+box-shadow:0 4px 13px rgba(0,0,0,.18);
 }
 
 .stat{
@@ -218,28 +154,14 @@ margin-top:14px;
 color:var(--lime);
 font-size:27px;
 font-weight:bold;
-line-height:1.1;
 }
 
-.orange{
-color:var(--orange);
-}
+.orange{color:var(--orange)}
+.green{color:var(--green)}
+.red{color:var(--red)}
+.blueText{color:var(--blue)}
 
-.green{
-color:var(--green);
-}
-
-.red{
-color:var(--red);
-}
-
-.blueText{
-color:var(--blue);
-}
-
-.section{
-margin-top:13px;
-}
+.section{margin-top:13px}
 
 .row{
 display:flex;
@@ -262,9 +184,7 @@ font-weight:bold;
 color:#c5c5c5;
 }
 
-input,
-textarea,
-select{
+input,textarea,select{
 width:100%;
 background:#191919;
 color:#fff;
@@ -274,17 +194,6 @@ padding:12px;
 margin-top:7px;
 font-size:14px;
 outline:none;
-transition:
-border-color .15s ease,
-box-shadow .15s ease;
-}
-
-input:focus,
-textarea:focus,
-select:focus{
-border-color:var(--limeDark);
-box-shadow:
-0 0 0 2px rgba(155,214,0,.08);
 }
 
 textarea{
@@ -298,22 +207,11 @@ border:0;
 border-radius:11px;
 padding:12px;
 margin-top:9px;
-background:
-linear-gradient(
-180deg,
-var(--lime2),
-var(--lime)
-);
+background:linear-gradient(180deg,var(--lime2),var(--lime));
 color:#000;
 font-weight:bold;
 font-size:14px;
 min-height:42px;
-box-shadow:
-0 3px 8px rgba(0,0,0,.2);
-}
-
-.action:active{
-transform:scale(.99);
 }
 
 .small{
@@ -331,11 +229,20 @@ min-height:35px;
 background:#292929;
 color:#fff;
 border:1px solid #444;
-box-shadow:none;
 }
 
 .danger{
 background:#9b2638;
+color:#fff;
+}
+
+.archivebtn{
+background:#725318;
+color:#fff;
+}
+
+.restoreCustomerBtn{
+background:#1f7a44;
 color:#fff;
 }
 
@@ -401,7 +308,6 @@ margin-top:12px;
 color:var(--lime2);
 font-size:17px;
 font-weight:bold;
-line-height:1.25;
 }
 
 .price{
@@ -422,9 +328,7 @@ display:none;
 margin-top:13px;
 }
 
-.formBox.show{
-display:block;
-}
+.formBox.show{display:block}
 
 .badge{
 display:inline-block;
@@ -435,13 +339,15 @@ font-weight:bold;
 letter-spacing:.35px;
 }
 
-.paid{
+.paid,
+.clearstatus{
 background:#183c27;
 color:#63e99d;
 border:1px solid #265939;
 }
 
-.unpaid{
+.unpaid,
+.owesstatus{
 background:#4c2b10;
 color:#ffc45e;
 border:1px solid #714115;
@@ -453,16 +359,10 @@ color:#ff6d86;
 border:1px solid #6b2230;
 }
 
-.clearstatus{
-background:#183c27;
-color:#63e99d;
-border:1px solid #265939;
-}
-
-.owesstatus{
-background:#4c2b10;
-color:#ffc45e;
-border:1px solid #714115;
+.archivedBadge{
+background:#333;
+color:#bbb;
+border:1px solid #555;
 }
 
 .filterbar{
@@ -526,13 +426,9 @@ gap:9px;
 margin-top:8px;
 }
 
-.exportDates.show{
-display:grid;
-}
+.exportDates.show{display:grid}
 
-.backup-box{
-margin-top:13px;
-}
+.backup-box{margin-top:13px}
 
 .backup-box h3{
 color:var(--lime);
@@ -573,18 +469,14 @@ gap:8px;
 margin-top:9px;
 }
 
-.job-buttons .action{
-margin-top:0;
-}
+.job-buttons .action{margin-top:0}
 
 .move-box{
 display:none;
 margin-top:11px;
 }
 
-.move-box.show{
-display:block;
-}
+.move-box.show{display:block}
 
 .history-box{
 display:none;
@@ -593,13 +485,9 @@ background:#080808;
 border:1px solid #353535;
 border-radius:13px;
 padding:13px;
-box-shadow:
-inset 0 0 0 1px rgba(255,255,255,.01);
 }
 
-.history-box.show{
-display:block;
-}
+.history-box.show{display:block}
 
 .history-summary{
 display:grid;
@@ -632,12 +520,7 @@ margin-top:8px;
 
 .earnings-info{
 margin-top:13px;
-background:
-linear-gradient(
-180deg,
-#131313 0%,
-#0f0f0f 100%
-);
+background:#101010;
 border:1px solid #303030;
 border-radius:15px;
 padding:15px;
@@ -650,15 +533,12 @@ border-radius:14px;
 overflow:hidden;
 background:#181818;
 border:1px solid var(--border);
-box-shadow:
-0 4px 15px rgba(0,0,0,.2);
 }
 
 .map-status{
 color:#aaa;
 font-size:12px;
 margin-bottom:11px;
-line-height:1.5;
 }
 
 .empty{
@@ -673,29 +553,6 @@ font-size:11px;
 margin-top:6px;
 }
 
-@media(max-width:420px){
-
-.value{
-font-size:24px;
-}
-
-.card,
-.item{
-padding:13px;
-}
-
-main{
-padding-left:12px;
-padding-right:12px;
-}
-
-nav button{
-font-size:12px;
-padding:10px 5px;
-}
-
-}
-
 </style>
 </head>
 
@@ -703,20 +560,12 @@ padding:10px 5px;
 
 <header>
 
-<img
-src="logo.jpg"
-class="logo"
-alt="logo">
+<img src="logo.jpg" class="logo" alt="logo">
 
 <div class="brand">
 
-<h1>
-Steven's Pure Clean Exteriors
-</h1>
-
-<p>
-Pure Results • Clean Exteriors
-</p>
+<h1>Steven's Pure Clean Exteriors</h1>
+<p>Pure Results • Clean Exteriors</p>
 
 </div>
 
@@ -724,53 +573,25 @@ Pure Results • Clean Exteriors
 
 <nav>
 
-<button
-class="active"
-onclick="openPage('dashboard',this)">
-Dashboard
-</button>
-
-<button
-onclick="openPage('customers',this)">
-Customers
-</button>
-
-<button
-onclick="openPage('planner',this)">
-Planner
-</button>
-
-<button
-onclick="openPage('invoices',this)">
-Invoices
-</button>
-
-<button
-onclick="openPage('earnings',this)">
-Earnings
-</button>
-
-<button
-onclick="openPage('map',this)">
-Map
-</button>
+<button class="active" onclick="openPage('dashboard',this)">Dashboard</button>
+<button onclick="openPage('customers',this)">Customers</button>
+<button onclick="openPage('planner',this)">Planner</button>
+<button onclick="openPage('invoices',this)">Invoices</button>
+<button onclick="openPage('earnings',this)">Earnings</button>
+<button onclick="openPage('map',this)">Map</button>
 
 </nav>
 
 <main>
 
-<section
-id="dashboard"
-class="screen active">
+<section id="dashboard" class="screen active">
 
-<h2>
-Dashboard
-</h2>
+<h2>Dashboard</h2>
 
 <div class="grid">
 
 <div class="card stat">
-<div class="label">CUSTOMERS</div>
+<div class="label">ACTIVE CUSTOMERS</div>
 <div class="value" id="dashCustomers">0</div>
 </div>
 
@@ -794,23 +615,14 @@ Dashboard
 <div class="card section">
 
 <div class="row">
+<h3 style="color:#9bd600;margin:0">Today's Round</h3>
 
-<h3 style="color:#9bd600;margin:0">
-Today's Round
-</h3>
-
-<button
-class="action small secondary"
-onclick="openPage('planner')">
+<button class="action small secondary" onclick="openPage('planner')">
 View all
 </button>
-
 </div>
 
-<div
-id="todayJobs"
-class="muted"
-style="margin-top:8px">
+<div id="todayJobs" class="muted" style="margin-top:8px">
 No jobs due today
 </div>
 
@@ -824,18 +636,13 @@ No jobs due today
 Unpaid Invoices
 </h3>
 
-<button
-class="action small secondary"
-onclick="openPage('invoices')">
+<button class="action small secondary" onclick="openPage('invoices')">
 View all
 </button>
 
 </div>
 
-<div
-id="dashInvoices"
-class="muted"
-style="margin-top:8px">
+<div id="dashInvoices" class="muted" style="margin-top:8px">
 No unpaid invoices
 </div>
 
@@ -843,12 +650,10 @@ No unpaid invoices
 
 <div class="card backup-box">
 
-<h3>
-Business Backup
-</h3>
+<h3>Business Backup</h3>
 
 <div class="muted">
-Keep a copy of your customers, invoices, payment records and cleaning schedule.
+Keep a copy of your customers, archived customers, invoices, payment records and cleaning schedule.
 </div>
 
 <div class="backup-buttons">
@@ -875,6 +680,24 @@ Restore Data
 id="customerSearch"
 placeholder="Search name, address or postcode..."
 oninput="renderCustomers()">
+
+<div class="filterbar">
+
+<button
+id="activeCustomersButton"
+class="action small selected"
+onclick="setCustomerFilter('active',this)">
+Active
+</button>
+
+<button
+id="archivedCustomersButton"
+class="action small secondary"
+onclick="setCustomerFilter('archived',this)">
+Archived
+</button>
+
+</div>
 
 <button class="action" onclick="newCustomer()">
 + Add Customer
@@ -971,10 +794,7 @@ Cancel
 
 <label>Round Date</label>
 
-<input
-type="date"
-id="plannerDate"
-onchange="renderPlanner()">
+<input type="date" id="plannerDate" onchange="renderPlanner()">
 
 <div class="planner-summary">
 
@@ -1163,11 +983,7 @@ Paid figures are based on invoices you have marked as paid.
 
 <br><br>
 
-Next 7 Days Work is based on your customers' next-clean dates.
-
-<br><br>
-
-Yearly Round Estimate is calculated from each customer's price and cleaning frequency.
+Next 7 Days Work and Yearly Round Estimate only include active customers.
 
 </div>
 
@@ -1180,7 +996,7 @@ Yearly Round Estimate is calculated from each customer's price and cleaning freq
 <h2>Customer Map</h2>
 
 <div id="mapStatus" class="map-status">
-Customer postcodes will appear as pins on the map.
+Active customer postcodes will appear as pins on the map.
 </div>
 
 <div id="customerMap"></div>
@@ -1204,8 +1020,26 @@ let invoices=
 JSON.parse(localStorage.getItem("pcInvoices") || "[]");
 
 let invoiceFilter="all";
+let customerFilter="active";
+
 let map=null;
 let mapMarkers=[];
+
+function activeCustomers(){
+
+return customers.filter(
+c=>c.archived!==true
+);
+
+}
+
+function archivedCustomers(){
+
+return customers.filter(
+c=>c.archived===true
+);
+
+}
 
 function saveData(){
 
@@ -1295,6 +1129,16 @@ return;
 
 customers=backup.customers;
 invoices=backup.invoices;
+
+customers.forEach(
+c=>{
+
+if(typeof c.archived==="undefined"){
+c.archived=false;
+}
+
+}
+);
 
 let next=
 Number(backup.nextInvoiceNumber);
@@ -1472,23 +1316,15 @@ return "unpaid";
 
 function daysOverdue(inv){
 
-if(
-invoiceStatus(inv)!=="overdue"
-){
-
+if(invoiceStatus(inv)!=="overdue"){
 return 0;
-
 }
 
 let due=
-new Date(
-invoiceDueDate(inv)+"T12:00:00"
-);
+new Date(invoiceDueDate(inv)+"T12:00:00");
 
 let now=
-new Date(
-today()+"T12:00:00"
-);
+new Date(today()+"T12:00:00");
 
 return Math.max(
 1,
@@ -1551,20 +1387,113 @@ count:records.length
 
 }
 
+function setCustomerFilter(filter,button){
+
+customerFilter=filter;
+
+document
+.getElementById("activeCustomersButton")
+.classList.remove("selected");
+
+document
+.getElementById("activeCustomersButton")
+.classList.add("secondary");
+
+document
+.getElementById("archivedCustomersButton")
+.classList.remove("selected");
+
+document
+.getElementById("archivedCustomersButton")
+.classList.add("secondary");
+
+button.classList.add("selected");
+button.classList.remove("secondary");
+
+closeCustomerForm();
+renderCustomers();
+
+}
+
+function archiveCustomer(id){
+
+let c=
+customers.find(x=>x.id===id);
+
+if(!c){
+return;
+}
+
+if(
+!confirm(
+"Archive "+c.name+"?\n\nThey will be removed from future rounds but their invoice and payment history will be kept."
+)
+){
+return;
+}
+
+c.archived=true;
+
+saveData();
+renderCustomers();
+renderPlanner();
+
+}
+
+function restoreCustomer(id){
+
+let c=
+customers.find(x=>x.id===id);
+
+if(!c){
+return;
+}
+
+c.archived=false;
+
+saveData();
+renderCustomers();
+renderPlanner();
+
+alert(c.name+" is active again.");
+
+}
+
+function deleteCustomerPermanently(id){
+
+let c=
+customers.find(x=>x.id===id);
+
+if(!c){
+return;
+}
+
+if(
+!confirm(
+"Permanently delete "+c.name+"?\n\nTheir customer record will be removed. Existing invoices will remain.\n\nThis cannot be undone."
+)
+){
+return;
+}
+
+customers=
+customers.filter(c=>c.id!==id);
+
+saveData();
+renderCustomers();
+
+}
+
 function toggleCustomerHistory(id){
 
 let box=
-document.getElementById(
-"history-"+id
-);
+document.getElementById("history-"+id);
 
 if(!box){
 return;
 }
 
-if(
-box.classList.contains("show")
-){
+if(box.classList.contains("show")){
 
 box.classList.remove("show");
 return;
@@ -1573,9 +1502,7 @@ return;
 
 document
 .querySelectorAll(".history-box")
-.forEach(
-x=>x.classList.remove("show")
-);
+.forEach(x=>x.classList.remove("show"));
 
 renderCustomerHistory(id);
 
@@ -1586,9 +1513,7 @@ box.classList.add("show");
 function renderCustomerHistory(id){
 
 let box=
-document.getElementById(
-"history-"+id
-);
+document.getElementById("history-"+id);
 
 if(!box){
 return;
@@ -1600,9 +1525,7 @@ customerInvoices(id)
 .sort(
 (a,b)=>
 String(b.date || "")
-.localeCompare(
-String(a.date || "")
-)
+.localeCompare(String(a.date || ""))
 );
 
 let totals=
@@ -1687,46 +1610,28 @@ Close
 <div class="history-summary">
 
 <div class="history-stat">
-
-<div class="label">
-TOTAL PAID
-</div>
-
+<div class="label">TOTAL PAID</div>
 <div class="history-number green">
 £${totals.paid.toFixed(2)}
 </div>
-
 </div>
 
 <div class="history-stat">
-
-<div class="label">
-OUTSTANDING
-</div>
-
+<div class="label">OUTSTANDING</div>
 <div class="history-number orange">
 £${totals.outstanding.toFixed(2)}
 </div>
-
 </div>
 
 <div class="history-stat">
-
-<div class="label">
-INVOICES
-</div>
-
+<div class="label">INVOICES</div>
 <div class="history-number">
 ${totals.count}
 </div>
-
 </div>
 
 <div class="history-stat">
-
-<div class="label">
-STATUS
-</div>
+<div class="label">STATUS</div>
 
 <div class="history-number ${totals.outstanding>0 ? "orange" : "green"}">
 ${totals.outstanding>0 ? "OWES" : "PAID UP"}
@@ -1743,6 +1648,14 @@ ${invoicesHtml}
 }
 
 function newCustomer(){
+
+customerFilter="active";
+
+activeCustomersButton.classList.add("selected");
+activeCustomersButton.classList.remove("secondary");
+
+archivedCustomersButton.classList.remove("selected");
+archivedCustomersButton.classList.add("secondary");
 
 document
 .getElementById("customerForm")
@@ -1805,6 +1718,9 @@ return;
 
 }
 
+let existingCustomer=
+customers.find(c=>c.id===id);
+
 let customer={
 
 id:id || Date.now().toString(),
@@ -1837,7 +1753,14 @@ services:
 customerServices.value.trim(),
 
 notes:
-customerNotes.value.trim()
+customerNotes.value.trim(),
+
+archived:
+existingCustomer
+?
+existingCustomer.archived===true
+:
+false
 
 };
 
@@ -1871,7 +1794,9 @@ if(!c){
 return;
 }
 
-newCustomer();
+document
+.getElementById("customerForm")
+.classList.add("show");
 
 customerFormTitle.innerText=
 "Edit Customer";
@@ -1887,20 +1812,6 @@ customerFrequency.value=c.frequency || 4;
 customerNextClean.value=c.nextClean || "";
 customerServices.value=c.services || "";
 customerNotes.value=c.notes || "";
-
-}
-
-function deleteCustomer(id){
-
-if(!confirm("Delete this customer?")){
-return;
-}
-
-customers=
-customers.filter(c=>c.id!==id);
-
-saveData();
-renderCustomers();
 
 }
 
@@ -1926,8 +1837,7 @@ Android.callPhone(c.phone);
 
 }else{
 
-window.location.href=
-"tel:"+c.phone;
+window.location.href="tel:"+c.phone;
 
 }
 
@@ -1955,8 +1865,7 @@ Android.textPhone(c.phone);
 
 }else{
 
-window.location.href=
-"sms:"+c.phone;
+window.location.href="sms:"+c.phone;
 
 }
 
@@ -1973,8 +1882,15 @@ document.getElementById("customerSearch").value || ""
 let list=
 document.getElementById("customerList");
 
+let source=
+customerFilter==="archived"
+?
+archivedCustomers()
+:
+activeCustomers();
+
 let filtered=
-customers.filter(
+source.filter(
 c=>
 
 (c.name || "")
@@ -1998,7 +1914,11 @@ c=>
 if(filtered.length===0){
 
 list.innerHTML=
-'<div class="item empty">No customers found.</div>';
+customerFilter==="archived"
+?
+'<div class="item empty">No archived customers.</div>'
+:
+'<div class="item empty">No active customers found.</div>';
 
 return;
 
@@ -2017,6 +1937,13 @@ totals.outstanding>0
 `<span class="badge owesstatus">OWES £${totals.outstanding.toFixed(2)}</span>`
 :
 `<span class="badge clearstatus">PAID UP</span>`;
+
+let archiveStatus=
+c.archived
+?
+'<span class="badge archivedBadge">ARCHIVED</span>'
+:
+"";
 
 return `
 
@@ -2045,6 +1972,7 @@ ${c.postcode ? "<br>"+safe(c.postcode) : ""}
 
 <div style="margin-top:8px">
 ${paymentStatus}
+${archiveStatus}
 </div>
 
 <div class="muted" style="margin-top:8px">
@@ -2066,38 +1994,75 @@ ${c.phone
 ${c.phone
 ? `
 
-<button class="action small callbtn" onclick="callCustomer('${c.id}')">
+<button
+class="action small callbtn"
+onclick="callCustomer('${c.id}')">
 Call
 </button>
 
-<button class="action small textbtn" onclick="textCustomer('${c.id}')">
+<button
+class="action small textbtn"
+onclick="textCustomer('${c.id}')">
 Text
 </button>
 
 `
 : ""}
 
-<button class="action small historybtn" onclick="toggleCustomerHistory('${c.id}')">
+<button
+class="action small historybtn"
+onclick="toggleCustomerHistory('${c.id}')">
 History
 </button>
 
-<button class="action small" onclick="editCustomer('${c.id}')">
+<button
+class="action small"
+onclick="editCustomer('${c.id}')">
 Edit
 </button>
 
-<button class="action small blue" onclick="openCustomerMap('${c.id}')">
+<button
+class="action small blue"
+onclick="openCustomerMap('${c.id}')">
 Map
 </button>
 
-<button class="action small secondary" onclick="quickInvoice('${c.id}')">
+${!c.archived
+? `
+
+<button
+class="action small secondary"
+onclick="quickInvoice('${c.id}')">
 Invoice
 </button>
 
-<button class="action small danger" onclick="deleteCustomer('${c.id}')">
-Delete
+<button
+class="action small archivebtn"
+onclick="archiveCustomer('${c.id}')">
+Archive
 </button>
 
-<div id="history-${c.id}" class="history-box"></div>
+`
+: `
+
+<button
+class="action small restoreCustomerBtn"
+onclick="restoreCustomer('${c.id}')">
+Restore Customer
+</button>
+
+<button
+class="action small danger"
+onclick="deleteCustomerPermanently('${c.id}')">
+Delete Permanently
+</button>
+
+`}
+
+<div
+id="history-${c.id}"
+class="history-box">
+</div>
 
 </div>
 
@@ -2121,7 +2086,7 @@ let date=
 input.value;
 
 let jobs=
-customers.filter(
+activeCustomers().filter(
 c=>c.nextClean===date
 );
 
@@ -2137,19 +2102,16 @@ jobs.length;
 plannerRoundTotal.innerText=
 "£"+total.toFixed(2);
 
-let list=
-plannerJobs;
-
 if(jobs.length===0){
 
-list.innerHTML=
+plannerJobs.innerHTML=
 '<div class="item empty">No jobs scheduled for this date.</div>';
 
 return;
 
 }
 
-list.innerHTML=
+plannerJobs.innerHTML=
 jobs.map(
 (c,index)=>`
 
@@ -2198,8 +2160,15 @@ ${c.notes
 ? `
 
 <div class="job-notes">
-<strong>Access Notes:</strong><br>
+
+<strong>
+Access Notes:
+</strong>
+
+<br>
+
 ${safe(c.notes)}
+
 </div>
 
 `
@@ -2207,35 +2176,52 @@ ${safe(c.notes)}
 
 <div class="job-buttons">
 
-<button class="action" onclick="completeJob('${c.id}')">
+<button
+class="action"
+onclick="completeJob('${c.id}')">
 ✓ Complete
 </button>
 
-<button class="action skipbtn" onclick="skipJob('${c.id}')">
+<button
+class="action skipbtn"
+onclick="skipJob('${c.id}')">
 Skip
 </button>
 
-<button class="action movebtn" onclick="showMoveJob('${c.id}')">
+<button
+class="action movebtn"
+onclick="showMoveJob('${c.id}')">
 Move Date
 </button>
 
-<button class="action secondary" onclick="openCustomerMap('${c.id}')">
+<button
+class="action secondary"
+onclick="openCustomerMap('${c.id}')">
 Directions
 </button>
 
 </div>
 
-<div id="move-${c.id}" class="move-box card">
+<div
+id="move-${c.id}"
+class="move-box card">
 
 <label>New Date</label>
 
-<input type="date" id="move-date-${c.id}" value="${date}">
+<input
+type="date"
+id="move-date-${c.id}"
+value="${date}">
 
-<button class="action" onclick="moveJob('${c.id}')">
+<button
+class="action"
+onclick="moveJob('${c.id}')">
 Save New Date
 </button>
 
-<button class="action secondary" onclick="hideMoveJob('${c.id}')">
+<button
+class="action secondary"
+onclick="hideMoveJob('${c.id}')">
 Cancel
 </button>
 
@@ -2253,7 +2239,7 @@ function completeJob(id){
 let c=
 customers.find(x=>x.id===id);
 
-if(!c){
+if(!c || c.archived){
 return;
 }
 
@@ -2321,7 +2307,7 @@ function skipJob(id){
 let c=
 customers.find(x=>x.id===id);
 
-if(!c){
+if(!c || c.archived){
 return;
 }
 
@@ -2333,17 +2319,13 @@ Number(c.frequency || 4)*7
 
 saveData();
 renderPlanner();
-updateDashboard();
-updateEarnings();
 
 }
 
 function showMoveJob(id){
 
 let box=
-document.getElementById(
-"move-"+id
-);
+document.getElementById("move-"+id);
 
 if(box){
 box.classList.add("show");
@@ -2354,9 +2336,7 @@ box.classList.add("show");
 function hideMoveJob(id){
 
 let box=
-document.getElementById(
-"move-"+id
-);
+document.getElementById("move-"+id);
 
 if(box){
 box.classList.remove("show");
@@ -2369,14 +2349,12 @@ function moveJob(id){
 let c=
 customers.find(x=>x.id===id);
 
-if(!c){
+if(!c || c.archived){
 return;
 }
 
 let input=
-document.getElementById(
-"move-date-"+id
-);
+document.getElementById("move-date-"+id);
 
 if(!input || !input.value){
 
@@ -2385,8 +2363,7 @@ return;
 
 }
 
-c.nextClean=
-input.value;
+c.nextClean=input.value;
 
 saveData();
 renderPlanner();
@@ -2403,8 +2380,11 @@ function openInvoiceForm(){
 
 invoiceForm.classList.add("show");
 
+let actives=
+activeCustomers();
+
 invoiceCustomer.innerHTML=
-customers.map(
+actives.map(
 c=>`
 <option value="${c.id}">
 ${safe(c.name)}
@@ -2425,24 +2405,29 @@ invoiceForm.classList.remove("show");
 
 function quickInvoice(id){
 
+let c=
+customers.find(
+x=>x.id===id
+);
+
+if(!c || c.archived){
+
+alert("Archived customers cannot be added to new invoices until restored.");
+return;
+
+}
+
 openPage("invoices");
 
 openInvoiceForm();
 
 invoiceCustomer.value=id;
 
-let c=
-customers.find(x=>x.id===id);
-
-if(c){
-
 invoiceAmount.value=
 c.price || "";
 
 invoiceDescription.value=
 c.services || "";
-
-}
 
 }
 
@@ -2456,9 +2441,9 @@ customers.find(
 x=>x.id===customerId
 );
 
-if(!c){
+if(!c || c.archived){
 
-alert("Please select a customer.");
+alert("Please select an active customer.");
 return;
 
 }
@@ -2505,8 +2490,7 @@ renderCustomers();
 
 function setInvoiceFilter(filter,button){
 
-invoiceFilter=
-filter;
+invoiceFilter=filter;
 
 document
 .querySelectorAll("[data-filter]")
@@ -2519,12 +2503,8 @@ b.classList.add("secondary");
 }
 );
 
-if(button){
-
 button.classList.add("selected");
 button.classList.remove("secondary");
-
-}
 
 renderInvoices();
 
@@ -2542,9 +2522,7 @@ invoices
 
 let overdue=
 invoices
-.filter(
-i=>invoiceStatus(i)==="overdue"
-)
+.filter(i=>invoiceStatus(i)==="overdue")
 .reduce(
 (sum,i)=>sum+Number(i.amount || 0),
 0
@@ -2563,9 +2541,7 @@ function renderInvoices(){
 updateInvoiceTotals();
 
 let search=
-(
-invoiceSearch.value || ""
-)
+(invoiceSearch.value || "")
 .toLowerCase()
 .trim();
 
@@ -2614,9 +2590,7 @@ let ordered=
 .sort(
 (a,b)=>
 String(b.date || "")
-.localeCompare(
-String(a.date || "")
-)
+.localeCompare(String(a.date || ""))
 );
 
 invoiceList.innerHTML=
@@ -2647,16 +2621,10 @@ ${safe(inv.customerName)}
 <div class="muted invoice-meta">
 
 Invoice #${safe(invoiceNumber(inv))}
-
 <br>
-
-Invoice date:
-${formatDate(inv.date)}
-
+Invoice date: ${formatDate(inv.date)}
 <br>
-
-Due date:
-${formatDate(due)}
+Due date: ${formatDate(due)}
 
 ${inv.paidDate
 ? "<br>Paid date: "+formatDate(inv.paidDate)
@@ -2699,27 +2667,35 @@ ${overdueDays} day${overdueDays===1 ? "" : "s"} overdue
 ${!inv.paid
 ? `
 
-<button class="action small" onclick="markPaid('${inv.id}')">
+<button
+class="action small"
+onclick="markPaid('${inv.id}')">
 Mark Paid
 </button>
 
 `
 : `
 
-<button class="action small undopaidbtn" onclick="undoPaid('${inv.id}')">
+<button
+class="action small undopaidbtn"
+onclick="undoPaid('${inv.id}')">
 Undo Paid
 </button>
 
 `}
 
-<button class="action small emailbtn" onclick="emailInvoice('${inv.id}')">
+<button
+class="action small emailbtn"
+onclick="emailInvoice('${inv.id}')">
 Email Customer
 </button>
 
 ${!inv.paid
 ? `
 
-<button class="action small reminderbtn" onclick="sendReminder('${inv.id}')">
+<button
+class="action small reminderbtn"
+onclick="sendReminder('${inv.id}')">
 Send Reminder
 </button>
 
@@ -2970,9 +2946,8 @@ let y=
 now.getFullYear();
 
 let m=
-String(
-now.getMonth()+1
-).padStart(2,"0");
+String(now.getMonth()+1)
+.padStart(2,"0");
 
 from=
 y+"-"+m+"-01";
@@ -3002,11 +2977,8 @@ to=tax.to;
 
 if(range==="custom"){
 
-from=
-exportFrom.value;
-
-to=
-exportTo.value;
+from=exportFrom.value;
+to=exportTo.value;
 
 if(!from || !to){
 
@@ -3143,8 +3115,11 @@ alert(
 
 function updateDashboard(){
 
+let active=
+activeCustomers();
+
 dashCustomers.innerText=
-customers.length;
+active.length;
 
 let unpaid=
 invoices
@@ -3171,9 +3146,7 @@ return false;
 
 let d=
 new Date(
-(i.paidDate || i.date)
-+
-"T12:00:00"
+(i.paidDate || i.date)+"T12:00:00"
 );
 
 return(
@@ -3193,16 +3166,14 @@ dashPaid.innerText=
 "£"+paidMonth.toFixed(2);
 
 let soonLimit=
-new Date(
-today()+"T12:00:00"
-);
+new Date(today()+"T12:00:00");
 
 soonLimit.setDate(
 soonLimit.getDate()+7
 );
 
 let dueSoon=
-customers.filter(
+active.filter(
 c=>{
 
 if(!c.nextClean){
@@ -3210,9 +3181,7 @@ return false;
 }
 
 let d=
-new Date(
-c.nextClean+"T12:00:00"
-);
+new Date(c.nextClean+"T12:00:00");
 
 return(
 d>=new Date(today()+"T12:00:00")
@@ -3227,7 +3196,7 @@ dashDue.innerText=
 dueSoon;
 
 let todays=
-customers.filter(
+active.filter(
 c=>c.nextClean===today()
 );
 
@@ -3272,10 +3241,9 @@ ${invoiceStatus(i)==="overdue" ? " — OVERDUE" : ""}`
 
 function updateEarnings(){
 
-let paidMonthElement=
-document.getElementById("earnPaidMonth");
-
-if(!paidMonthElement){
+if(
+!document.getElementById("earnPaidMonth")
+){
 return;
 }
 
@@ -3352,13 +3320,14 @@ invoices
 
 let overdue=
 invoices
-.filter(
-inv=>invoiceStatus(inv)==="overdue"
-)
+.filter(inv=>invoiceStatus(inv)==="overdue")
 .reduce(
 (sum,inv)=>sum+Number(inv.amount || 0),
 0
 );
+
+let active=
+activeCustomers();
 
 let start=
 new Date(today()+"T12:00:00");
@@ -3371,7 +3340,7 @@ end.getDate()+7
 );
 
 let next7=
-customers
+active
 .filter(
 c=>{
 
@@ -3380,9 +3349,7 @@ return false;
 }
 
 let d=
-new Date(
-c.nextClean+"T12:00:00"
-);
+new Date(c.nextClean+"T12:00:00");
 
 return(
 d>=start
@@ -3398,7 +3365,7 @@ d<=end
 );
 
 let yearlyEstimate=
-customers.reduce(
+active.reduce(
 (sum,c)=>{
 
 let frequency=
@@ -3412,46 +3379,33 @@ frequency<=0
 frequency=4;
 }
 
-let visits=
-52/frequency;
-
 return(
 sum+
-(Number(c.price || 0)*visits)
+Number(c.price || 0)
+*
+(52/frequency)
 );
 
 },
 0
 );
 
-document
-.getElementById("earnPaidMonth")
-.innerText=
+earnPaidMonth.innerText=
 "£"+paidMonth.toFixed(2);
 
-document
-.getElementById("earnPaidYear")
-.innerText=
+earnPaidYear.innerText=
 "£"+paidYear.toFixed(2);
 
-document
-.getElementById("earnOutstanding")
-.innerText=
+earnOutstanding.innerText=
 "£"+outstanding.toFixed(2);
 
-document
-.getElementById("earnOverdue")
-.innerText=
+earnOverdue.innerText=
 "£"+overdue.toFixed(2);
 
-document
-.getElementById("earnNext7")
-.innerText=
+earnNext7.innerText=
 "£"+next7.toFixed(2);
 
-document
-.getElementById("earnYearlyEstimate")
-.innerText=
+earnYearlyEstimate.innerText=
 "£"+yearlyEstimate.toFixed(2);
 
 }
@@ -3555,21 +3509,21 @@ marker=>map.removeLayer(marker)
 mapMarkers=[];
 
 let withPostcodes=
-customers.filter(
+activeCustomers().filter(
 c=>c.postcode
 );
 
 if(withPostcodes.length===0){
 
 mapStatus.innerText=
-"Add customer postcodes to show pins on the map.";
+"Add active customer postcodes to show pins on the map.";
 
 return;
 
 }
 
 mapStatus.innerText=
-"Loading customer locations...";
+"Loading active customer locations...";
 
 let bounds=[];
 
@@ -3619,14 +3573,14 @@ maxZoom:15
 
 mapStatus.innerText=
 bounds.length+
-" customer location"+
+" active customer location"+
 (bounds.length===1 ? "" : "s")+
 " shown.";
 
 }else{
 
 mapStatus.innerText=
-"No customer postcodes could be located.";
+"No active customer postcodes could be located.";
 
 }
 
@@ -3692,6 +3646,19 @@ year:"numeric"
 
 let changed=false;
 
+customers.forEach(
+c=>{
+
+if(typeof c.archived==="undefined"){
+
+c.archived=false;
+changed=true;
+
+}
+
+}
+);
+
 let usedNumbers=
 invoices
 .map(i=>Number(i.invoiceNumber))
@@ -3744,7 +3711,6 @@ typeof inv.paidDate==="undefined"
 ){
 
 inv.paidDate="";
-
 changed=true;
 
 }
@@ -3773,4 +3739,4 @@ updateEarnings();
 </script>
 
 </body>
-  </html>
+</html>
