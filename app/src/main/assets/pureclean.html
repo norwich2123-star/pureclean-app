@@ -98,33 +98,28 @@ letter-spacing:.25px;
 }
 
 nav{
-display:flex;
-overflow-x:auto;
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:7px;
 background:#0a0a0a;
 border-bottom:1px solid #282828;
-padding:8px;
-gap:6px;
+padding:9px;
 position:sticky;
 top:0;
 z-index:20;
-scrollbar-width:none;
 box-shadow:
 0 4px 12px rgba(0,0,0,.28);
-}
-
-nav::-webkit-scrollbar{
-display:none;
 }
 
 nav button{
 border:1px solid transparent;
 background:#111;
 color:var(--lime);
-padding:10px 13px;
+padding:11px 7px;
 border-radius:11px;
 font-weight:bold;
 font-size:13px;
-min-width:88px;
+min-width:0;
 white-space:nowrap;
 transition:
 background .15s ease,
@@ -695,7 +690,8 @@ padding-right:12px;
 }
 
 nav button{
-min-width:84px;
+font-size:12px;
+padding:10px 5px;
 }
 
 }
@@ -774,59 +770,23 @@ Dashboard
 <div class="grid">
 
 <div class="card stat">
-
-<div class="label">
-CUSTOMERS
-</div>
-
-<div
-class="value"
-id="dashCustomers">
-0
-</div>
-
+<div class="label">CUSTOMERS</div>
+<div class="value" id="dashCustomers">0</div>
 </div>
 
 <div class="card stat">
-
-<div class="label">
-UNPAID
-</div>
-
-<div
-class="value orange"
-id="dashUnpaid">
-£0.00
-</div>
-
+<div class="label">UNPAID</div>
+<div class="value orange" id="dashUnpaid">£0.00</div>
 </div>
 
 <div class="card stat">
-
-<div class="label">
-PAID THIS MONTH
-</div>
-
-<div
-class="value green"
-id="dashPaid">
-£0.00
-</div>
-
+<div class="label">PAID THIS MONTH</div>
+<div class="value green" id="dashPaid">£0.00</div>
 </div>
 
 <div class="card stat">
-
-<div class="label">
-DUE SOON
-</div>
-
-<div
-class="value red"
-id="dashDue">
-0
-</div>
-
+<div class="label">DUE SOON</div>
+<div class="value red" id="dashDue">0</div>
 </div>
 
 </div>
@@ -893,15 +853,11 @@ Keep a copy of your customers, invoices, payment records and cleaning schedule.
 
 <div class="backup-buttons">
 
-<button
-class="action"
-onclick="backupBusinessData()">
+<button class="action" onclick="backupBusinessData()">
 Backup Data
 </button>
 
-<button
-class="action restorebtn"
-onclick="restoreBusinessData()">
+<button class="action restorebtn" onclick="restoreBusinessData()">
 Restore Data
 </button>
 
@@ -911,68 +867,40 @@ Restore Data
 
 </section>
 
-<section
-id="customers"
-class="screen">
+<section id="customers" class="screen">
 
-<h2>
-Customers
-</h2>
+<h2>Customers</h2>
 
 <input
 id="customerSearch"
 placeholder="Search name, address or postcode..."
 oninput="renderCustomers()">
 
-<button
-class="action"
-onclick="newCustomer()">
+<button class="action" onclick="newCustomer()">
 + Add Customer
 </button>
 
-<div
-id="customerForm"
-class="formBox card">
+<div id="customerForm" class="formBox card">
 
-<h3
-id="customerFormTitle"
-style="color:#9bd600;margin-top:0">
+<h3 id="customerFormTitle" style="color:#9bd600;margin-top:0">
 Add Customer
 </h3>
 
-<input
-type="hidden"
-id="customerId">
+<input type="hidden" id="customerId">
 
-<label>
-Name
-</label>
-
+<label>Name</label>
 <input id="customerName">
 
-<label>
-Address
-</label>
-
+<label>Address</label>
 <input id="customerAddress">
 
-<label>
-Postcode
-</label>
-
+<label>Postcode</label>
 <input id="customerPostcode">
 
-<label>
-Phone
-</label>
+<label>Phone</label>
+<input id="customerPhone" type="tel">
 
-<input
-id="customerPhone"
-type="tel">
-
-<label>
-Email
-</label>
+<label>Email</label>
 
 <input
 id="customerEmail"
@@ -989,114 +917,59 @@ Enter the customer's full email address.
 <div class="two">
 
 <div>
-
-<label>
-Price £
-</label>
-
-<input
-id="customerPrice"
-type="number"
-step="0.01">
-
+<label>Price £</label>
+<input id="customerPrice" type="number" step="0.01">
 </div>
 
 <div>
 
-<label>
-Frequency
-</label>
+<label>Frequency</label>
 
 <select id="customerFrequency">
-
-<option value="1">
-Weekly
-</option>
-
-<option value="2">
-2 Weekly
-</option>
-
-<option value="4">
-4 Weekly
-</option>
-
-<option value="6">
-6 Weekly
-</option>
-
-<option value="8">
-8 Weekly
-</option>
-
-<option value="10">
-10 Weekly
-</option>
-
-<option value="12">
-12 Weekly
-</option>
-
+<option value="1">Weekly</option>
+<option value="2">2 Weekly</option>
+<option value="4">4 Weekly</option>
+<option value="6">6 Weekly</option>
+<option value="8">8 Weekly</option>
+<option value="10">10 Weekly</option>
+<option value="12">12 Weekly</option>
 </select>
 
 </div>
 
 </div>
 
-<label>
-Next Clean
-</label>
+<label>Next Clean</label>
+<input type="date" id="customerNextClean">
 
-<input
-type="date"
-id="customerNextClean">
-
-<label>
-Services
-</label>
+<label>Services</label>
 
 <input
 id="customerServices"
 placeholder="Windows, gutters, fascia, soffits...">
 
-<label>
-Access Notes
-</label>
-
+<label>Access Notes</label>
 <textarea id="customerNotes"></textarea>
 
-<button
-class="action"
-onclick="saveCustomer()">
+<button class="action" onclick="saveCustomer()">
 Save Customer
 </button>
 
-<button
-class="action secondary"
-onclick="closeCustomerForm()">
+<button class="action secondary" onclick="closeCustomerForm()">
 Cancel
 </button>
 
 </div>
 
-<div
-id="customerList"
-class="customer-list">
-</div>
+<div id="customerList" class="customer-list"></div>
 
 </section>
 
-<section
-id="planner"
-class="screen">
+<section id="planner" class="screen">
 
-<h2>
-Daily Planner
-</h2>
+<h2>Daily Planner</h2>
 
-<label>
-Round Date
-</label>
+<label>Round Date</label>
 
 <input
 type="date"
@@ -1106,94 +979,49 @@ onchange="renderPlanner()">
 <div class="planner-summary">
 
 <div class="mini-stat">
-
-<div class="label">
-JOBS
-</div>
-
-<div
-class="num"
-id="plannerJobCount">
-0
-</div>
-
+<div class="label">JOBS</div>
+<div class="num" id="plannerJobCount">0</div>
 </div>
 
 <div class="mini-stat">
-
-<div class="label">
-ROUND VALUE
-</div>
-
-<div
-class="num green"
-id="plannerRoundTotal">
-£0.00
+<div class="label">ROUND VALUE</div>
+<div class="num green" id="plannerRoundTotal">£0.00</div>
 </div>
 
 </div>
 
-</div>
-
-<div
-id="plannerJobs"
-class="job-list">
-</div>
+<div id="plannerJobs" class="job-list"></div>
 
 </section>
 
-<section
-id="invoices"
-class="screen">
+<section id="invoices" class="screen">
 
-<h2>
-Invoices
-</h2>
+<h2>Invoices</h2>
 
-<button
-class="action"
-onclick="openInvoiceForm()">
+<button class="action" onclick="openInvoiceForm()">
 + New Invoice
 </button>
 
-<div
-id="invoiceForm"
-class="formBox card">
+<div id="invoiceForm" class="formBox card">
 
 <h3 style="color:#9bd600;margin-top:0">
 Create Invoice
 </h3>
 
-<label>
-Customer
-</label>
-
+<label>Customer</label>
 <select id="invoiceCustomer"></select>
 
-<label>
-Amount £
-</label>
+<label>Amount £</label>
+<input id="invoiceAmount" type="number" step="0.01">
 
-<input
-id="invoiceAmount"
-type="number"
-step="0.01">
-
-<label>
-Description
-</label>
-
+<label>Description</label>
 <textarea id="invoiceDescription"></textarea>
 
-<button
-class="action"
-onclick="saveInvoice()">
+<button class="action" onclick="saveInvoice()">
 Create Invoice
 </button>
 
-<button
-class="action secondary"
-onclick="closeInvoiceForm()">
+<button class="action secondary" onclick="closeInvoiceForm()">
 Cancel
 </button>
 
@@ -1204,31 +1032,13 @@ Cancel
 <div class="invoice-summary">
 
 <div class="mini-stat">
-
-<div class="label">
-OUTSTANDING
-</div>
-
-<div
-class="num orange"
-id="invoiceOutstanding">
-£0.00
-</div>
-
+<div class="label">OUTSTANDING</div>
+<div class="num orange" id="invoiceOutstanding">£0.00</div>
 </div>
 
 <div class="mini-stat">
-
-<div class="label">
-OVERDUE
-</div>
-
-<div
-class="num red"
-id="invoiceOverdueTotal">
-£0.00
-</div>
-
+<div class="label">OVERDUE</div>
+<div class="num red" id="invoiceOverdueTotal">£0.00</div>
 </div>
 
 </div>
@@ -1240,31 +1050,19 @@ oninput="renderInvoices()">
 
 <div class="filterbar">
 
-<button
-class="action small selected"
-data-filter="all"
-onclick="setInvoiceFilter('all',this)">
+<button class="action small selected" data-filter="all" onclick="setInvoiceFilter('all',this)">
 All
 </button>
 
-<button
-class="action small secondary"
-data-filter="unpaid"
-onclick="setInvoiceFilter('unpaid',this)">
+<button class="action small secondary" data-filter="unpaid" onclick="setInvoiceFilter('unpaid',this)">
 Unpaid
 </button>
 
-<button
-class="action small secondary"
-data-filter="overdue"
-onclick="setInvoiceFilter('overdue',this)">
+<button class="action small secondary" data-filter="overdue" onclick="setInvoiceFilter('overdue',this)">
 Overdue
 </button>
 
-<button
-class="action small secondary"
-data-filter="paid"
-onclick="setInvoiceFilter('paid',this)">
+<button class="action small secondary" data-filter="paid" onclick="setInvoiceFilter('paid',this)">
 Paid
 </button>
 
@@ -1272,184 +1070,83 @@ Paid
 
 </div>
 
-<button
-class="action"
-onclick="toggleAccountantExport()">
+<button class="action" onclick="toggleAccountantExport()">
 Accountant Export
 </button>
 
-<div
-id="accountantExportBox"
-class="card exportBox"
-style="display:none">
+<div id="accountantExportBox" class="card exportBox" style="display:none">
 
 <h3 style="color:#9bd600;margin-top:0">
 Accountant Export
 </h3>
 
-<label>
-Export period
-</label>
+<label>Export period</label>
 
-<select
-id="exportRange"
-onchange="toggleExportDates()">
-
-<option value="all">
-All invoices
-</option>
-
-<option value="month">
-This month
-</option>
-
-<option value="taxyear">
-Current UK tax year
-</option>
-
-<option value="custom">
-Custom dates
-</option>
-
+<select id="exportRange" onchange="toggleExportDates()">
+<option value="all">All invoices</option>
+<option value="month">This month</option>
+<option value="taxyear">Current UK tax year</option>
+<option value="custom">Custom dates</option>
 </select>
 
-<div
-id="exportDates"
-class="exportDates">
+<div id="exportDates" class="exportDates">
 
 <div>
-
-<label>
-From
-</label>
-
-<input
-type="date"
-id="exportFrom">
-
+<label>From</label>
+<input type="date" id="exportFrom">
 </div>
 
 <div>
-
-<label>
-To
-</label>
-
-<input
-type="date"
-id="exportTo">
-
+<label>To</label>
+<input type="date" id="exportTo">
 </div>
 
 </div>
 
-<button
-class="action"
-onclick="exportInvoicesCsv()">
+<button class="action" onclick="exportInvoicesCsv()">
 Share CSV for Accountant
 </button>
 
 </div>
 
-<div
-id="invoiceList"
-class="invoice-list">
-</div>
+<div id="invoiceList" class="invoice-list"></div>
 
 </section>
 
-<section
-id="earnings"
-class="screen">
+<section id="earnings" class="screen">
 
-<h2>
-Earnings
-</h2>
+<h2>Earnings</h2>
 
 <div class="grid">
 
 <div class="card stat">
-
-<div class="label">
-PAID THIS MONTH
-</div>
-
-<div
-class="value green"
-id="earnPaidMonth">
-£0.00
-</div>
-
+<div class="label">PAID THIS MONTH</div>
+<div class="value green" id="earnPaidMonth">£0.00</div>
 </div>
 
 <div class="card stat">
-
-<div class="label">
-PAID THIS YEAR
-</div>
-
-<div
-class="value green"
-id="earnPaidYear">
-£0.00
-</div>
-
+<div class="label">PAID THIS YEAR</div>
+<div class="value green" id="earnPaidYear">£0.00</div>
 </div>
 
 <div class="card stat">
-
-<div class="label">
-OUTSTANDING
-</div>
-
-<div
-class="value orange"
-id="earnOutstanding">
-£0.00
-</div>
-
+<div class="label">OUTSTANDING</div>
+<div class="value orange" id="earnOutstanding">£0.00</div>
 </div>
 
 <div class="card stat">
-
-<div class="label">
-OVERDUE
-</div>
-
-<div
-class="value red"
-id="earnOverdue">
-£0.00
-</div>
-
+<div class="label">OVERDUE</div>
+<div class="value red" id="earnOverdue">£0.00</div>
 </div>
 
 <div class="card stat">
-
-<div class="label">
-NEXT 7 DAYS WORK
-</div>
-
-<div
-class="value blueText"
-id="earnNext7">
-£0.00
-</div>
-
+<div class="label">NEXT 7 DAYS WORK</div>
+<div class="value blueText" id="earnNext7">£0.00</div>
 </div>
 
 <div class="card stat">
-
-<div class="label">
-YEARLY ROUND EST.
-</div>
-
-<div
-class="value"
-id="earnYearlyEstimate">
-£0.00
-</div>
-
+<div class="label">YEARLY ROUND EST.</div>
+<div class="value" id="earnYearlyEstimate">£0.00</div>
 </div>
 
 </div>
@@ -1478,25 +1175,17 @@ Yearly Round Estimate is calculated from each customer's price and cleaning freq
 
 </section>
 
-<section
-id="map"
-class="screen">
+<section id="map" class="screen">
 
-<h2>
-Customer Map
-</h2>
+<h2>Customer Map</h2>
 
-<div
-id="mapStatus"
-class="map-status">
+<div id="mapStatus" class="map-status">
 Customer postcodes will appear as pins on the map.
 </div>
 
 <div id="customerMap"></div>
 
-<button
-class="action"
-onclick="renderMap()">
+<button class="action" onclick="renderMap()">
 Refresh Customer Pins
 </button>
 
@@ -2377,55 +2066,38 @@ ${c.phone
 ${c.phone
 ? `
 
-<button
-class="action small callbtn"
-onclick="callCustomer('${c.id}')">
+<button class="action small callbtn" onclick="callCustomer('${c.id}')">
 Call
 </button>
 
-<button
-class="action small textbtn"
-onclick="textCustomer('${c.id}')">
+<button class="action small textbtn" onclick="textCustomer('${c.id}')">
 Text
 </button>
 
 `
 : ""}
 
-<button
-class="action small historybtn"
-onclick="toggleCustomerHistory('${c.id}')">
+<button class="action small historybtn" onclick="toggleCustomerHistory('${c.id}')">
 History
 </button>
 
-<button
-class="action small"
-onclick="editCustomer('${c.id}')">
+<button class="action small" onclick="editCustomer('${c.id}')">
 Edit
 </button>
 
-<button
-class="action small blue"
-onclick="openCustomerMap('${c.id}')">
+<button class="action small blue" onclick="openCustomerMap('${c.id}')">
 Map
 </button>
 
-<button
-class="action small secondary"
-onclick="quickInvoice('${c.id}')">
+<button class="action small secondary" onclick="quickInvoice('${c.id}')">
 Invoice
 </button>
 
-<button
-class="action small danger"
-onclick="deleteCustomer('${c.id}')">
+<button class="action small danger" onclick="deleteCustomer('${c.id}')">
 Delete
 </button>
 
-<div
-id="history-${c.id}"
-class="history-box">
-</div>
+<div id="history-${c.id}" class="history-box"></div>
 
 </div>
 
@@ -2535,54 +2207,35 @@ ${safe(c.notes)}
 
 <div class="job-buttons">
 
-<button
-class="action"
-onclick="completeJob('${c.id}')">
+<button class="action" onclick="completeJob('${c.id}')">
 ✓ Complete
 </button>
 
-<button
-class="action skipbtn"
-onclick="skipJob('${c.id}')">
+<button class="action skipbtn" onclick="skipJob('${c.id}')">
 Skip
 </button>
 
-<button
-class="action movebtn"
-onclick="showMoveJob('${c.id}')">
+<button class="action movebtn" onclick="showMoveJob('${c.id}')">
 Move Date
 </button>
 
-<button
-class="action secondary"
-onclick="openCustomerMap('${c.id}')">
+<button class="action secondary" onclick="openCustomerMap('${c.id}')">
 Directions
 </button>
 
 </div>
 
-<div
-id="move-${c.id}"
-class="move-box card">
+<div id="move-${c.id}" class="move-box card">
 
-<label>
-New Date
-</label>
+<label>New Date</label>
 
-<input
-type="date"
-id="move-date-${c.id}"
-value="${date}">
+<input type="date" id="move-date-${c.id}" value="${date}">
 
-<button
-class="action"
-onclick="moveJob('${c.id}')">
+<button class="action" onclick="moveJob('${c.id}')">
 Save New Date
 </button>
 
-<button
-class="action secondary"
-onclick="hideMoveJob('${c.id}')">
+<button class="action secondary" onclick="hideMoveJob('${c.id}')">
 Cancel
 </button>
 
@@ -3046,35 +2699,27 @@ ${overdueDays} day${overdueDays===1 ? "" : "s"} overdue
 ${!inv.paid
 ? `
 
-<button
-class="action small"
-onclick="markPaid('${inv.id}')">
+<button class="action small" onclick="markPaid('${inv.id}')">
 Mark Paid
 </button>
 
 `
 : `
 
-<button
-class="action small undopaidbtn"
-onclick="undoPaid('${inv.id}')">
+<button class="action small undopaidbtn" onclick="undoPaid('${inv.id}')">
 Undo Paid
 </button>
 
 `}
 
-<button
-class="action small emailbtn"
-onclick="emailInvoice('${inv.id}')">
+<button class="action small emailbtn" onclick="emailInvoice('${inv.id}')">
 Email Customer
 </button>
 
 ${!inv.paid
 ? `
 
-<button
-class="action small reminderbtn"
-onclick="sendReminder('${inv.id}')">
+<button class="action small reminderbtn" onclick="sendReminder('${inv.id}')">
 Send Reminder
 </button>
 
