@@ -212,6 +212,35 @@ public class MainActivity extends Activity {
                     () -> emailInvoice(
                             email,
                             customerName,
+                            "",
+                            "",
+                            invoiceNumber,
+                            invoiceDate,
+                            dueDate,
+                            amount,
+                            description
+                    )
+            );
+        }
+
+        @JavascriptInterface
+        public void emailCustomerWithAddress(
+                String email,
+                String customerName,
+                String customerAddress,
+                String customerPostcode,
+                String invoiceNumber,
+                String invoiceDate,
+                String dueDate,
+                String amount,
+                String description) {
+
+            runOnUiThread(
+                    () -> emailInvoice(
+                            email,
+                            customerName,
+                            customerAddress,
+                            customerPostcode,
                             invoiceNumber,
                             invoiceDate,
                             dueDate,
@@ -813,6 +842,8 @@ public class MainActivity extends Activity {
     private void emailInvoice(
             String email,
             String customerName,
+            String customerAddress,
+            String customerPostcode,
             String invoiceNumber,
             String invoiceDate,
             String dueDate,
@@ -835,6 +866,8 @@ public class MainActivity extends Activity {
             File pdf =
                     createInvoicePdf(
                             customerName,
+                            customerAddress,
+                            customerPostcode,
                             invoiceNumber,
                             invoiceDate,
                             dueDate,
@@ -1055,6 +1088,8 @@ public class MainActivity extends Activity {
 
     private File createInvoicePdf(
             String customerName,
+            String customerAddress,
+            String customerPostcode,
             String invoiceNumber,
             String invoiceDate,
             String dueDate,
@@ -1291,20 +1326,55 @@ public class MainActivity extends Activity {
         paint.setTextSize(16);
 
         canvas.drawText(
-                customerName,
+                customerName == null
+                        ?
+                        ""
+                        :
+                        customerName,
                 35,
-                290,
+                288,
                 paint
         );
+
+        paint.setColor(grey);
+        paint.setTextSize(12);
+
+        if (
+                customerAddress != null
+                        &&
+                !customerAddress.trim().isEmpty()
+        ) {
+
+            canvas.drawText(
+                    customerAddress.trim(),
+                    35,
+                    310,
+                    paint
+            );
+        }
+
+        if (
+                customerPostcode != null
+                        &&
+                !customerPostcode.trim().isEmpty()
+        ) {
+
+            canvas.drawText(
+                    customerPostcode.trim(),
+                    35,
+                    329,
+                    paint
+            );
+        }
 
         paint.setColor(lightGrey);
 
         RectF serviceBox =
                 new RectF(
                         35,
-                        330,
+                        355,
                         560,
-                        435
+                        455
                 );
 
         canvas.drawRoundRect(
@@ -1321,7 +1391,7 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "DESCRIPTION",
                 52,
-                360,
+                385,
                 paint
         );
 
@@ -1344,7 +1414,7 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 cleanDescription,
                 52,
-                390,
+                415,
                 paint
         );
 
@@ -1353,9 +1423,9 @@ public class MainActivity extends Activity {
         RectF amountBox =
                 new RectF(
                         325,
-                        465,
+                        480,
                         560,
-                        540
+                        555
                 );
 
         canvas.drawRoundRect(
@@ -1372,7 +1442,7 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "AMOUNT DUE",
                 345,
-                492,
+                507,
                 paint
         );
 
@@ -1383,7 +1453,7 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "£" + amount,
                 345,
-                525,
+                540,
                 paint
         );
 
@@ -1394,7 +1464,7 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "Payment Details",
                 35,
-                585,
+                595,
                 paint
         );
 
@@ -1404,7 +1474,7 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "Please make payment within 7 days.",
                 35,
-                610,
+                620,
                 paint
         );
 
@@ -1413,9 +1483,9 @@ public class MainActivity extends Activity {
         RectF bankBox =
                 new RectF(
                         35,
-                        635,
+                        645,
                         560,
-                        755
+                        765
                 );
 
         canvas.drawRoundRect(
@@ -1432,7 +1502,7 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "BANK TRANSFER",
                 52,
-                665,
+                675,
                 paint
         );
 
@@ -1442,28 +1512,28 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "Account name: Steven B Attew",
                 52,
-                692,
+                702,
                 paint
         );
 
         canvas.drawText(
                 "Bank: Monzo",
                 52,
-                716,
+                726,
                 paint
         );
 
         canvas.drawText(
                 "Sort code: 04-00-06",
                 310,
-                692,
+                702,
                 paint
         );
 
         canvas.drawText(
                 "Account number: 34121651",
                 310,
-                716,
+                726,
                 paint
         );
 
@@ -1473,7 +1543,7 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "Thank you for your custom.",
                 35,
-                800,
+                805,
                 paint
         );
 
@@ -1484,7 +1554,7 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "Steven's Pure Clean Exteriors",
                 560,
-                800,
+                805,
                 paint
         );
 
