@@ -294,6 +294,16 @@ background:#4a1520;
 color:#ff6d86;
 }
 
+.clearstatus{
+background:#183c27;
+color:#63e99d;
+}
+
+.owesstatus{
+background:#4c2b10;
+color:#ffc45e;
+}
+
 .filterbar{
 display:flex;
 gap:6px;
@@ -1658,7 +1668,19 @@ return;
 
 list.innerHTML=
 filtered.map(
-c=>`
+c=>{
+
+let totals=
+customerHistoryTotals(c.id);
+
+let paymentStatus=
+totals.outstanding>0
+?
+`<span class="badge owesstatus">OWES £${totals.outstanding.toFixed(2)}</span>`
+:
+`<span class="badge clearstatus">PAID UP</span>`;
+
+return `
 
 <div class="item">
 
@@ -1681,6 +1703,10 @@ ${c.postcode ? "<br>"+safe(c.postcode) : ""}
 £${Number(c.price || 0).toFixed(2)}
 </div>
 
+</div>
+
+<div style="margin-top:7px">
+${paymentStatus}
 </div>
 
 <div class="muted" style="margin-top:7px">
@@ -1754,7 +1780,9 @@ class="history-box">
 
 </div>
 
-`
+`;
+
+}
 ).join("");
 
 }
