@@ -303,7 +303,23 @@ public class MainActivity extends Activity {
         public void textPhone(String phone) {
 
             runOnUiThread(
-                    () -> openTextMessage(phone)
+                    () -> openTextMessage(
+                            phone,
+                            ""
+                    )
+            );
+        }
+
+        @JavascriptInterface
+        public void textPhoneWithMessage(
+                String phone,
+                String message) {
+
+            runOnUiThread(
+                    () -> openTextMessage(
+                            phone,
+                            message
+                    )
             );
         }
 
@@ -365,7 +381,9 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void openTextMessage(String phone) {
+    private void openTextMessage(
+            String phone,
+            String message) {
 
         if (
                 phone == null
@@ -396,6 +414,18 @@ public class MainActivity extends Activity {
                                     phone.trim()
                     )
             );
+
+            if (
+                    message != null
+                            &&
+                    !message.trim().isEmpty()
+            ) {
+
+                intent.putExtra(
+                        "sms_body",
+                        message
+                );
+            }
 
             startActivity(intent);
 
@@ -1576,4 +1606,4 @@ public class MainActivity extends Activity {
 
         return file;
     }
-}
+            }
