@@ -3,17 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Steven's Pure Clean Exteriors</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
 <style>
-
-*{
-box-sizing:border-box;
--webkit-tap-highlight-color:transparent;
-}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 
 :root{
 --lime:#9bd600;
@@ -40,9 +35,7 @@ font-size:14px;
 min-height:100%;
 }
 
-body{
-overscroll-behavior-y:none;
-}
+body{overscroll-behavior-y:none}
 
 header{
 display:flex;
@@ -231,90 +224,24 @@ color:#fff;
 border:1px solid #444;
 }
 
-.danger{
-background:#9b2638;
-color:#fff;
-}
-
-.archivebtn{
-background:#725318;
-color:#fff;
-}
-
-.restoreCustomerBtn{
-background:#1f7a44;
-color:#fff;
-}
-
-.blue{
-background:#356fa8;
-color:#fff;
-}
-
-.emailbtn{
-background:#1565c0;
-color:#fff;
-}
-
-.reminderbtn{
-background:#7050d0;
-color:#fff;
-}
-
-.callbtn{
-background:#1f8a4c;
-color:#fff;
-}
-
-.textbtn{
-background:#00695c;
-color:#fff;
-}
-
-.skipbtn{
-background:#6a4b16;
-color:#fff;
-}
-
-.movebtn{
-background:#355d8d;
-color:#fff;
-}
-
-.restorebtn{
-background:#2e5fa8;
-color:#fff;
-}
-
-.undopaidbtn{
-background:#8a5a16;
-color:#fff;
-}
-
-.historybtn{
-background:#5a438f;
-color:#fff;
-}
-
-.cashbtn{
-background:#247b45;
-color:#fff;
-}
-
-.bankbtn{
-background:#1c5f9c;
-color:#fff;
-}
-
-.unpaidbtn{
-background:#8a5a16;
-color:#fff;
-}
-
-.owesbtn{
-background:#7b3b16;
-color:#fff;
-}
+.danger{background:#9b2638;color:#fff}
+.archivebtn{background:#725318;color:#fff}
+.restoreCustomerBtn{background:#1f7a44;color:#fff}
+.blue{background:#356fa8;color:#fff}
+.emailbtn{background:#1565c0;color:#fff}
+.reminderbtn{background:#7050d0;color:#fff}
+.callbtn{background:#1f8a4c;color:#fff}
+.textbtn{background:#00695c;color:#fff}
+.skipbtn{background:#6a4b16;color:#fff}
+.movebtn{background:#355d8d;color:#fff}
+.restorebtn{background:#2e5fa8;color:#fff}
+.undopaidbtn{background:#8a5a16;color:#fff}
+.historybtn{background:#5a438f;color:#fff}
+.cashbtn{background:#247b45;color:#fff}
+.bankbtn{background:#1c5f9c;color:#fff}
+.unpaidbtn{background:#8a5a16;color:#fff}
+.owesbtn{background:#7b3b16;color:#fff}
+.reportbtn{background:#415f1c;color:#fff}
 
 .customer-list,
 .invoice-list,
@@ -361,15 +288,13 @@ letter-spacing:.35px;
 margin-right:3px;
 }
 
-.paid,
-.clearstatus{
+.paid,.clearstatus{
 background:#183c27;
 color:#63e99d;
 border:1px solid #265939;
 }
 
-.unpaid,
-.owesstatus{
+.unpaid,.owesstatus{
 background:#4c2b10;
 color:#ffc45e;
 border:1px solid #714115;
@@ -425,7 +350,8 @@ border-color:var(--lime);
 
 .invoice-summary,
 .planner-summary,
-.owes-summary{
+.owes-summary,
+.report-grid{
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:9px;
@@ -456,9 +382,7 @@ font-weight:bold;
 font-size:11px;
 }
 
-.exportBox{
-margin-top:12px;
-}
+.exportBox{margin-top:12px}
 
 .exportDates{
 display:none;
@@ -570,6 +494,21 @@ border-radius:15px;
 padding:15px;
 }
 
+.report-highlight{
+margin-top:13px;
+background:linear-gradient(135deg,#182008,#0d1205);
+border:1px solid #526d1d;
+border-radius:15px;
+padding:15px;
+}
+
+.report-highlight .big{
+font-size:25px;
+font-weight:bold;
+color:var(--lime);
+margin-top:5px;
+}
+
 #customerMap{
 width:100%;
 height:430px;
@@ -608,9 +547,7 @@ justify-content:center;
 padding:20px;
 }
 
-.modalOverlay.show{
-display:flex;
-}
+.modalOverlay.show{display:flex}
 
 .paymentModal{
 width:100%;
@@ -641,35 +578,27 @@ color:var(--green);
 margin-top:5px;
 }
 
-.paymentModal .action{
-margin-top:10px;
-}
-
 </style>
 </head>
 
 <body>
 
 <header>
-
 <img src="logo.jpg" class="logo" alt="logo">
 
 <div class="brand">
 <h1>Steven's Pure Clean Exteriors</h1>
 <p>Pure Results • Clean Exteriors</p>
 </div>
-
 </header>
 
 <nav>
-
 <button class="active" onclick="openPage('dashboard',this)">Dashboard</button>
 <button onclick="openPage('customers',this)">Customers</button>
 <button onclick="openPage('planner',this)">Planner</button>
 <button onclick="openPage('invoices',this)">Invoices</button>
 <button onclick="openPage('earnings',this)">Earnings</button>
 <button onclick="openPage('map',this)">Map</button>
-
 </nav>
 
 <main>
@@ -703,7 +632,6 @@ margin-top:10px;
 </div>
 
 <div class="card section">
-
 <div class="row">
 
 <h3 style="color:#9bd600;margin:0">
@@ -719,7 +647,6 @@ View all
 <div id="todayJobs" class="muted" style="margin-top:8px">
 No jobs due today
 </div>
-
 </div>
 
 <div class="card section">
@@ -861,7 +788,6 @@ Enter the customer's full email address.
 </div>
 
 <div>
-
 <label>Frequency</label>
 
 <select id="customerFrequency">
@@ -873,7 +799,6 @@ Enter the customer's full email address.
 <option value="10">10 Weekly</option>
 <option value="12">12 Weekly</option>
 </select>
-
 </div>
 
 </div>
@@ -921,9 +846,7 @@ onchange="renderPlanner()">
 id="plannerArea"
 onchange="renderPlanner()">
 
-<option value="all">
-All Areas
-</option>
+<option value="all">All Areas</option>
 
 </select>
 
@@ -1068,8 +991,6 @@ Share CSV for Accountant
 
 </section>
 
-<!-- MONEY OWED SCREEN -->
-
 <section id="owes" class="screen">
 
 <div class="row">
@@ -1121,7 +1042,11 @@ oninput="renderOwes()">
 
 <h2>Earnings</h2>
 
-<div class="grid">
+<button class="action reportbtn" onclick="openMonthlyReport()">
+📊 Monthly Business Report
+</button>
+
+<div class="grid" style="margin-top:12px">
 
 <div class="card stat">
 <div class="label">PAID THIS MONTH</div>
@@ -1169,6 +1094,101 @@ Paid figures are based on invoices you have marked as paid.
 
 Next 7 Days Work and Yearly Round Estimate only include active customers.
 
+</div>
+
+</div>
+
+</section>
+
+<!-- MONTHLY REPORT -->
+
+<section id="monthlyReport" class="screen">
+
+<div class="row">
+
+<h2 style="margin-bottom:0">
+Monthly Report
+</h2>
+
+<button class="action small secondary" onclick="openPage('earnings')">
+Back
+</button>
+
+</div>
+
+<label>Report Month</label>
+
+<input
+type="month"
+id="reportMonth"
+onchange="renderMonthlyReport()">
+
+<div class="report-grid">
+
+<div class="mini-stat">
+<div class="label">MONEY RECEIVED</div>
+<div class="num green" id="reportReceived">£0.00</div>
+</div>
+
+<div class="mini-stat">
+<div class="label">WORK INVOICED</div>
+<div class="num" id="reportInvoiced">£0.00</div>
+</div>
+
+<div class="mini-stat">
+<div class="label">JOBS RECORDED</div>
+<div class="num" id="reportJobs">0</div>
+</div>
+
+<div class="mini-stat">
+<div class="label">AVERAGE JOB</div>
+<div class="num" id="reportAverage">£0.00</div>
+</div>
+
+<div class="mini-stat">
+<div class="label">CASH RECEIVED</div>
+<div class="num green" id="reportCash">£0.00</div>
+</div>
+
+<div class="mini-stat">
+<div class="label">BANK RECEIVED</div>
+<div class="num blueText" id="reportBank">£0.00</div>
+</div>
+
+<div class="mini-stat">
+<div class="label">STILL OUTSTANDING</div>
+<div class="num orange" id="reportOutstanding">£0.00</div>
+</div>
+
+<div class="mini-stat">
+<div class="label">NEW CUSTOMERS</div>
+<div class="num" id="reportNewCustomers">0</div>
+</div>
+
+</div>
+
+<div class="report-highlight">
+
+<div class="label">
+BEST MONTH SO FAR
+</div>
+
+<div class="big" id="reportBestMonth">
+No paid invoices yet
+</div>
+
+<div class="muted" id="reportBestAmount"></div>
+
+</div>
+
+<div class="card section">
+
+<h3 style="color:#9bd600;margin-top:0">
+Payment Breakdown
+</h3>
+
+<div class="muted" id="reportBreakdown">
+No payments recorded for this month.
 </div>
 
 </div>
@@ -1246,19 +1266,11 @@ let mapMarkers=[];
 let completingCustomerId=null;
 
 function activeCustomers(){
-
-return customers.filter(
-c=>c.archived!==true
-);
-
+return customers.filter(c=>c.archived!==true);
 }
 
 function archivedCustomers(){
-
-return customers.filter(
-c=>c.archived===true
-);
-
+return customers.filter(c=>c.archived===true);
 }
 
 function weekdayName(value){
@@ -1295,15 +1307,11 @@ customer.preferredDay===null
 ||
 typeof customer.preferredDay==="undefined"
 ){
-
 return nominal;
-
 }
 
 let d=
-new Date(
-nominal+"T12:00:00"
-);
+new Date(nominal+"T12:00:00");
 
 if(Number.isNaN(d.getTime())){
 return nominal;
@@ -1319,10 +1327,7 @@ if(difference===0){
 return nominal;
 }
 
-return addDays(
-nominal,
-difference
-);
+return addDays(nominal,difference);
 
 }
 
@@ -1335,9 +1340,7 @@ activeCustomers()
 .filter(Boolean)
 )
 ]
-.sort(
-(a,b)=>a.localeCompare(b)
-);
+.sort((a,b)=>a.localeCompare(b));
 
 }
 
@@ -1414,12 +1417,26 @@ refreshRoundAreas();
 updateDashboard();
 updateEarnings();
 
+let owesScreen=
+document.getElementById("owes");
+
 if(
-document
-.getElementById("owes")
-.classList.contains("active")
+owesScreen
+&&
+owesScreen.classList.contains("active")
 ){
 renderOwes();
+}
+
+let reportScreen=
+document.getElementById("monthlyReport");
+
+if(
+reportScreen
+&&
+reportScreen.classList.contains("active")
+){
+renderMonthlyReport();
 }
 
 }
@@ -1511,6 +1528,10 @@ if(typeof c.preferredDay==="undefined"){
 c.preferredDay="";
 }
 
+if(typeof c.createdDate==="undefined"){
+c.createdDate="";
+}
+
 }
 );
 
@@ -1567,6 +1588,7 @@ renderCustomers();
 renderPlanner();
 renderInvoices();
 renderOwes();
+renderMonthlyReport();
 updateDashboard();
 updateEarnings();
 
@@ -1620,6 +1642,10 @@ if(id==="earnings"){
 updateEarnings();
 }
 
+if(id==="monthlyReport"){
+renderMonthlyReport();
+}
+
 if(id==="map"){
 setTimeout(renderMap,250);
 }
@@ -1633,12 +1659,29 @@ renderOwes();
 
 }
 
+function openMonthlyReport(){
+
+openPage("monthlyReport");
+
+if(!reportMonth.value){
+
+let d=new Date();
+
+reportMonth.value=
+d.getFullYear()
++
+"-"
++
+String(d.getMonth()+1).padStart(2,"0");
+
+}
+
+renderMonthlyReport();
+
+}
+
 function today(){
-
-return new Date()
-.toISOString()
-.split("T")[0];
-
+return new Date().toISOString().split("T")[0];
 }
 
 function addDays(dateString,days){
@@ -1650,13 +1693,9 @@ if(Number.isNaN(d.getTime())){
 return "";
 }
 
-d.setDate(
-d.getDate()+days
-);
+d.setDate(d.getDate()+days);
 
-return d
-.toISOString()
-.split("T")[0];
+return d.toISOString().split("T")[0];
 
 }
 
@@ -1679,15 +1718,11 @@ return next;
 }
 
 function invoiceNumber(inv){
-
 return inv.invoiceNumber || inv.id;
-
 }
 
 function invoiceDueDate(inv){
-
 return inv.dueDate || addDays(inv.date,7);
-
 }
 
 function invoiceStatus(inv){
@@ -1704,9 +1739,7 @@ due
 &&
 due<today()
 ){
-
 return "overdue";
-
 }
 
 return "unpaid";
@@ -1786,6 +1819,286 @@ count:records.length
 
 }
 
+/* MONTHLY BUSINESS REPORT */
+
+function monthKey(dateValue){
+
+if(!dateValue){
+return "";
+}
+
+return String(dateValue).slice(0,7);
+
+}
+
+function monthLabel(key){
+
+if(!key){
+return "";
+}
+
+let parts=
+key.split("-");
+
+let d=
+new Date(
+Number(parts[0]),
+Number(parts[1])-1,
+1
+);
+
+return d.toLocaleDateString(
+"en-GB",
+{
+month:"long",
+year:"numeric"
+}
+);
+
+}
+
+function bestPaidMonth(){
+
+let totals={};
+
+invoices
+.filter(inv=>inv.paid)
+.forEach(
+inv=>{
+
+let paidDate=
+inv.paidDate || inv.date;
+
+let key=
+monthKey(paidDate);
+
+if(!key){
+return;
+}
+
+totals[key]=
+(totals[key] || 0)
++
+Number(inv.amount || 0);
+
+}
+);
+
+let entries=
+Object.entries(totals);
+
+if(entries.length===0){
+return null;
+}
+
+entries.sort(
+(a,b)=>b[1]-a[1]
+);
+
+return{
+month:entries[0][0],
+amount:entries[0][1]
+};
+
+}
+
+function renderMonthlyReport(){
+
+let input=
+document.getElementById("reportMonth");
+
+if(!input){
+return;
+}
+
+if(!input.value){
+
+let now=
+new Date();
+
+input.value=
+now.getFullYear()
++
+"-"
++
+String(now.getMonth()+1).padStart(2,"0");
+
+}
+
+let selected=
+input.value;
+
+let monthInvoices=
+invoices.filter(
+inv=>monthKey(inv.date)===selected
+);
+
+let paidInMonth=
+invoices.filter(
+inv=>
+inv.paid
+&&
+monthKey(inv.paidDate || inv.date)===selected
+);
+
+let received=
+paidInMonth.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+let invoiced=
+monthInvoices.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+let jobs=
+monthInvoices.length;
+
+let average=
+jobs>0
+?
+invoiced/jobs
+:
+0;
+
+let cash=
+paidInMonth
+.filter(
+inv=>
+String(inv.paymentMethod || "")
+.toLowerCase()==="cash"
+)
+.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+let bank=
+paidInMonth
+.filter(
+inv=>
+String(inv.paymentMethod || "")
+.toLowerCase()==="bank transfer"
+)
+.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+let other=
+paidInMonth
+.filter(
+inv=>{
+
+let method=
+String(inv.paymentMethod || "")
+.toLowerCase();
+
+return(
+method!=="cash"
+&&
+method!=="bank transfer"
+);
+
+}
+)
+.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+let outstanding=
+monthInvoices
+.filter(inv=>!inv.paid)
+.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+let newCustomers=
+customers.filter(
+c=>monthKey(c.createdDate)===selected
+).length;
+
+reportReceived.innerText=
+"£"+received.toFixed(2);
+
+reportInvoiced.innerText=
+"£"+invoiced.toFixed(2);
+
+reportJobs.innerText=
+jobs;
+
+reportAverage.innerText=
+"£"+average.toFixed(2);
+
+reportCash.innerText=
+"£"+cash.toFixed(2);
+
+reportBank.innerText=
+"£"+bank.toFixed(2);
+
+reportOutstanding.innerText=
+"£"+outstanding.toFixed(2);
+
+reportNewCustomers.innerText=
+newCustomers;
+
+let best=
+bestPaidMonth();
+
+if(best){
+
+reportBestMonth.innerText=
+monthLabel(best.month);
+
+reportBestAmount.innerText=
+"£"
++
+best.amount.toFixed(2)
++
+" received";
+
+}else{
+
+reportBestMonth.innerText=
+"No paid invoices yet";
+
+reportBestAmount.innerText="";
+
+}
+
+let breakdown=[];
+
+if(cash>0){
+breakdown.push(
+"Cash: £"+cash.toFixed(2)
+);
+}
+
+if(bank>0){
+breakdown.push(
+"Bank Transfer: £"+bank.toFixed(2)
+);
+}
+
+if(other>0){
+breakdown.push(
+"Other / older payments: £"+other.toFixed(2)
+);
+}
+
+reportBreakdown.innerHTML=
+breakdown.length
+?
+breakdown.join("<br>")
+:
+"No payments recorded for this month.";
+
+}
+
 /* MONEY OWED */
 
 function customersWhoOwe(){
@@ -1852,30 +2165,17 @@ let filtered=
 owingCustomers
 .filter(
 c=>
-(c.name || "")
-.toLowerCase()
-.includes(search)
+(c.name || "").toLowerCase().includes(search)
 ||
-(c.address || "")
-.toLowerCase()
-.includes(search)
+(c.address || "").toLowerCase().includes(search)
 ||
-(c.postcode || "")
-.toLowerCase()
-.includes(search)
+(c.postcode || "").toLowerCase().includes(search)
 )
 .sort(
-(a,b)=>{
-
-let aTotal=
-customerHistoryTotals(a.id).outstanding;
-
-let bTotal=
-customerHistoryTotals(b.id).outstanding;
-
-return bTotal-aTotal;
-
-}
+(a,b)=>
+customerHistoryTotals(b.id).outstanding
+-
+customerHistoryTotals(a.id).outstanding
 );
 
 if(filtered.length===0){
@@ -1902,9 +2202,7 @@ inv.customerId===c.id
 .sort(
 (a,b)=>
 String(a.date || "")
-.localeCompare(
-String(b.date || "")
-)
+.localeCompare(String(b.date || ""))
 );
 
 let totalOwed=
@@ -2249,13 +2547,11 @@ ${safe(inv.description || "Exterior cleaning service")}
 <div style="margin-top:7px">
 
 <span class="badge ${status}">
-
 ${status==="paid"
 ? "PAID"
 : status==="overdue"
 ? "OVERDUE"
 : "UNPAID"}
-
 </span>
 
 ${inv.paid && inv.paymentMethod
@@ -2362,9 +2658,7 @@ customerNotes.value="";
 }
 
 function closeCustomerForm(){
-
 customerForm.classList.remove("show");
-
 }
 
 function saveCustomer(){
@@ -2446,7 +2740,14 @@ existingCustomer
 ?
 existingCustomer.archived===true
 :
-false
+false,
+
+createdDate:
+existingCustomer
+?
+(existingCustomer.createdDate || "")
+:
+today()
 
 };
 
@@ -2532,7 +2833,8 @@ Android.callPhone(c.phone);
 
 }else{
 
-window.location.href="tel:"+c.phone;
+window.location.href=
+"tel:"+c.phone;
 
 }
 
@@ -2560,7 +2862,8 @@ Android.textPhone(c.phone);
 
 }else{
 
-window.location.href="sms:"+c.phone;
+window.location.href=
+"sms:"+c.phone;
 
 }
 
@@ -2883,13 +3186,6 @@ Frequency:
 
 Every ${c.frequency || 4} weeks
 
-${weekdayName(c.preferredDay)
-? `<br><strong style="color:#b8e63e">
-Preferred day:
-</strong>
-${safe(weekdayName(c.preferredDay))}`
-: ""}
-
 </div>
 
 ${c.notes
@@ -3069,15 +3365,6 @@ message+=
 +
 formatDate(nextDate);
 
-if(weekdayName(c.preferredDay)){
-
-message+=
-"\nPreferred day: "
-+
-weekdayName(c.preferredDay);
-
-}
-
 alert(message);
 
 }
@@ -3143,28 +3430,17 @@ return;
 
 }
 
-c.nextClean=input.value;
+c.nextClean=
+input.value;
 
 saveData();
 renderPlanner();
 
-let message=
+alert(
 "Job moved to "
 +
-formatDate(c.nextClean);
-
-if(weekdayName(c.preferredDay)){
-
-message+=
-"\n\nAfter this clean, future cleans will return to "
-+
-weekdayName(c.preferredDay)
-+
-".";
-
-}
-
-alert(message);
+formatDate(c.nextClean)
+);
 
 }
 
@@ -3190,9 +3466,7 @@ invoiceDescription.value="";
 }
 
 function closeInvoiceForm(){
-
 invoiceForm.classList.remove("show");
-
 }
 
 function quickInvoice(id){
@@ -4362,9 +4636,6 @@ safe(c.postcode)+
 (c.roundArea
 ? "<br><strong>Area:</strong> "+safe(c.roundArea)
 : "")+
-(weekdayName(c.preferredDay)
-? "<br><strong>Day:</strong> "+safe(weekdayName(c.preferredDay))
-: "")+
 "<br>£"+
 Number(c.price || 0).toFixed(2)
 );
@@ -4460,30 +4731,31 @@ year:"numeric"
 
 }
 
+/* UPGRADE OLD DATA */
+
 let changed=false;
 
 customers.forEach(
 c=>{
 
 if(typeof c.archived==="undefined"){
-
 c.archived=false;
 changed=true;
-
 }
 
 if(typeof c.roundArea==="undefined"){
-
 c.roundArea="";
 changed=true;
-
 }
 
 if(typeof c.preferredDay==="undefined"){
-
 c.preferredDay="";
 changed=true;
+}
 
+if(typeof c.createdDate==="undefined"){
+c.createdDate="";
+changed=true;
 }
 
 }
@@ -4536,18 +4808,14 @@ changed=true;
 
 }
 
-if(
-typeof inv.paidDate==="undefined"
-){
+if(typeof inv.paidDate==="undefined"){
 
 inv.paidDate="";
 changed=true;
 
 }
 
-if(
-typeof inv.paymentMethod==="undefined"
-){
+if(typeof inv.paymentMethod==="undefined"){
 
 inv.paymentMethod="";
 changed=true;
@@ -4569,11 +4837,22 @@ saveData();
 plannerDate.value=
 today();
 
+let now=
+new Date();
+
+reportMonth.value=
+now.getFullYear()
++
+"-"
++
+String(now.getMonth()+1).padStart(2,"0");
+
 refreshRoundAreas();
 renderCustomers();
 renderPlanner();
 renderInvoices();
 renderOwes();
+renderMonthlyReport();
 updateDashboard();
 updateEarnings();
 
