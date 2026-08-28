@@ -236,6 +236,11 @@ background:#8a5a16;
 color:#fff;
 }
 
+.historybtn{
+background:#5a438f;
+color:#fff;
+}
+
 .customer-list,.invoice-list,.job-list{
 display:grid;
 gap:8px;
@@ -391,6 +396,48 @@ margin-top:10px;
 }
 
 .move-box.show{display:block}
+
+.history-box{
+display:none;
+margin-top:12px;
+background:#080808;
+border:1px solid #373737;
+border-radius:12px;
+padding:12px;
+}
+
+.history-box.show{
+display:block;
+}
+
+.history-summary{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:7px;
+margin-top:10px;
+margin-bottom:10px;
+}
+
+.history-stat{
+background:#151515;
+border:1px solid #292929;
+border-radius:10px;
+padding:10px;
+}
+
+.history-number{
+font-size:18px;
+font-weight:bold;
+margin-top:5px;
+}
+
+.history-entry{
+background:#151515;
+border:1px solid #292929;
+border-radius:10px;
+padding:10px;
+margin-top:7px;
+}
 
 #customerMap{
 width:100%;
@@ -1119,6 +1166,234 @@ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 }
 
+function customerInvoices(id){
+
+return invoices.filter(
+inv=>inv.customerId===id
+);
+
+}
+
+function customerHistoryTotals(id){
+
+let records=
+customerInvoices(id);
+
+let paid=
+records
+.filter(inv=>inv.paid)
+.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+let outstanding=
+records
+.filter(inv=>!inv.paid)
+.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+return{
+paid:paid,
+outstanding:outstanding,
+count:records.length
+};
+
+}
+
+function toggleCustomerHistory(id){
+
+let box=
+document.getElementById(
+"history-"+id
+);
+
+if(!box){
+return;
+}
+
+if(
+box.classList.contains("show")
+){
+
+box.classList.remove("show");
+return;
+
+}
+
+document
+.querySelectorAll(".history-box")
+.forEach(
+x=>x.classList.remove("show")
+);
+
+renderCustomerHistory(id);
+
+box.classList.add("show");
+
+}
+
+function renderCustomerHistory(id){
+
+let box=
+document.getElementById(
+"history-"+id
+);
+
+if(!box){
+return;
+}
+
+let records=
+customerInvoices(id)
+.slice()
+.sort(
+(a,b)=>
+String(b.date || "")
+.localeCompare(
+String(a.date || "")
+)
+);
+
+let totals=
+customerHistoryTotals(id);
+
+let invoicesHtml=
+records.length
+?
+records.map(
+inv=>{
+
+let status=
+invoiceStatus(inv);
+
+return `
+
+<div class="history-entry">
+
+<div class="row">
+
+<div>
+
+<strong>
+Invoice #${safe(invoiceNumber(inv))}
+</strong>
+
+<div class="muted">
+${formatDate(inv.date)}
+</div>
+
+</div>
+
+<div class="price">
+£${Number(inv.amount || 0).toFixed(2)}
+</div>
+
+</div>
+
+<div class="muted" style="margin-top:6px">
+${safe(inv.description || "Exterior cleaning service")}
+</div>
+
+<div style="margin-top:7px">
+
+<span class="badge ${status}">
+
+${status==="paid"
+? "PAID"
+: status==="overdue"
+? "OVERDUE"
+: "UNPAID"}
+
+</span>
+
+</div>
+
+</div>
+
+`;
+
+}
+).join("")
+:
+'<div class="muted" style="margin-top:10px">No invoice history for this customer yet.</div>';
+
+box.innerHTML=`
+
+<div class="row">
+
+<strong style="color:#b8e63e">
+Customer History
+</strong>
+
+<button
+class="action small secondary"
+onclick="toggleCustomerHistory('${id}')">
+Close
+</button>
+
+</div>
+
+<div class="history-summary">
+
+<div class="history-stat">
+
+<div class="label">
+TOTAL PAID
+</div>
+
+<div class="history-number green">
+£${totals.paid.toFixed(2)}
+</div>
+
+</div>
+
+<div class="history-stat">
+
+<div class="label">
+OUTSTANDING
+</div>
+
+<div class="history-number orange">
+£${totals.outstanding.toFixed(2)}
+</div>
+
+</div>
+
+<div class="history-stat">
+
+<div class="label">
+INVOICES
+</div>
+
+<div class="history-number">
+${totals.count}
+</div>
+
+</div>
+
+<div class="history-stat">
+
+<div class="label">
+STATUS
+</div>
+
+<div class="history-number ${totals.outstanding>0 ? "orange" : "green"}">
+${totals.outstanding>0 ? "OWES" : "PAID UP"}
+</div>
+
+</div>
+
+</div>
+
+${invoicesHtml}
+
+`;
+
+}
+
 function newCustomer(){
 
 document
@@ -1443,6 +1718,12 @@ Text
 : ""}
 
 <button
+class="action small historybtn"
+onclick="toggleCustomerHistory('${c.id}')">
+History
+</button>
+
+<button
 class="action small"
 onclick="editCustomer('${c.id}')">
 Edit
@@ -1465,6 +1746,11 @@ class="action small danger"
 onclick="deleteCustomer('${c.id}')">
 Delete
 </button>
+
+<div
+id="history-${c.id}"
+class="history-box">
+</div>
 
 </div>
 
@@ -1880,6 +2166,7 @@ paidDate:""
 saveData();
 closeInvoiceForm();
 renderInvoices();
+renderCustomers();
 
 }
 
@@ -2137,6 +2424,7 @@ inv.paidDate=today();
 
 saveData();
 renderInvoices();
+renderCustomers();
 
 }
 
@@ -2162,6 +2450,7 @@ inv.paidDate="";
 
 saveData();
 renderInvoices();
+renderCustomers();
 
 }
 
