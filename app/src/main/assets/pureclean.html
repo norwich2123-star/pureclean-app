@@ -233,6 +233,7 @@ border:1px solid #444;
 .callbtn{background:#1f8a4c;color:#fff}
 .textbtn{background:#00695c;color:#fff}
 .precleanbtn{background:#0b6f64;color:#fff}
+.tomorrowbtn{background:#176d59;color:#fff}
 .skipbtn{background:#6a4b16;color:#fff}
 .movebtn{background:#355d8d;color:#fff}
 .restorebtn{background:#2e5fa8;color:#fff}
@@ -638,7 +639,8 @@ padding:20px;
 
 .modalOverlay.show{display:flex}
 
-.paymentModal{
+.paymentModal,
+.tomorrowModal{
 width:100%;
 max-width:420px;
 background:#111;
@@ -648,14 +650,16 @@ padding:18px;
 box-shadow:0 12px 40px rgba(0,0,0,.7);
 }
 
-.paymentModal h3{
+.paymentModal h3,
+.tomorrowModal h3{
 margin:0;
 color:var(--lime);
 font-size:20px;
 }
 
-.paymentModal .customer{
-font-size:16px;
+.paymentModal .customer,
+.tomorrowModal .customer{
+font-size:18px;
 font-weight:bold;
 margin-top:10px;
 }
@@ -665,6 +669,24 @@ font-size:28px;
 font-weight:bold;
 color:var(--green);
 margin-top:5px;
+}
+
+.queue-progress{
+margin-top:9px;
+font-size:12px;
+font-weight:bold;
+color:#9bd600;
+}
+
+.queue-message{
+margin-top:12px;
+padding:12px;
+border-radius:11px;
+background:#171717;
+border:1px solid #353535;
+color:#ddd;
+font-size:13px;
+line-height:1.5;
 }
 
 .planner-date-card{
@@ -923,11 +945,23 @@ No jobs due today
 
 <div class="card section">
 
+<h3 style="color:#9bd600;margin:0">Tomorrow</h3>
+
+<div class="muted" id="tomorrowSummary" style="margin-top:8px">
+No jobs due tomorrow
+</div>
+
+<button class="action tomorrowbtn" onclick="startTomorrowTextQueue()">
+📱 Text Tomorrow's Customers
+</button>
+
+</div>
+
+<div class="card section">
+
 <div class="row">
 
-<h3 style="color:#9bd600;margin:0">
-Unpaid Invoices
-</h3>
+<h3 style="color:#9bd600;margin:0">Unpaid Invoices</h3>
 
 <button class="action small owesbtn" onclick="openOwesPage()">
 Money Owed
@@ -1147,6 +1181,10 @@ style="display:none"
 onchange="renderPlanner()">
 
 </div>
+
+<button class="action tomorrowbtn" onclick="startTomorrowTextQueue()">
+📱 Text Tomorrow's Customers
+</button>
 
 <label>Round Area</label>
 
@@ -1486,6 +1524,36 @@ How was this job paid?
 
 </div>
 
+<div id="tomorrowTextOverlay" class="modalOverlay">
+
+<div class="tomorrowModal">
+
+<h3>📱 Tomorrow's Customers</h3>
+
+<div id="tomorrowQueueProgress" class="queue-progress"></div>
+
+<div id="tomorrowQueueName" class="customer"></div>
+
+<div id="tomorrowQueueAddress" class="muted" style="margin-top:6px"></div>
+
+<div id="tomorrowQueueMessage" class="queue-message"></div>
+
+<button class="action textbtn" onclick="textCurrentTomorrowCustomer()">
+📱 Text Customer
+</button>
+
+<button class="action tomorrowbtn" onclick="nextTomorrowCustomer()">
+Next Customer →
+</button>
+
+<button class="action secondary" onclick="closeTomorrowTextQueue()">
+Close
+</button>
+
+</div>
+
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
@@ -1501,6 +1569,9 @@ let mapMarkers=[];
 
 let completingCustomerId=null;
 let pinMode="unlock";
+
+let tomorrowTextQueue=[];
+let tomorrowTextIndex=0;
 
 function currentPin(){
 return localStorage.getItem("pcAppPin") || "";
@@ -1525,19 +1596,13 @@ pinError.innerText="";
 if(mode==="setup"){
 
 pinTitle.innerText="Create Your PIN";
-
-pinMessage.innerText=
-"Choose a 4-digit PIN to protect your business app.";
-
+pinMessage.innerText="Choose a 4-digit PIN to protect your business app.";
 pinConfirmWrap.style.display="block";
 
 }else{
 
 pinTitle.innerText="App Locked";
-
-pinMessage.innerText=
-"Enter your 4-digit PIN to open Steven's Pure Clean Exteriors.";
-
+pinMessage.innerText="Enter your 4-digit PIN to open Steven's Pure Clean Exteriors.";
 pinConfirmWrap.style.display="none";
 
 }
@@ -1654,8 +1719,7 @@ function togglePinLock(){
 
 if(pinLockEnabled()){
 
-let entered=
-prompt("Enter your current 4-digit PIN to turn the lock off:");
+let entered=prompt("Enter your current 4-digit PIN to turn the lock off:");
 
 if(entered===null){
 return;
@@ -2148,7 +2212,30 @@ month:"long"
 );
 }
 
-/* NEW TEXT BEFORE CLEAN */
+function makePreCleanMessage(customer,dateText){
+
+let firstName=
+String(customer.name || "")
+.trim()
+.split(/\s+/)[0];
+
+let greeting=
+firstName
+?
+"Hi "+firstName+", "
+:
+"Hi, ";
+
+return(
+greeting
++
+"just letting you know I'm due to clean your windows "
++
+dateText
++
+". Thanks, Steven's Pure Clean Exteriors."
+);
+}
 
 function textBeforeClean(id){
 
@@ -2164,26 +2251,11 @@ alert("This customer does not have a phone number saved.");
 return;
 }
 
-let firstName=
-String(c.name || "")
-.trim()
-.split(/\s+/)[0];
-
-let greeting=
-firstName
-?
-"Hi "+firstName+", "
-:
-"Hi, ";
-
 let message=
-greeting
-+
-"just letting you know I'm due to clean your windows "
-+
+makePreCleanMessage(
+c,
 plannerMessageDate()
-+
-". Thanks, Steven's Pure Clean Exteriors.";
+);
 
 if(
 typeof Android!=="undefined"
@@ -2207,6 +2279,193 @@ encodeURIComponent(c.phone)
 "?body="
 +
 encodeURIComponent(message);
+}
+
+/* TOMORROW TEXT QUEUE */
+
+function tomorrowDate(){
+return addDays(today(),1);
+}
+
+function tomorrowDateText(){
+
+let d=new Date(tomorrowDate()+"T12:00:00");
+
+return "tomorrow, "+
+d.toLocaleDateString(
+"en-GB",
+{
+weekday:"long",
+day:"numeric",
+month:"long"
+}
+);
+}
+
+function startTomorrowTextQueue(){
+
+tomorrowTextQueue=
+activeCustomers()
+.filter(
+c=>
+c.nextClean===tomorrowDate()
+&&
+(c.phone || "").trim()
+);
+
+tomorrowTextIndex=0;
+
+if(tomorrowTextQueue.length===0){
+
+let jobsTomorrow=
+activeCustomers()
+.filter(c=>c.nextClean===tomorrowDate());
+
+if(jobsTomorrow.length>0){
+
+alert(
+"There are "
++
+jobsTomorrow.length
++
+" customer"
++
+(jobsTomorrow.length===1 ? "" : "s")
++
+" booked tomorrow, but none have a phone number saved."
+);
+
+}else{
+
+alert("There are no customers booked for tomorrow.");
+
+}
+
+return;
+}
+
+renderTomorrowTextQueue();
+
+tomorrowTextOverlay.classList.add("show");
+}
+
+function renderTomorrowTextQueue(){
+
+let c=tomorrowTextQueue[tomorrowTextIndex];
+
+if(!c){
+
+closeTomorrowTextQueue();
+return;
+}
+
+tomorrowQueueProgress.innerText=
+"Customer "
++
+(tomorrowTextIndex+1)
++
+" of "
++
+tomorrowTextQueue.length;
+
+tomorrowQueueName.innerText=
+c.name || "Customer";
+
+tomorrowQueueAddress.innerHTML=
+safe(c.address || "")
++
+(c.postcode ? "<br>"+safe(c.postcode) : "")
++
+(c.roundArea ? "<br>Area: "+safe(c.roundArea) : "");
+
+tomorrowQueueMessage.innerText=
+makePreCleanMessage(
+c,
+tomorrowDateText()
+);
+
+let nextButton=
+document.querySelector(
+"#tomorrowTextOverlay .tomorrowbtn"
+);
+
+if(nextButton){
+
+if(tomorrowTextIndex===tomorrowTextQueue.length-1){
+nextButton.innerText="Finish ✓";
+}else{
+nextButton.innerText="Next Customer →";
+}
+
+}
+}
+
+function textCurrentTomorrowCustomer(){
+
+let c=tomorrowTextQueue[tomorrowTextIndex];
+
+if(!c){
+return;
+}
+
+let message=
+makePreCleanMessage(
+c,
+tomorrowDateText()
+);
+
+if(
+typeof Android!=="undefined"
+&&
+Android.textPhoneWithMessage
+){
+
+Android.textPhoneWithMessage(
+c.phone,
+message
+);
+
+return;
+}
+
+window.location.href=
+"smsto:"
++
+encodeURIComponent(c.phone)
++
+"?body="
++
+encodeURIComponent(message);
+}
+
+function nextTomorrowCustomer(){
+
+if(
+tomorrowTextIndex
+>=
+tomorrowTextQueue.length-1
+){
+
+closeTomorrowTextQueue();
+
+alert(
+"Tomorrow's customer text list is complete."
+);
+
+return;
+}
+
+tomorrowTextIndex++;
+
+renderTomorrowTextQueue();
+}
+
+function closeTomorrowTextQueue(){
+
+tomorrowTextOverlay.classList.remove("show");
+
+tomorrowTextQueue=[];
+tomorrowTextIndex=0;
 }
 
 function getNextInvoiceNumber(){
@@ -3332,8 +3591,6 @@ ${!c.archived
 }).join("");
 }
 
-/* PLANNER */
-
 function renderPlanner(){
 
 refreshRoundAreas();
@@ -3649,8 +3906,6 @@ renderPlanner();
 
 alert("Job moved to "+formatDate(c.nextClean));
 }
-
-/* INVOICES */
 
 function openInvoiceForm(){
 
@@ -4129,8 +4384,6 @@ alert("Android reminder system is not available.");
 }
 }
 
-/* ACCOUNTANT EXPORT */
-
 function toggleAccountantExport(){
 
 accountantExportBox.style.display=
@@ -4262,94 +4515,55 @@ function selectedExportColumns(){
 let cols=[];
 
 if(expInvoiceNumber.checked){
-cols.push({
-title:"Invoice Number",
-value:(inv,c)=>invoiceNumber(inv)
-});
+cols.push({title:"Invoice Number",value:(inv,c)=>invoiceNumber(inv)});
 }
 
 if(expCustomerName.checked){
-cols.push({
-title:"Customer",
-value:(inv,c)=>inv.customerName || (c ? c.name || "" : "")
-});
+cols.push({title:"Customer",value:(inv,c)=>inv.customerName || (c ? c.name || "" : "")});
 }
 
 if(expAddress.checked){
-cols.push({
-title:"Address",
-value:(inv,c)=>c ? c.address || "" : ""
-});
+cols.push({title:"Address",value:(inv,c)=>c ? c.address || "" : ""});
 }
 
 if(expPostcode.checked){
-cols.push({
-title:"Postcode",
-value:(inv,c)=>c ? c.postcode || "" : ""
-});
+cols.push({title:"Postcode",value:(inv,c)=>c ? c.postcode || "" : ""});
 }
 
 if(expEmail.checked){
-cols.push({
-title:"Customer Email",
-value:(inv,c)=>c ? c.email || "" : ""
-});
+cols.push({title:"Customer Email",value:(inv,c)=>c ? c.email || "" : ""});
 }
 
 if(expRoundArea.checked){
-cols.push({
-title:"Round Area",
-value:(inv,c)=>c ? c.roundArea || "" : ""
-});
+cols.push({title:"Round Area",value:(inv,c)=>c ? c.roundArea || "" : ""});
 }
 
 if(expInvoiceDate.checked){
-cols.push({
-title:"Invoice Date",
-value:(inv,c)=>formatDate(inv.date)
-});
+cols.push({title:"Invoice Date",value:(inv,c)=>formatDate(inv.date)});
 }
 
 if(expDueDate.checked){
-cols.push({
-title:"Due Date",
-value:(inv,c)=>formatDate(invoiceDueDate(inv))
-});
+cols.push({title:"Due Date",value:(inv,c)=>formatDate(invoiceDueDate(inv))});
 }
 
 if(expDescription.checked){
-cols.push({
-title:"Description",
-value:(inv,c)=>inv.description || ""
-});
+cols.push({title:"Description",value:(inv,c)=>inv.description || ""});
 }
 
 if(expAmount.checked){
-cols.push({
-title:"Amount",
-value:(inv,c)=>Number(inv.amount || 0).toFixed(2)
-});
+cols.push({title:"Amount",value:(inv,c)=>Number(inv.amount || 0).toFixed(2)});
 }
 
 if(expStatus.checked){
-cols.push({
-title:"Status",
-value:(inv,c)=>invoiceStatus(inv).toUpperCase()
-});
+cols.push({title:"Status",value:(inv,c)=>invoiceStatus(inv).toUpperCase()});
 }
 
 if(expPaymentMethod.checked){
-cols.push({
-title:"Payment Method",
-value:(inv,c)=>inv.paymentMethod || ""
-});
+cols.push({title:"Payment Method",value:(inv,c)=>inv.paymentMethod || ""});
 }
 
 if(expPaidDate.checked){
-cols.push({
-title:"Paid Date",
-value:(inv,c)=>inv.paidDate ? formatDate(inv.paidDate) : ""
-});
+cols.push({title:"Paid Date",value:(inv,c)=>inv.paidDate ? formatDate(inv.paidDate) : ""});
 }
 
 return cols;
@@ -4483,8 +4697,6 @@ return;
 alert("Android CSV sharing is not available.");
 }
 
-/* DASHBOARD */
-
 function updateDashboard(){
 
 let active=activeCustomers();
@@ -4563,6 +4775,40 @@ c=>
 `<br><br><strong style="color:#9bd600">Round Total: £${todayValue.toFixed(2)}</strong>`
 :
 "No jobs due today";
+
+let tomorrowJobs=
+active.filter(c=>c.nextClean===tomorrowDate());
+
+let tomorrowValue=
+tomorrowJobs.reduce((sum,c)=>sum+Number(c.price || 0),0);
+
+let tomorrowPhones=
+tomorrowJobs.filter(c=>(c.phone || "").trim()).length;
+
+tomorrowSummary.innerHTML=
+tomorrowJobs.length
+?
+tomorrowJobs.length
++
+" job"
++
+(tomorrowJobs.length===1 ? "" : "s")
++
+" • £"
++
+tomorrowValue.toFixed(2)
++
+"<br>"
++
+tomorrowPhones
++
+" customer"
++
+(tomorrowPhones===1 ? "" : "s")
++
+" can be texted"
+:
+"No jobs due tomorrow";
 
 let unpaidInvoices=invoices.filter(i=>!i.paid);
 
@@ -4697,8 +4943,6 @@ earnOverdue.innerText="£"+overdue.toFixed(2);
 earnNext7.innerText="£"+next7.toFixed(2);
 earnYearlyEstimate.innerText="£"+yearlyEstimate.toFixed(2);
 }
-
-/* MAP */
 
 async function postcodeCoordinates(postcode){
 
@@ -4909,8 +5153,6 @@ year:"numeric"
 }
 );
 }
-
-/* UPGRADE OLD DATA */
 
 let changed=false;
 
