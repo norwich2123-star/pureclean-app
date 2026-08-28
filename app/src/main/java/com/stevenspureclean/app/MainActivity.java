@@ -28,6 +28,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.graphics.pdf.PdfDocument;
 
 import androidx.core.content.FileProvider;
@@ -429,7 +430,6 @@ public class MainActivity extends Activity {
                     );
 
             if (!folder.exists()) {
-
                 folder.mkdirs();
             }
 
@@ -1105,16 +1105,47 @@ public class MainActivity extends Activity {
                         Paint.ANTI_ALIAS_FLAG
                 );
 
+        int lime =
+                Color.rgb(
+                        155,
+                        214,
+                        0
+                );
+
+        int dark =
+                Color.rgb(
+                        20,
+                        20,
+                        20
+                );
+
+        int grey =
+                Color.rgb(
+                        110,
+                        110,
+                        110
+                );
+
+        int lightGrey =
+                Color.rgb(
+                        238,
+                        238,
+                        238
+                );
+
         canvas.drawColor(
                 Color.WHITE
         );
 
-        int lime =
-                Color.rgb(
-                        145,
-                        205,
-                        0
-                );
+        paint.setColor(dark);
+
+        canvas.drawRect(
+                0,
+                0,
+                595,
+                135,
+                paint
+        );
 
         try {
 
@@ -1135,15 +1166,15 @@ public class MainActivity extends Activity {
                 Bitmap resized =
                         Bitmap.createScaledBitmap(
                                 logo,
-                                85,
-                                85,
+                                82,
+                                82,
                                 true
                         );
 
                 canvas.drawBitmap(
                         resized,
-                        40,
                         35,
+                        26,
                         paint
                 );
             }
@@ -1155,44 +1186,12 @@ public class MainActivity extends Activity {
 
         paint.setColor(lime);
         paint.setFakeBoldText(true);
-        paint.setTextSize(22);
+        paint.setTextSize(21);
 
         canvas.drawText(
                 "Steven's Pure Clean Exteriors",
-                145,
-                65,
-                paint
-        );
-
-        paint.setFakeBoldText(false);
-        paint.setTextSize(13);
-
-        canvas.drawText(
-                "Pure Results • Clean Exteriors",
-                145,
-                90,
-                paint
-        );
-
-        paint.setColor(Color.BLACK);
-        paint.setFakeBoldText(true);
-        paint.setTextSize(28);
-
-        canvas.drawText(
-                "INVOICE",
-                40,
-                160,
-                paint
-        );
-
-        paint.setTextSize(15);
-
-        canvas.drawText(
-                "Invoice #"
-                        +
-                        invoiceNumber,
-                365,
-                145,
+                135,
+                55,
                 paint
         );
 
@@ -1200,52 +1199,134 @@ public class MainActivity extends Activity {
         paint.setTextSize(12);
 
         canvas.drawText(
-                "Invoice date: "
-                        +
-                        invoiceDate,
-                365,
+                "Pure Results • Clean Exteriors",
+                135,
+                82,
+                paint
+        );
+
+        paint.setColor(Color.WHITE);
+        paint.setFakeBoldText(true);
+        paint.setTextSize(30);
+
+        canvas.drawText(
+                "INVOICE",
+                430,
+                105,
+                paint
+        );
+
+        paint.setColor(dark);
+        paint.setFakeBoldText(true);
+        paint.setTextSize(13);
+
+        canvas.drawText(
+                "INVOICE NUMBER",
+                35,
                 175,
                 paint
         );
 
         canvas.drawText(
-                "Due date: "
-                        +
-                        dueDate,
-                365,
-                200,
+                "INVOICE DATE",
+                220,
+                175,
                 paint
         );
 
+        canvas.drawText(
+                "DUE DATE",
+                405,
+                175,
+                paint
+        );
+
+        paint.setFakeBoldText(false);
+        paint.setColor(grey);
+        paint.setTextSize(13);
+
+        canvas.drawText(
+                "#" + invoiceNumber,
+                35,
+                198,
+                paint
+        );
+
+        canvas.drawText(
+                invoiceDate,
+                220,
+                198,
+                paint
+        );
+
+        canvas.drawText(
+                dueDate,
+                405,
+                198,
+                paint
+        );
+
+        paint.setColor(lightGrey);
+
+        canvas.drawRect(
+                35,
+                225,
+                560,
+                227,
+                paint
+        );
+
+        paint.setColor(dark);
         paint.setFakeBoldText(true);
         paint.setTextSize(15);
 
         canvas.drawText(
-                "Bill To",
-                40,
-                245,
+                "BILL TO",
+                35,
+                260,
                 paint
         );
 
         paint.setFakeBoldText(false);
+        paint.setTextSize(16);
 
         canvas.drawText(
                 customerName,
-                40,
-                270,
+                35,
+                290,
                 paint
         );
 
+        paint.setColor(lightGrey);
+
+        RectF serviceBox =
+                new RectF(
+                        35,
+                        330,
+                        560,
+                        435
+                );
+
+        canvas.drawRoundRect(
+                serviceBox,
+                10,
+                10,
+                paint
+        );
+
+        paint.setColor(dark);
         paint.setFakeBoldText(true);
+        paint.setTextSize(13);
 
         canvas.drawText(
-                "Description",
-                40,
-                325,
+                "DESCRIPTION",
+                52,
+                360,
                 paint
         );
 
         paint.setFakeBoldText(false);
+        paint.setTextSize(14);
 
         String cleanDescription =
                 description == null
@@ -1262,92 +1343,153 @@ public class MainActivity extends Activity {
 
         canvas.drawText(
                 cleanDescription,
-                40,
-                350,
+                52,
+                390,
+                paint
+        );
+
+        paint.setColor(dark);
+
+        RectF amountBox =
+                new RectF(
+                        325,
+                        465,
+                        560,
+                        540
+                );
+
+        canvas.drawRoundRect(
+                amountBox,
+                10,
+                10,
+                paint
+        );
+
+        paint.setColor(Color.WHITE);
+        paint.setTextSize(12);
+        paint.setFakeBoldText(false);
+
+        canvas.drawText(
+                "AMOUNT DUE",
+                345,
+                492,
                 paint
         );
 
         paint.setColor(lime);
         paint.setFakeBoldText(true);
-        paint.setTextSize(24);
+        paint.setTextSize(27);
 
         canvas.drawText(
-                "Amount Due: £"
-                        +
-                        amount,
-                40,
-                415,
+                "£" + amount,
+                345,
+                525,
                 paint
         );
 
-        paint.setColor(Color.BLACK);
+        paint.setColor(dark);
+        paint.setFakeBoldText(true);
         paint.setTextSize(15);
 
         canvas.drawText(
-                "Payment terms",
-                40,
-                510,
+                "Payment Details",
+                35,
+                585,
                 paint
         );
 
         paint.setFakeBoldText(false);
+        paint.setTextSize(13);
 
         canvas.drawText(
-                "Please make payment within 7 days",
-                40,
-                535,
+                "Please make payment within 7 days.",
+                35,
+                610,
                 paint
         );
 
+        paint.setColor(lightGrey);
+
+        RectF bankBox =
+                new RectF(
+                        35,
+                        635,
+                        560,
+                        755
+                );
+
+        canvas.drawRoundRect(
+                bankBox,
+                10,
+                10,
+                paint
+        );
+
+        paint.setColor(dark);
         paint.setFakeBoldText(true);
-        paint.setTextSize(16);
-
-        canvas.drawText(
-                "Bank Transfer Details",
-                40,
-                595,
-                paint
-        );
-
-        paint.setFakeBoldText(false);
         paint.setTextSize(14);
 
         canvas.drawText(
+                "BANK TRANSFER",
+                52,
+                665,
+                paint
+        );
+
+        paint.setFakeBoldText(false);
+        paint.setTextSize(13);
+
+        canvas.drawText(
                 "Account name: Steven B Attew",
-                40,
-                625,
+                52,
+                692,
                 paint
         );
 
         canvas.drawText(
                 "Bank: Monzo",
-                40,
-                650,
+                52,
+                716,
                 paint
         );
 
         canvas.drawText(
                 "Sort code: 04-00-06",
-                40,
-                675,
+                310,
+                692,
                 paint
         );
 
         canvas.drawText(
                 "Account number: 34121651",
-                40,
-                700,
+                310,
+                716,
                 paint
         );
 
-        paint.setColor(Color.DKGRAY);
-        paint.setTextSize(12);
+        paint.setColor(grey);
+        paint.setTextSize(11);
 
         canvas.drawText(
                 "Thank you for your custom.",
-                40,
-                790,
+                35,
+                800,
                 paint
+        );
+
+        paint.setTextAlign(
+                Paint.Align.RIGHT
+        );
+
+        canvas.drawText(
+                "Steven's Pure Clean Exteriors",
+                560,
+                800,
+                paint
+        );
+
+        paint.setTextAlign(
+                Paint.Align.LEFT
         );
 
         document.finishPage(page);
@@ -1364,4 +1506,4 @@ public class MainActivity extends Activity {
 
         return file;
     }
-                }
+}
