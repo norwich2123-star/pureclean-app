@@ -131,6 +131,7 @@ font-weight:bold;
 .orange{color:#ffc33d}
 .green{color:#41dc83}
 .red{color:#ff5572}
+.blueText{color:#64a8ff}
 
 .section{margin-top:12px}
 
@@ -449,6 +450,14 @@ padding:10px;
 margin-top:7px;
 }
 
+.earnings-info{
+margin-top:12px;
+background:#101010;
+border:1px solid #303030;
+border-radius:14px;
+padding:14px;
+}
+
 #customerMap{
 width:100%;
 height:430px;
@@ -493,6 +502,7 @@ margin-top:5px;
 <button onclick="openPage('customers',this)">Customers</button>
 <button onclick="openPage('planner',this)">Planner</button>
 <button onclick="openPage('invoices',this)">Invoices</button>
+<button onclick="openPage('earnings',this)">Earnings</button>
 <button onclick="openPage('map',this)">Map</button>
 </nav>
 
@@ -843,6 +853,62 @@ Export CSV for Accountant
 
 </section>
 
+<section id="earnings" class="screen">
+
+<h2>Earnings</h2>
+
+<div class="grid">
+
+<div class="card stat">
+<div class="label">PAID THIS MONTH</div>
+<div class="value green" id="earnPaidMonth">£0.00</div>
+</div>
+
+<div class="card stat">
+<div class="label">PAID THIS YEAR</div>
+<div class="value green" id="earnPaidYear">£0.00</div>
+</div>
+
+<div class="card stat">
+<div class="label">OUTSTANDING</div>
+<div class="value orange" id="earnOutstanding">£0.00</div>
+</div>
+
+<div class="card stat">
+<div class="label">OVERDUE</div>
+<div class="value red" id="earnOverdue">£0.00</div>
+</div>
+
+<div class="card stat">
+<div class="label">NEXT 7 DAYS WORK</div>
+<div class="value blueText" id="earnNext7">£0.00</div>
+</div>
+
+<div class="card stat">
+<div class="label">YEARLY ROUND EST.</div>
+<div class="value" id="earnYearlyEstimate">£0.00</div>
+</div>
+
+</div>
+
+<div class="earnings-info">
+
+<h3 style="color:#9bd600;margin-top:0">
+About these figures
+</h3>
+
+<div class="muted">
+Paid figures are based on invoices you have marked as paid.
+<br><br>
+Next 7 Days Work is based on your customers' next-clean dates.
+<br><br>
+Yearly Round Estimate is calculated from each customer's price and cleaning frequency.
+</div>
+
+</div>
+
+</section>
+
 <section id="map" class="screen">
 
 <h2>Customer Map</h2>
@@ -888,6 +954,7 @@ JSON.stringify(invoices)
 );
 
 updateDashboard();
+updateEarnings();
 
 }
 
@@ -1005,6 +1072,7 @@ renderCustomers();
 renderPlanner();
 renderInvoices();
 updateDashboard();
+updateEarnings();
 
 alert("Business data restored successfully.");
 
@@ -1044,6 +1112,10 @@ renderPlanner();
 
 if(id==="invoices"){
 renderInvoices();
+}
+
+if(id==="earnings"){
+updateEarnings();
 }
 
 if(id==="map"){
@@ -2962,6 +3034,192 @@ ${invoiceStatus(i)==="overdue" ? " — OVERDUE" : ""}`
 
 }
 
+function updateEarnings(){
+
+let paidMonthElement=
+document.getElementById("earnPaidMonth");
+
+if(!paidMonthElement){
+return;
+}
+
+let now=
+new Date();
+
+let paidMonth=
+invoices
+.filter(
+inv=>{
+
+if(!inv.paid){
+return false;
+}
+
+let paidDate=
+inv.paidDate || inv.date;
+
+if(!paidDate){
+return false;
+}
+
+let d=
+new Date(paidDate+"T12:00:00");
+
+return(
+d.getMonth()===now.getMonth()
+&&
+d.getFullYear()===now.getFullYear()
+);
+
+}
+)
+.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+let paidYear=
+invoices
+.filter(
+inv=>{
+
+if(!inv.paid){
+return false;
+}
+
+let paidDate=
+inv.paidDate || inv.date;
+
+if(!paidDate){
+return false;
+}
+
+let d=
+new Date(paidDate+"T12:00:00");
+
+return d.getFullYear()===now.getFullYear();
+
+}
+)
+.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+let outstanding=
+invoices
+.filter(inv=>!inv.paid)
+.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+let overdue=
+invoices
+.filter(
+inv=>invoiceStatus(inv)==="overdue"
+)
+.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+let start=
+new Date(today()+"T12:00:00");
+
+let end=
+new Date(today()+"T12:00:00");
+
+end.setDate(
+end.getDate()+7
+);
+
+let next7=
+customers
+.filter(
+c=>{
+
+if(!c.nextClean){
+return false;
+}
+
+let d=
+new Date(
+c.nextClean+"T12:00:00"
+);
+
+return(
+d>=start
+&&
+d<=end
+);
+
+}
+)
+.reduce(
+(sum,c)=>sum+Number(c.price || 0),
+0
+);
+
+let yearlyEstimate=
+customers.reduce(
+(sum,c)=>{
+
+let frequency=
+Number(c.frequency || 4);
+
+if(
+!Number.isFinite(frequency)
+||
+frequency<=0
+){
+frequency=4;
+}
+
+let visits=
+52/frequency;
+
+return(
+sum+
+(Number(c.price || 0)*visits)
+);
+
+},
+0
+);
+
+document
+.getElementById("earnPaidMonth")
+.innerText=
+"£"+paidMonth.toFixed(2);
+
+document
+.getElementById("earnPaidYear")
+.innerText=
+"£"+paidYear.toFixed(2);
+
+document
+.getElementById("earnOutstanding")
+.innerText=
+"£"+outstanding.toFixed(2);
+
+document
+.getElementById("earnOverdue")
+.innerText=
+"£"+overdue.toFixed(2);
+
+document
+.getElementById("earnNext7")
+.innerText=
+"£"+next7.toFixed(2);
+
+document
+.getElementById("earnYearlyEstimate")
+.innerText=
+"£"+yearlyEstimate.toFixed(2);
+
+}
+
 async function postcodeCoordinates(postcode){
 
 let cleaned=
@@ -3274,8 +3532,9 @@ renderCustomers();
 renderPlanner();
 renderInvoices();
 updateDashboard();
+updateEarnings();
 
 </script>
 
 </body>
-  </html>
+</html>
