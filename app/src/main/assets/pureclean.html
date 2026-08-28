@@ -365,6 +365,12 @@ color:#bbb;
 border:1px solid #555;
 }
 
+.areaBadge{
+background:#17314a;
+color:#79bdff;
+border:1px solid #285170;
+}
+
 .filterbar{
 display:flex;
 gap:6px;
@@ -563,10 +569,8 @@ margin-top:6px;
 <img src="logo.jpg" class="logo" alt="logo">
 
 <div class="brand">
-
 <h1>Steven's Pure Clean Exteriors</h1>
 <p>Pure Results • Clean Exteriors</p>
-
 </div>
 
 </header>
@@ -615,11 +619,15 @@ margin-top:6px;
 <div class="card section">
 
 <div class="row">
-<h3 style="color:#9bd600;margin:0">Today's Round</h3>
+
+<h3 style="color:#9bd600;margin:0">
+Today's Round
+</h3>
 
 <button class="action small secondary" onclick="openPage('planner')">
 View all
 </button>
+
 </div>
 
 <div id="todayJobs" class="muted" style="margin-top:8px">
@@ -653,7 +661,7 @@ No unpaid invoices
 <h3>Business Backup</h3>
 
 <div class="muted">
-Keep a copy of your customers, archived customers, invoices, payment records and cleaning schedule.
+Keep a copy of your customers, archived customers, round areas, invoices, payment records and cleaning schedule.
 </div>
 
 <div class="backup-buttons">
@@ -678,7 +686,7 @@ Restore Data
 
 <input
 id="customerSearch"
-placeholder="Search name, address or postcode..."
+placeholder="Search name, address, postcode or area..."
 oninput="renderCustomers()">
 
 <div class="filterbar">
@@ -719,6 +727,15 @@ Add Customer
 
 <label>Postcode</label>
 <input id="customerPostcode">
+
+<label>Round Area</label>
+
+<input
+id="customerRoundArea"
+list="roundAreaSuggestions"
+placeholder="e.g. Norwich, Cromer, North Walsham">
+
+<datalist id="roundAreaSuggestions"></datalist>
 
 <label>Phone</label>
 <input id="customerPhone" type="tel">
@@ -794,7 +811,22 @@ Cancel
 
 <label>Round Date</label>
 
-<input type="date" id="plannerDate" onchange="renderPlanner()">
+<input
+type="date"
+id="plannerDate"
+onchange="renderPlanner()">
+
+<label>Round Area</label>
+
+<select
+id="plannerArea"
+onchange="renderPlanner()">
+
+<option value="all">
+All Areas
+</option>
+
+</select>
 
 <div class="planner-summary">
 
@@ -870,19 +902,31 @@ oninput="renderInvoices()">
 
 <div class="filterbar">
 
-<button class="action small selected" data-filter="all" onclick="setInvoiceFilter('all',this)">
+<button
+class="action small selected"
+data-filter="all"
+onclick="setInvoiceFilter('all',this)">
 All
 </button>
 
-<button class="action small secondary" data-filter="unpaid" onclick="setInvoiceFilter('unpaid',this)">
+<button
+class="action small secondary"
+data-filter="unpaid"
+onclick="setInvoiceFilter('unpaid',this)">
 Unpaid
 </button>
 
-<button class="action small secondary" data-filter="overdue" onclick="setInvoiceFilter('overdue',this)">
+<button
+class="action small secondary"
+data-filter="overdue"
+onclick="setInvoiceFilter('overdue',this)">
 Overdue
 </button>
 
-<button class="action small secondary" data-filter="paid" onclick="setInvoiceFilter('paid',this)">
+<button
+class="action small secondary"
+data-filter="paid"
+onclick="setInvoiceFilter('paid',this)">
 Paid
 </button>
 
@@ -894,7 +938,10 @@ Paid
 Accountant Export
 </button>
 
-<div id="accountantExportBox" class="card exportBox" style="display:none">
+<div
+id="accountantExportBox"
+class="card exportBox"
+style="display:none">
 
 <h3 style="color:#9bd600;margin-top:0">
 Accountant Export
@@ -1041,6 +1088,78 @@ c=>c.archived===true
 
 }
 
+function getRoundAreas(){
+
+return [
+...new Set(
+activeCustomers()
+.map(c=>(c.roundArea || "").trim())
+.filter(Boolean)
+)
+]
+.sort(
+(a,b)=>a.localeCompare(b)
+);
+
+}
+
+function refreshRoundAreas(){
+
+let areas=
+getRoundAreas();
+
+let datalist=
+document.getElementById("roundAreaSuggestions");
+
+if(datalist){
+
+datalist.innerHTML=
+areas.map(
+area=>`<option value="${safe(area)}"></option>`
+).join("");
+
+}
+
+let select=
+document.getElementById("plannerArea");
+
+if(!select){
+return;
+}
+
+let current=
+select.value || "all";
+
+select.innerHTML=
+`
+<option value="all">All Areas</option>
+<option value="unassigned">Unassigned</option>
+`
++
+areas.map(
+area=>`
+<option value="${safe(area)}">
+${safe(area)}
+</option>
+`
+).join("");
+
+let stillExists=
+current==="all"
+||
+current==="unassigned"
+||
+areas.includes(current);
+
+select.value=
+stillExists
+?
+current
+:
+"all";
+
+}
+
 function saveData(){
 
 localStorage.setItem(
@@ -1053,6 +1172,7 @@ localStorage.setItem(
 JSON.stringify(invoices)
 );
 
+refreshRoundAreas();
 updateDashboard();
 updateEarnings();
 
@@ -1137,6 +1257,10 @@ if(typeof c.archived==="undefined"){
 c.archived=false;
 }
 
+if(typeof c.roundArea==="undefined"){
+c.roundArea="";
+}
+
 }
 );
 
@@ -1178,6 +1302,7 @@ localStorage.setItem(
 String(next)
 );
 
+refreshRoundAreas();
 renderCustomers();
 renderPlanner();
 renderInvoices();
@@ -1213,10 +1338,12 @@ button.classList.add("active");
 }
 
 if(id==="customers"){
+refreshRoundAreas();
 renderCustomers();
 }
 
 if(id==="planner"){
+refreshRoundAreas();
 renderPlanner();
 }
 
@@ -1391,21 +1518,11 @@ function setCustomerFilter(filter,button){
 
 customerFilter=filter;
 
-document
-.getElementById("activeCustomersButton")
-.classList.remove("selected");
+activeCustomersButton.classList.remove("selected");
+activeCustomersButton.classList.add("secondary");
 
-document
-.getElementById("activeCustomersButton")
-.classList.add("secondary");
-
-document
-.getElementById("archivedCustomersButton")
-.classList.remove("selected");
-
-document
-.getElementById("archivedCustomersButton")
-.classList.add("secondary");
+archivedCustomersButton.classList.remove("selected");
+archivedCustomersButton.classList.add("secondary");
 
 button.classList.add("selected");
 button.classList.remove("secondary");
@@ -1657,18 +1774,18 @@ activeCustomersButton.classList.remove("secondary");
 archivedCustomersButton.classList.remove("selected");
 archivedCustomersButton.classList.add("secondary");
 
-document
-.getElementById("customerForm")
-.classList.add("show");
+refreshRoundAreas();
 
-document
-.getElementById("customerFormTitle")
-.innerText="Add Customer";
+customerForm.classList.add("show");
+
+customerFormTitle.innerText=
+"Add Customer";
 
 customerId.value="";
 customerName.value="";
 customerAddress.value="";
 customerPostcode.value="";
+customerRoundArea.value="";
 customerPhone.value="";
 customerEmail.value="";
 customerPrice.value="";
@@ -1681,9 +1798,7 @@ customerNotes.value="";
 
 function closeCustomerForm(){
 
-document
-.getElementById("customerForm")
-.classList.remove("show");
+customerForm.classList.remove("show");
 
 }
 
@@ -1735,6 +1850,9 @@ customerPostcode.value
 .trim()
 .toUpperCase(),
 
+roundArea:
+customerRoundArea.value.trim(),
+
 phone:
 customerPhone.value.trim(),
 
@@ -1782,6 +1900,7 @@ customers.push(customer);
 saveData();
 closeCustomerForm();
 renderCustomers();
+renderPlanner();
 
 }
 
@@ -1794,9 +1913,9 @@ if(!c){
 return;
 }
 
-document
-.getElementById("customerForm")
-.classList.add("show");
+refreshRoundAreas();
+
+customerForm.classList.add("show");
 
 customerFormTitle.innerText=
 "Edit Customer";
@@ -1805,6 +1924,7 @@ customerId.value=c.id;
 customerName.value=c.name || "";
 customerAddress.value=c.address || "";
 customerPostcode.value=c.postcode || "";
+customerRoundArea.value=c.roundArea || "";
 customerPhone.value=c.phone || "";
 customerEmail.value=c.email || "";
 customerPrice.value=c.price || "";
@@ -1874,13 +1994,8 @@ window.location.href="sms:"+c.phone;
 function renderCustomers(){
 
 let search=
-(
-document.getElementById("customerSearch").value || ""
-)
+(customerSearch.value || "")
 .toLowerCase();
-
-let list=
-document.getElementById("customerList");
 
 let source=
 customerFilter==="archived"
@@ -1909,11 +2024,17 @@ c=>
 .toLowerCase()
 .includes(search)
 
+||
+
+(c.roundArea || "")
+.toLowerCase()
+.includes(search)
+
 );
 
 if(filtered.length===0){
 
-list.innerHTML=
+customerList.innerHTML=
 customerFilter==="archived"
 ?
 '<div class="item empty">No archived customers.</div>'
@@ -1924,7 +2045,7 @@ return;
 
 }
 
-list.innerHTML=
+customerList.innerHTML=
 filtered.map(
 c=>{
 
@@ -1944,6 +2065,13 @@ c.archived
 '<span class="badge archivedBadge">ARCHIVED</span>'
 :
 "";
+
+let areaStatus=
+c.roundArea
+?
+`<span class="badge areaBadge">${safe(c.roundArea)}</span>`
+:
+'<span class="badge areaBadge">UNASSIGNED</span>';
 
 return `
 
@@ -1972,6 +2100,7 @@ ${c.postcode ? "<br>"+safe(c.postcode) : ""}
 
 <div style="margin-top:8px">
 ${paymentStatus}
+${areaStatus}
 ${archiveStatus}
 </div>
 
@@ -2075,19 +2204,37 @@ class="history-box">
 
 function renderPlanner(){
 
-let input=
-document.getElementById("plannerDate");
+refreshRoundAreas();
 
-if(!input.value){
-input.value=today();
+if(!plannerDate.value){
+plannerDate.value=today();
 }
 
 let date=
-input.value;
+plannerDate.value;
+
+let selectedArea=
+plannerArea.value || "all";
 
 let jobs=
-activeCustomers().filter(
+activeCustomers()
+.filter(
 c=>c.nextClean===date
+)
+.filter(
+c=>{
+
+if(selectedArea==="all"){
+return true;
+}
+
+if(selectedArea==="unassigned"){
+return !(c.roundArea || "").trim();
+}
+
+return (c.roundArea || "").trim()===selectedArea;
+
+}
 );
 
 let total=
@@ -2105,7 +2252,7 @@ plannerRoundTotal.innerText=
 if(jobs.length===0){
 
 plannerJobs.innerHTML=
-'<div class="item empty">No jobs scheduled for this date.</div>';
+'<div class="item empty">No jobs scheduled for this date and area.</div>';
 
 return;
 
@@ -2135,6 +2282,14 @@ ${c.postcode ? "<br>"+safe(c.postcode) : ""}
 <div class="price">
 £${Number(c.price || 0).toFixed(2)}
 </div>
+
+</div>
+
+<div style="margin-top:8px">
+
+<span class="badge areaBadge">
+${safe(c.roundArea || "Unassigned")}
+</span>
 
 </div>
 
@@ -2406,9 +2561,7 @@ invoiceForm.classList.remove("show");
 function quickInvoice(id){
 
 let c=
-customers.find(
-x=>x.id===id
-);
+customers.find(x=>x.id===id);
 
 if(!c || c.archived){
 
@@ -3211,7 +3364,7 @@ todays.length
 ?
 todays.map(
 c=>
-`${safe(c.name)} — £${Number(c.price || 0).toFixed(2)}`
+`${safe(c.name)}${c.roundArea ? " ["+safe(c.roundArea)+"]" : ""} — £${Number(c.price || 0).toFixed(2)}`
 )
 .join("<br>")
 +
@@ -3549,6 +3702,9 @@ safe(c.name)+
 safe(c.address)+
 "<br>"+
 safe(c.postcode)+
+(c.roundArea
+? "<br><strong>Area:</strong> "+safe(c.roundArea)
+: "")+
 "<br>£"+
 Number(c.price || 0).toFixed(2)
 );
@@ -3656,6 +3812,13 @@ changed=true;
 
 }
 
+if(typeof c.roundArea==="undefined"){
+
+c.roundArea="";
+changed=true;
+
+}
+
 }
 );
 
@@ -3730,6 +3893,7 @@ saveData();
 plannerDate.value=
 today();
 
+refreshRoundAreas();
 renderCustomers();
 renderPlanner();
 renderInvoices();
