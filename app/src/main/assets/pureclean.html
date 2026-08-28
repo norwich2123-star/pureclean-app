@@ -488,14 +488,27 @@ padding-top:9px;
 border-top:1px solid #292929;
 }
 
+/* IMPORTANT ACCESS NOTE */
+
 .job-notes{
-margin-top:9px;
-background:#191919;
-border:1px solid #292929;
-border-radius:10px;
-padding:10px;
-color:#bbb;
+margin-top:10px;
+background:linear-gradient(135deg,#342600,#211800);
+border:1px solid #8b6917;
+border-left:5px solid #ffc33d;
+border-radius:11px;
+padding:12px;
+color:#ffe7a0;
+font-size:13px;
+line-height:1.5;
+box-shadow:0 3px 12px rgba(255,195,61,.08);
+}
+
+.job-notes strong{
+display:block;
+color:#ffc33d;
 font-size:12px;
+letter-spacing:.4px;
+margin-bottom:4px;
 }
 
 .job-buttons{
@@ -651,8 +664,6 @@ color:var(--green);
 margin-top:5px;
 }
 
-/* NEW PLANNER DAY ARROWS */
-
 .planner-date-card{
 background:linear-gradient(180deg,#151515,#0e0e0e);
 border:1px solid #303030;
@@ -702,8 +713,6 @@ font-size:12px;
 color:#999;
 margin-top:4px;
 }
-
-/* PIN SECURITY */
 
 .pin-lock{
 display:none;
@@ -1112,7 +1121,10 @@ id="customerServices"
 placeholder="Windows, gutters, fascia, soffits...">
 
 <label>Access Notes</label>
-<textarea id="customerNotes"></textarea>
+<textarea
+id="customerNotes"
+placeholder="e.g. Call before clean, dog in garden, use side gate...">
+</textarea>
 
 <button class="action" onclick="saveCustomer()">
 Save Customer
@@ -1693,8 +1705,6 @@ let mapMarkers=[];
 let completingCustomerId=null;
 let pinMode="unlock";
 
-/* PIN SECURITY */
-
 function currentPin(){
 return localStorage.getItem("pcAppPin") || "";
 }
@@ -1959,8 +1969,6 @@ updateSecurityStatus();
 alert("Your PIN has been changed.");
 
 }
-
-/* APP */
 
 function activeCustomers(){
 return customers.filter(c=>c.archived!==true);
@@ -2402,8 +2410,6 @@ return d.toISOString().split("T")[0];
 
 }
 
-/* NEW PLANNER DATE CONTROLS */
-
 function plannerToday(){
 
 plannerDate.value=today();
@@ -2684,8 +2690,6 @@ count:records.length
 
 }
 
-/* MONTHLY REPORT */
-
 function monthKey(dateValue){
 
 if(!dateValue){
@@ -2950,8 +2954,6 @@ breakdown.join("<br>")
 "No payments recorded for this month.";
 
 }
-
-/* MONEY OWED */
 
 function customersWhoOwe(){
 
@@ -3909,8 +3911,6 @@ Delete Permanently
 
 }
 
-/* PLANNER */
-
 function renderPlanner(){
 
 refreshRoundAreas();
@@ -4033,7 +4033,7 @@ ${c.notes
 ? `
 
 <div class="job-notes">
-<strong>Access Notes:</strong><br>
+<strong>⚠ IMPORTANT ACCESS NOTE</strong>
 ${safe(c.notes)}
 </div>
 
@@ -4292,8 +4292,6 @@ formatDate(c.nextClean)
 );
 
 }
-
-/* INVOICES */
 
 function openInvoiceForm(){
 
@@ -4762,8 +4760,6 @@ alert("Android email system is not available.");
 
 }
 
-/* REMINDER TRACKING */
-
 function sendReminder(id){
 
 let inv=
@@ -4876,8 +4872,6 @@ alert("Android reminder system is not available.");
 }
 
 }
-
-/* ACCOUNTANT EXPORT */
 
 function toggleAccountantExport(){
 
@@ -5254,61 +5248,13 @@ String(inv.paymentMethod || "").toLowerCase()==="bank transfer"
 csv.push("");
 csv.push(csvCell("SUMMARY"));
 
-csv.push(
-csvCell("Invoices")
-+
-","
-+
-csvCell(rows.length)
-);
-
-csv.push(
-csvCell("Total Invoiced")
-+
-","
-+
-csvCell(total.toFixed(2))
-);
-
-csv.push(
-csvCell("Paid")
-+
-","
-+
-csvCell(paidTotal.toFixed(2))
-);
-
-csv.push(
-csvCell("Outstanding")
-+
-","
-+
-csvCell(unpaidTotal.toFixed(2))
-);
-
-csv.push(
-csvCell("Overdue")
-+
-","
-+
-csvCell(overdueTotal.toFixed(2))
-);
-
-csv.push(
-csvCell("Cash Received")
-+
-","
-+
-csvCell(cashTotal.toFixed(2))
-);
-
-csv.push(
-csvCell("Bank Transfer Received")
-+
-","
-+
-csvCell(bankTotal.toFixed(2))
-);
+csv.push(csvCell("Invoices")+","+csvCell(rows.length));
+csv.push(csvCell("Total Invoiced")+","+csvCell(total.toFixed(2)));
+csv.push(csvCell("Paid")+","+csvCell(paidTotal.toFixed(2)));
+csv.push(csvCell("Outstanding")+","+csvCell(unpaidTotal.toFixed(2)));
+csv.push(csvCell("Overdue")+","+csvCell(overdueTotal.toFixed(2)));
+csv.push(csvCell("Cash Received")+","+csvCell(cashTotal.toFixed(2)));
+csv.push(csvCell("Bank Transfer Received")+","+csvCell(bankTotal.toFixed(2)));
 
 }
 
@@ -5353,8 +5299,6 @@ return;
 alert("Android CSV sharing is not available.");
 
 }
-
-/* DASHBOARD */
 
 function updateDashboard(){
 
@@ -5648,8 +5592,6 @@ earnYearlyEstimate.innerText=
 
 }
 
-/* MAP */
-
 async function postcodeCoordinates(postcode){
 
 let cleaned=
@@ -5886,8 +5828,6 @@ year:"numeric"
 );
 
 }
-
-/* UPGRADE OLD DATA */
 
 let changed=false;
 
