@@ -844,7 +844,7 @@ Accountant Export
 </div>
 
 <button class="action" onclick="exportInvoicesCsv()">
-Export CSV for Accountant
+Share CSV for Accountant
 </button>
 
 </div>
@@ -2102,6 +2102,7 @@ Number(c.frequency || 4)*7
 saveData();
 renderPlanner();
 updateDashboard();
+updateEarnings();
 
 }
 
@@ -2866,41 +2867,34 @@ inv.paidDate ? formatDate(inv.paidDate) : ""
 }
 );
 
-let blob=
-new Blob(
-[
+let csvText=
 "\uFEFF"+
-csv.join("\r\n")
-],
-{
-type:"text/csv;charset=utf-8;"
-}
-);
+csv.join("\r\n");
 
-let url=
-URL.createObjectURL(blob);
-
-let link=
-document.createElement("a");
-
-link.href=url;
-
-link.download=
+let fileName=
 "PureClean-Accountant-Invoices-"
 +
 today()
 +
 ".csv";
 
-document.body.appendChild(link);
+if(
+typeof Android!=="undefined"
+&&
+Android.shareCsv
+){
 
-link.click();
+Android.shareCsv(
+fileName,
+csvText
+);
 
-document.body.removeChild(link);
+return;
 
-setTimeout(
-()=>URL.revokeObjectURL(url),
-1500
+}
+
+alert(
+"Android CSV sharing is not available."
 );
 
 }
@@ -3537,4 +3531,4 @@ updateEarnings();
 </script>
 
 </body>
-</html>
+  </html>
