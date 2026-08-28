@@ -2593,6 +2593,24 @@ return;
 if(
 typeof Android!=="undefined"
 &&
+Android.emailCustomerWithAddress
+){
+
+Android.emailCustomerWithAddress(
+customer.email,
+customer.name,
+customer.address || "",
+customer.postcode || "",
+String(invoiceNumber(inv)),
+formatDate(inv.date),
+formatDate(invoiceDueDate(inv)),
+Number(inv.amount || 0).toFixed(2),
+inv.description || ""
+);
+
+}else if(
+typeof Android!=="undefined"
+&&
 Android.emailCustomer
 ){
 
