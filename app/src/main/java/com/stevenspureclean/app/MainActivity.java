@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import android.webkit.JavascriptInterface;
+import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -58,10 +59,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        /*
-         * IMPORTANT:
-         * Remove Android's own title bar before anything is drawn.
-         */
         requestWindowFeature(
                 Window.FEATURE_NO_TITLE
         );
@@ -78,9 +75,6 @@ public class MainActivity extends Activity {
 
         webView = new WebView(this);
 
-        /*
-         * Keep the app below the phone status bar.
-         */
         webView.setOnApplyWindowInsetsListener(
                 new View.OnApplyWindowInsetsListener() {
 
@@ -118,6 +112,15 @@ public class MainActivity extends Activity {
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
+
+        /*
+         * IMPORTANT FIX:
+         * Allows JavaScript alert() and confirm() boxes
+         * to work inside the Android WebView.
+         */
+        webView.setWebChromeClient(
+                new WebChromeClient()
+        );
 
         webView.addJavascriptInterface(
                 new AndroidBridge(),
