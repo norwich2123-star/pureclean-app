@@ -9,186 +9,338 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
 <style>
-*{box-sizing:border-box}
+
+*{
+box-sizing:border-box;
+-webkit-tap-highlight-color:transparent;
+}
 
 :root{
 --lime:#9bd600;
 --lime2:#b8e63e;
+--limeDark:#6f9b00;
 --bg:#050505;
 --panel:#111;
+--panel2:#161616;
 --border:#303030;
+--borderLight:#3a3a3a;
 --muted:#999;
 --white:#f5f5f5;
+--green:#41dc83;
+--orange:#ffc33d;
+--red:#ff5572;
+--blue:#64a8ff;
 }
 
 html,body{
 margin:0;
 padding:0;
-background:var(--bg);
+background:
+linear-gradient(
+180deg,
+#050505 0%,
+#080808 100%
+);
 color:var(--white);
 font-family:Arial,sans-serif;
 font-size:14px;
+min-height:100%;
+}
+
+body{
+overscroll-behavior-y:none;
 }
 
 header{
 display:flex;
 align-items:center;
-gap:12px;
-padding:50px 14px 16px;
-background:#101010;
-border-bottom:1px solid #242424;
+gap:14px;
+padding:46px 16px 18px;
+background:
+linear-gradient(
+135deg,
+#141414 0%,
+#090909 100%
+);
+border-bottom:1px solid #252525;
+box-shadow:
+0 4px 16px rgba(0,0,0,.35);
 }
 
 .logo{
-width:64px;
-height:64px;
+width:68px;
+height:68px;
 border-radius:50%;
 object-fit:cover;
 flex-shrink:0;
+border:2px solid rgba(155,214,0,.45);
+box-shadow:
+0 0 0 4px rgba(155,214,0,.05);
+}
+
+.brand{
+min-width:0;
 }
 
 .brand h1{
 margin:0;
 color:var(--lime2);
-font-size:18px;
-line-height:1.2;
+font-size:19px;
+line-height:1.18;
+letter-spacing:.1px;
 }
 
 .brand p{
-margin:5px 0 0;
-color:#939393;
+margin:6px 0 0;
+color:#929292;
 font-size:12px;
+letter-spacing:.25px;
 }
 
 nav{
 display:flex;
 overflow-x:auto;
-background:#090909;
+background:#0a0a0a;
 border-bottom:1px solid #282828;
-padding:7px;
-gap:4px;
+padding:8px;
+gap:6px;
+position:sticky;
+top:0;
+z-index:20;
+scrollbar-width:none;
+box-shadow:
+0 4px 12px rgba(0,0,0,.28);
+}
+
+nav::-webkit-scrollbar{
+display:none;
 }
 
 nav button{
-border:0;
-background:transparent;
+border:1px solid transparent;
+background:#111;
 color:var(--lime);
-padding:10px 12px;
-border-radius:10px;
+padding:10px 13px;
+border-radius:11px;
 font-weight:bold;
 font-size:13px;
-min-width:84px;
+min-width:88px;
 white-space:nowrap;
+transition:
+background .15s ease,
+color .15s ease,
+border-color .15s ease;
 }
 
 nav button.active{
 background:var(--lime);
 color:#000;
+border-color:var(--lime);
+box-shadow:
+0 3px 10px rgba(155,214,0,.16);
 }
 
 main{
-padding:14px 14px 100px;
+padding:16px 14px 110px;
 max-width:850px;
 margin:auto;
 }
 
-.screen{display:none}
-.screen.active{display:block}
+.screen{
+display:none;
+}
+
+.screen.active{
+display:block;
+animation:fadeIn .15s ease;
+}
+
+@keyframes fadeIn{
+from{
+opacity:.65;
+transform:translateY(2px);
+}
+to{
+opacity:1;
+transform:none;
+}
+}
 
 h2{
-margin:5px 0 16px;
+margin:4px 0 17px;
 color:var(--lime);
-font-size:24px;
+font-size:25px;
+letter-spacing:-.3px;
+}
+
+h3{
+line-height:1.25;
 }
 
 .grid{
 display:grid;
 grid-template-columns:1fr 1fr;
-gap:9px;
+gap:10px;
 }
 
-.card,.item{
-background:var(--panel);
+.card,
+.item{
+background:
+linear-gradient(
+180deg,
+#141414 0%,
+#101010 100%
+);
 border:1px solid var(--border);
-border-radius:14px;
-padding:14px;
+border-radius:15px;
+padding:15px;
+box-shadow:
+0 4px 13px rgba(0,0,0,.18);
 }
 
-.stat{min-height:105px}
+.item{
+transition:
+border-color .15s ease,
+transform .15s ease;
+}
+
+.stat{
+min-height:108px;
+display:flex;
+flex-direction:column;
+justify-content:space-between;
+}
 
 .label{
-color:#a4ce3d;
-font-size:12px;
+color:#a9cf48;
+font-size:11px;
+font-weight:bold;
+letter-spacing:.45px;
 }
 
 .value{
 margin-top:14px;
 color:var(--lime);
-font-size:28px;
+font-size:27px;
 font-weight:bold;
+line-height:1.1;
 }
 
-.orange{color:#ffc33d}
-.green{color:#41dc83}
-.red{color:#ff5572}
-.blueText{color:#64a8ff}
+.orange{
+color:var(--orange);
+}
 
-.section{margin-top:12px}
+.green{
+color:var(--green);
+}
+
+.red{
+color:var(--red);
+}
+
+.blueText{
+color:var(--blue);
+}
+
+.section{
+margin-top:13px;
+}
 
 .row{
 display:flex;
 align-items:center;
 justify-content:space-between;
-gap:8px;
+gap:10px;
 }
 
 .muted{
 color:var(--muted);
 font-size:12px;
-line-height:1.5;
+line-height:1.55;
 }
 
-input,textarea,select{
+label{
+display:block;
+margin-top:11px;
+font-size:12px;
+font-weight:bold;
+color:#c5c5c5;
+}
+
+input,
+textarea,
+select{
 width:100%;
-background:#1b1b1b;
+background:#191919;
 color:#fff;
-border:1px solid #3d3d3d;
-border-radius:10px;
-padding:11px;
+border:1px solid #3a3a3a;
+border-radius:11px;
+padding:12px;
 margin-top:7px;
 font-size:14px;
+outline:none;
+transition:
+border-color .15s ease,
+box-shadow .15s ease;
 }
 
-textarea{min-height:70px}
+input:focus,
+textarea:focus,
+select:focus{
+border-color:var(--limeDark);
+box-shadow:
+0 0 0 2px rgba(155,214,0,.08);
+}
+
+textarea{
+min-height:74px;
+resize:vertical;
+}
 
 .action{
 width:100%;
 border:0;
-border-radius:10px;
+border-radius:11px;
 padding:12px;
-margin-top:8px;
-background:var(--lime);
+margin-top:9px;
+background:
+linear-gradient(
+180deg,
+var(--lime2),
+var(--lime)
+);
 color:#000;
 font-weight:bold;
 font-size:14px;
+min-height:42px;
+box-shadow:
+0 3px 8px rgba(0,0,0,.2);
+}
+
+.action:active{
+transform:scale(.99);
 }
 
 .small{
 width:auto;
-display:inline-block;
-padding:8px 10px;
-margin:4px 3px 0 0;
+display:inline-flex;
+align-items:center;
+justify-content:center;
+padding:8px 11px;
+margin:5px 4px 0 0;
 font-size:12px;
+min-height:35px;
 }
 
 .secondary{
 background:#292929;
 color:#fff;
 border:1px solid #444;
+box-shadow:none;
 }
 
 .danger{
-background:#a52b3d;
+background:#9b2638;
 color:#fff;
 }
 
@@ -203,7 +355,7 @@ color:#fff;
 }
 
 .reminderbtn{
-background:#7c4dff;
+background:#7050d0;
 color:#fff;
 }
 
@@ -242,74 +394,87 @@ background:#5a438f;
 color:#fff;
 }
 
-.customer-list,.invoice-list,.job-list{
+.customer-list,
+.invoice-list,
+.job-list{
 display:grid;
-gap:8px;
-margin-top:10px;
+gap:10px;
+margin-top:12px;
 }
 
 .customer-name{
 color:var(--lime2);
-font-size:16px;
+font-size:17px;
 font-weight:bold;
+line-height:1.25;
 }
 
 .price{
-color:#49df88;
+color:var(--green);
 font-weight:bold;
+font-size:15px;
+white-space:nowrap;
 }
 
 .two{
 display:grid;
 grid-template-columns:1fr 1fr;
-gap:8px;
+gap:9px;
 }
 
 .formBox{
 display:none;
-margin-top:12px;
+margin-top:13px;
 }
 
-.formBox.show{display:block}
+.formBox.show{
+display:block;
+}
 
 .badge{
 display:inline-block;
-padding:4px 8px;
+padding:5px 9px;
 border-radius:20px;
-font-size:11px;
+font-size:10px;
 font-weight:bold;
+letter-spacing:.35px;
 }
 
 .paid{
 background:#183c27;
 color:#63e99d;
+border:1px solid #265939;
 }
 
 .unpaid{
 background:#4c2b10;
 color:#ffc45e;
+border:1px solid #714115;
 }
 
 .overdue{
 background:#4a1520;
 color:#ff6d86;
+border:1px solid #6b2230;
 }
 
 .clearstatus{
 background:#183c27;
 color:#63e99d;
+border:1px solid #265939;
 }
 
 .owesstatus{
 background:#4c2b10;
 color:#ffc45e;
+border:1px solid #714115;
 }
 
 .filterbar{
 display:flex;
 gap:6px;
 flex-wrap:wrap;
-margin-top:10px;
+margin-top:11px;
 }
 
 .filterbar button{
@@ -320,76 +485,88 @@ margin:0;
 .filterbar button.selected{
 background:var(--lime);
 color:#000;
+border-color:var(--lime);
 }
 
-.invoice-summary,.planner-summary{
+.invoice-summary,
+.planner-summary{
 display:grid;
 grid-template-columns:1fr 1fr;
-gap:8px;
-margin-top:10px;
+gap:9px;
+margin-top:11px;
 }
 
 .mini-stat{
-background:#0d0d0d;
-border:1px solid #292929;
+background:#0c0c0c;
+border:1px solid #2c2c2c;
 border-radius:12px;
 padding:12px;
 }
 
 .mini-stat .num{
-margin-top:5px;
-font-size:22px;
+margin-top:6px;
+font-size:21px;
 font-weight:bold;
 }
 
 .invoice-meta{
 margin-top:7px;
-line-height:1.6;
+line-height:1.65;
 }
 
 .overdue-text{
 color:#ff6d86;
 font-weight:bold;
+font-size:11px;
 }
 
-.exportBox{margin-top:12px}
+.exportBox{
+margin-top:12px;
+}
 
 .exportDates{
 display:none;
 grid-template-columns:1fr 1fr;
-gap:8px;
+gap:9px;
 margin-top:8px;
 }
 
-.exportDates.show{display:grid}
+.exportDates.show{
+display:grid;
+}
 
-.backup-box{margin-top:12px}
+.backup-box{
+margin-top:13px;
+}
 
 .backup-box h3{
 color:var(--lime);
-margin:0 0 6px;
+margin:0 0 7px;
 }
 
 .backup-buttons{
 display:grid;
 grid-template-columns:1fr 1fr;
-gap:8px;
-margin-top:10px;
+gap:9px;
+margin-top:11px;
 }
 
-.backup-buttons .action{margin-top:0}
+.backup-buttons .action{
+margin-top:0;
+}
 
 .job-detail{
-margin-top:7px;
-padding-top:7px;
+margin-top:9px;
+padding-top:9px;
 border-top:1px solid #292929;
 }
 
 .job-notes{
-margin-top:8px;
+margin-top:9px;
 background:#191919;
-border-radius:9px;
-padding:9px;
+border:1px solid #292929;
+border-radius:10px;
+padding:10px;
 color:#bbb;
 font-size:12px;
 }
@@ -397,24 +574,32 @@ font-size:12px;
 .job-buttons{
 display:grid;
 grid-template-columns:1fr 1fr;
-gap:7px;
-margin-top:8px;
+gap:8px;
+margin-top:9px;
+}
+
+.job-buttons .action{
+margin-top:0;
 }
 
 .move-box{
 display:none;
-margin-top:10px;
+margin-top:11px;
 }
 
-.move-box.show{display:block}
+.move-box.show{
+display:block;
+}
 
 .history-box{
 display:none;
-margin-top:12px;
+margin-top:13px;
 background:#080808;
-border:1px solid #373737;
-border-radius:12px;
-padding:12px;
+border:1px solid #353535;
+border-radius:13px;
+padding:13px;
+box-shadow:
+inset 0 0 0 1px rgba(255,255,255,.01);
 }
 
 .history-box.show{
@@ -424,16 +609,16 @@ display:block;
 .history-summary{
 display:grid;
 grid-template-columns:1fr 1fr;
-gap:7px;
-margin-top:10px;
-margin-bottom:10px;
+gap:8px;
+margin-top:11px;
+margin-bottom:11px;
 }
 
 .history-stat{
 background:#151515;
 border:1px solid #292929;
-border-radius:10px;
-padding:10px;
+border-radius:11px;
+padding:11px;
 }
 
 .history-number{
@@ -445,93 +630,203 @@ margin-top:5px;
 .history-entry{
 background:#151515;
 border:1px solid #292929;
-border-radius:10px;
-padding:10px;
-margin-top:7px;
+border-radius:11px;
+padding:11px;
+margin-top:8px;
 }
 
 .earnings-info{
-margin-top:12px;
-background:#101010;
+margin-top:13px;
+background:
+linear-gradient(
+180deg,
+#131313 0%,
+#0f0f0f 100%
+);
 border:1px solid #303030;
-border-radius:14px;
-padding:14px;
+border-radius:15px;
+padding:15px;
 }
 
 #customerMap{
 width:100%;
 height:430px;
-border-radius:12px;
+border-radius:14px;
 overflow:hidden;
 background:#181818;
 border:1px solid var(--border);
+box-shadow:
+0 4px 15px rgba(0,0,0,.2);
 }
 
 .map-status{
 color:#aaa;
 font-size:12px;
-margin-bottom:10px;
+margin-bottom:11px;
+line-height:1.5;
 }
 
 .empty{
 color:#999;
-padding:16px 4px;
+padding:17px 5px;
+text-align:center;
 }
 
 .email-help{
 color:#888;
 font-size:11px;
-margin-top:5px;
+margin-top:6px;
 }
+
+@media(max-width:420px){
+
+.value{
+font-size:24px;
+}
+
+.card,
+.item{
+padding:13px;
+}
+
+main{
+padding-left:12px;
+padding-right:12px;
+}
+
+nav button{
+min-width:84px;
+}
+
+}
+
 </style>
 </head>
 
 <body>
 
 <header>
-<img src="logo.jpg" class="logo" alt="logo">
+
+<img
+src="logo.jpg"
+class="logo"
+alt="logo">
 
 <div class="brand">
-<h1>Steven's Pure Clean Exteriors</h1>
-<p>Pure Results • Clean Exteriors</p>
+
+<h1>
+Steven's Pure Clean Exteriors
+</h1>
+
+<p>
+Pure Results • Clean Exteriors
+</p>
+
 </div>
+
 </header>
 
 <nav>
-<button class="active" onclick="openPage('dashboard',this)">Dashboard</button>
-<button onclick="openPage('customers',this)">Customers</button>
-<button onclick="openPage('planner',this)">Planner</button>
-<button onclick="openPage('invoices',this)">Invoices</button>
-<button onclick="openPage('earnings',this)">Earnings</button>
-<button onclick="openPage('map',this)">Map</button>
+
+<button
+class="active"
+onclick="openPage('dashboard',this)">
+Dashboard
+</button>
+
+<button
+onclick="openPage('customers',this)">
+Customers
+</button>
+
+<button
+onclick="openPage('planner',this)">
+Planner
+</button>
+
+<button
+onclick="openPage('invoices',this)">
+Invoices
+</button>
+
+<button
+onclick="openPage('earnings',this)">
+Earnings
+</button>
+
+<button
+onclick="openPage('map',this)">
+Map
+</button>
+
 </nav>
 
 <main>
 
-<section id="dashboard" class="screen active">
+<section
+id="dashboard"
+class="screen active">
 
-<h2>Dashboard</h2>
+<h2>
+Dashboard
+</h2>
 
 <div class="grid">
 
 <div class="card stat">
-<div class="label">CUSTOMERS</div>
-<div class="value" id="dashCustomers">0</div>
+
+<div class="label">
+CUSTOMERS
+</div>
+
+<div
+class="value"
+id="dashCustomers">
+0
+</div>
+
 </div>
 
 <div class="card stat">
-<div class="label">UNPAID</div>
-<div class="value orange" id="dashUnpaid">£0.00</div>
+
+<div class="label">
+UNPAID
+</div>
+
+<div
+class="value orange"
+id="dashUnpaid">
+£0.00
+</div>
+
 </div>
 
 <div class="card stat">
-<div class="label">PAID THIS MONTH</div>
-<div class="value green" id="dashPaid">£0.00</div>
+
+<div class="label">
+PAID THIS MONTH
+</div>
+
+<div
+class="value green"
+id="dashPaid">
+£0.00
+</div>
+
 </div>
 
 <div class="card stat">
-<div class="label">DUE SOON</div>
-<div class="value red" id="dashDue">0</div>
+
+<div class="label">
+DUE SOON
+</div>
+
+<div
+class="value red"
+id="dashDue">
+0
+</div>
+
 </div>
 
 </div>
@@ -539,14 +834,23 @@ margin-top:5px;
 <div class="card section">
 
 <div class="row">
-<h3 style="color:#9bd600">Today's Round</h3>
 
-<button class="action small secondary" onclick="openPage('planner')">
+<h3 style="color:#9bd600;margin:0">
+Today's Round
+</h3>
+
+<button
+class="action small secondary"
+onclick="openPage('planner')">
 View all
 </button>
+
 </div>
 
-<div id="todayJobs" class="muted">
+<div
+id="todayJobs"
+class="muted"
+style="margin-top:8px">
 No jobs due today
 </div>
 
@@ -555,14 +859,23 @@ No jobs due today
 <div class="card section">
 
 <div class="row">
-<h3 style="color:#9bd600">Unpaid Invoices</h3>
 
-<button class="action small secondary" onclick="openPage('invoices')">
+<h3 style="color:#9bd600;margin:0">
+Unpaid Invoices
+</h3>
+
+<button
+class="action small secondary"
+onclick="openPage('invoices')">
 View all
 </button>
+
 </div>
 
-<div id="dashInvoices" class="muted">
+<div
+id="dashInvoices"
+class="muted"
+style="margin-top:8px">
 No unpaid invoices
 </div>
 
@@ -570,7 +883,9 @@ No unpaid invoices
 
 <div class="card backup-box">
 
-<h3>Business Backup</h3>
+<h3>
+Business Backup
+</h3>
 
 <div class="muted">
 Keep a copy of your customers, invoices, payment records and cleaning schedule.
@@ -578,11 +893,15 @@ Keep a copy of your customers, invoices, payment records and cleaning schedule.
 
 <div class="backup-buttons">
 
-<button class="action" onclick="backupBusinessData()">
+<button
+class="action"
+onclick="backupBusinessData()">
 Backup Data
 </button>
 
-<button class="action restorebtn" onclick="restoreBusinessData()">
+<button
+class="action restorebtn"
+onclick="restoreBusinessData()">
 Restore Data
 </button>
 
@@ -592,40 +911,68 @@ Restore Data
 
 </section>
 
-<section id="customers" class="screen">
+<section
+id="customers"
+class="screen">
 
-<h2>Customers</h2>
+<h2>
+Customers
+</h2>
 
 <input
 id="customerSearch"
 placeholder="Search name, address or postcode..."
 oninput="renderCustomers()">
 
-<button class="action" onclick="newCustomer()">
+<button
+class="action"
+onclick="newCustomer()">
 + Add Customer
 </button>
 
-<div id="customerForm" class="formBox card">
+<div
+id="customerForm"
+class="formBox card">
 
-<h3 id="customerFormTitle" style="color:#9bd600">
+<h3
+id="customerFormTitle"
+style="color:#9bd600;margin-top:0">
 Add Customer
 </h3>
 
-<input type="hidden" id="customerId">
+<input
+type="hidden"
+id="customerId">
 
-<label>Name</label>
+<label>
+Name
+</label>
+
 <input id="customerName">
 
-<label>Address</label>
+<label>
+Address
+</label>
+
 <input id="customerAddress">
 
-<label>Postcode</label>
+<label>
+Postcode
+</label>
+
 <input id="customerPostcode">
 
-<label>Phone</label>
-<input id="customerPhone" type="tel">
+<label>
+Phone
+</label>
 
-<label>Email</label>
+<input
+id="customerPhone"
+type="tel">
+
+<label>
+Email
+</label>
 
 <input
 id="customerEmail"
@@ -642,59 +989,114 @@ Enter the customer's full email address.
 <div class="two">
 
 <div>
-<label>Price £</label>
-<input id="customerPrice" type="number" step="0.01">
+
+<label>
+Price £
+</label>
+
+<input
+id="customerPrice"
+type="number"
+step="0.01">
+
 </div>
 
 <div>
 
-<label>Frequency</label>
+<label>
+Frequency
+</label>
 
 <select id="customerFrequency">
-<option value="1">Weekly</option>
-<option value="2">2 Weekly</option>
-<option value="4">4 Weekly</option>
-<option value="6">6 Weekly</option>
-<option value="8">8 Weekly</option>
-<option value="10">10 Weekly</option>
-<option value="12">12 Weekly</option>
+
+<option value="1">
+Weekly
+</option>
+
+<option value="2">
+2 Weekly
+</option>
+
+<option value="4">
+4 Weekly
+</option>
+
+<option value="6">
+6 Weekly
+</option>
+
+<option value="8">
+8 Weekly
+</option>
+
+<option value="10">
+10 Weekly
+</option>
+
+<option value="12">
+12 Weekly
+</option>
+
 </select>
 
 </div>
 
 </div>
 
-<label>Next Clean</label>
-<input type="date" id="customerNextClean">
+<label>
+Next Clean
+</label>
 
-<label>Services</label>
+<input
+type="date"
+id="customerNextClean">
+
+<label>
+Services
+</label>
 
 <input
 id="customerServices"
 placeholder="Windows, gutters, fascia, soffits...">
 
-<label>Access Notes</label>
+<label>
+Access Notes
+</label>
+
 <textarea id="customerNotes"></textarea>
 
-<button class="action" onclick="saveCustomer()">
+<button
+class="action"
+onclick="saveCustomer()">
 Save Customer
 </button>
 
-<button class="action secondary" onclick="closeCustomerForm()">
+<button
+class="action secondary"
+onclick="closeCustomerForm()">
 Cancel
 </button>
 
 </div>
 
-<div id="customerList" class="customer-list"></div>
+<div
+id="customerList"
+class="customer-list">
+</div>
 
 </section>
 
-<section id="planner" class="screen">
+<section
+id="planner"
+class="screen">
 
-<h2>Daily Planner</h2>
+<h2>
+Daily Planner
+</h2>
 
-<label>Round Date</label>
+<label>
+Round Date
+</label>
 
 <input
 type="date"
@@ -704,49 +1106,94 @@ onchange="renderPlanner()">
 <div class="planner-summary">
 
 <div class="mini-stat">
-<div class="label">JOBS</div>
-<div class="num" id="plannerJobCount">0</div>
+
+<div class="label">
+JOBS
+</div>
+
+<div
+class="num"
+id="plannerJobCount">
+0
+</div>
+
 </div>
 
 <div class="mini-stat">
-<div class="label">ROUND VALUE</div>
-<div class="num green" id="plannerRoundTotal">£0.00</div>
+
+<div class="label">
+ROUND VALUE
+</div>
+
+<div
+class="num green"
+id="plannerRoundTotal">
+£0.00
 </div>
 
 </div>
 
-<div id="plannerJobs" class="job-list"></div>
+</div>
+
+<div
+id="plannerJobs"
+class="job-list">
+</div>
 
 </section>
 
-<section id="invoices" class="screen">
+<section
+id="invoices"
+class="screen">
 
-<h2>Invoices</h2>
+<h2>
+Invoices
+</h2>
 
-<button class="action" onclick="openInvoiceForm()">
+<button
+class="action"
+onclick="openInvoiceForm()">
 + New Invoice
 </button>
 
-<div id="invoiceForm" class="formBox card">
+<div
+id="invoiceForm"
+class="formBox card">
 
-<h3 style="color:#9bd600">
+<h3 style="color:#9bd600;margin-top:0">
 Create Invoice
 </h3>
 
-<label>Customer</label>
+<label>
+Customer
+</label>
+
 <select id="invoiceCustomer"></select>
 
-<label>Amount £</label>
-<input id="invoiceAmount" type="number" step="0.01">
+<label>
+Amount £
+</label>
 
-<label>Description</label>
+<input
+id="invoiceAmount"
+type="number"
+step="0.01">
+
+<label>
+Description
+</label>
+
 <textarea id="invoiceDescription"></textarea>
 
-<button class="action" onclick="saveInvoice()">
+<button
+class="action"
+onclick="saveInvoice()">
 Create Invoice
 </button>
 
-<button class="action secondary" onclick="closeInvoiceForm()">
+<button
+class="action secondary"
+onclick="closeInvoiceForm()">
 Cancel
 </button>
 
@@ -757,13 +1204,31 @@ Cancel
 <div class="invoice-summary">
 
 <div class="mini-stat">
-<div class="label">OUTSTANDING</div>
-<div class="num orange" id="invoiceOutstanding">£0.00</div>
+
+<div class="label">
+OUTSTANDING
+</div>
+
+<div
+class="num orange"
+id="invoiceOutstanding">
+£0.00
+</div>
+
 </div>
 
 <div class="mini-stat">
-<div class="label">OVERDUE</div>
-<div class="num red" id="invoiceOverdueTotal">£0.00</div>
+
+<div class="label">
+OVERDUE
+</div>
+
+<div
+class="num red"
+id="invoiceOverdueTotal">
+£0.00
+</div>
+
 </div>
 
 </div>
@@ -807,7 +1272,9 @@ Paid
 
 </div>
 
-<button class="action" onclick="toggleAccountantExport()">
+<button
+class="action"
+onclick="toggleAccountantExport()">
 Accountant Export
 </button>
 
@@ -820,73 +1287,169 @@ style="display:none">
 Accountant Export
 </h3>
 
-<label>Export period</label>
+<label>
+Export period
+</label>
 
-<select id="exportRange" onchange="toggleExportDates()">
-<option value="all">All invoices</option>
-<option value="month">This month</option>
-<option value="taxyear">Current UK tax year</option>
-<option value="custom">Custom dates</option>
+<select
+id="exportRange"
+onchange="toggleExportDates()">
+
+<option value="all">
+All invoices
+</option>
+
+<option value="month">
+This month
+</option>
+
+<option value="taxyear">
+Current UK tax year
+</option>
+
+<option value="custom">
+Custom dates
+</option>
+
 </select>
 
-<div id="exportDates" class="exportDates">
+<div
+id="exportDates"
+class="exportDates">
 
 <div>
-<label>From</label>
-<input type="date" id="exportFrom">
+
+<label>
+From
+</label>
+
+<input
+type="date"
+id="exportFrom">
+
 </div>
 
 <div>
-<label>To</label>
-<input type="date" id="exportTo">
-</div>
+
+<label>
+To
+</label>
+
+<input
+type="date"
+id="exportTo">
 
 </div>
 
-<button class="action" onclick="exportInvoicesCsv()">
+</div>
+
+<button
+class="action"
+onclick="exportInvoicesCsv()">
 Share CSV for Accountant
 </button>
 
 </div>
 
-<div id="invoiceList" class="invoice-list"></div>
+<div
+id="invoiceList"
+class="invoice-list">
+</div>
 
 </section>
 
-<section id="earnings" class="screen">
+<section
+id="earnings"
+class="screen">
 
-<h2>Earnings</h2>
+<h2>
+Earnings
+</h2>
 
 <div class="grid">
 
 <div class="card stat">
-<div class="label">PAID THIS MONTH</div>
-<div class="value green" id="earnPaidMonth">£0.00</div>
+
+<div class="label">
+PAID THIS MONTH
+</div>
+
+<div
+class="value green"
+id="earnPaidMonth">
+£0.00
+</div>
+
 </div>
 
 <div class="card stat">
-<div class="label">PAID THIS YEAR</div>
-<div class="value green" id="earnPaidYear">£0.00</div>
+
+<div class="label">
+PAID THIS YEAR
+</div>
+
+<div
+class="value green"
+id="earnPaidYear">
+£0.00
+</div>
+
 </div>
 
 <div class="card stat">
-<div class="label">OUTSTANDING</div>
-<div class="value orange" id="earnOutstanding">£0.00</div>
+
+<div class="label">
+OUTSTANDING
+</div>
+
+<div
+class="value orange"
+id="earnOutstanding">
+£0.00
+</div>
+
 </div>
 
 <div class="card stat">
-<div class="label">OVERDUE</div>
-<div class="value red" id="earnOverdue">£0.00</div>
+
+<div class="label">
+OVERDUE
+</div>
+
+<div
+class="value red"
+id="earnOverdue">
+£0.00
+</div>
+
 </div>
 
 <div class="card stat">
-<div class="label">NEXT 7 DAYS WORK</div>
-<div class="value blueText" id="earnNext7">£0.00</div>
+
+<div class="label">
+NEXT 7 DAYS WORK
+</div>
+
+<div
+class="value blueText"
+id="earnNext7">
+£0.00
+</div>
+
 </div>
 
 <div class="card stat">
-<div class="label">YEARLY ROUND EST.</div>
-<div class="value" id="earnYearlyEstimate">£0.00</div>
+
+<div class="label">
+YEARLY ROUND EST.
+</div>
+
+<div
+class="value"
+id="earnYearlyEstimate">
+£0.00
+</div>
+
 </div>
 
 </div>
@@ -898,28 +1461,42 @@ About these figures
 </h3>
 
 <div class="muted">
+
 Paid figures are based on invoices you have marked as paid.
+
 <br><br>
+
 Next 7 Days Work is based on your customers' next-clean dates.
+
 <br><br>
+
 Yearly Round Estimate is calculated from each customer's price and cleaning frequency.
+
 </div>
 
 </div>
 
 </section>
 
-<section id="map" class="screen">
+<section
+id="map"
+class="screen">
 
-<h2>Customer Map</h2>
+<h2>
+Customer Map
+</h2>
 
-<div id="mapStatus" class="map-status">
+<div
+id="mapStatus"
+class="map-status">
 Customer postcodes will appear as pins on the map.
 </div>
 
 <div id="customerMap"></div>
 
-<button class="action" onclick="renderMap()">
+<button
+class="action"
+onclick="renderMap()">
 Refresh Customer Pins
 </button>
 
@@ -1777,11 +2354,11 @@ ${c.postcode ? "<br>"+safe(c.postcode) : ""}
 
 </div>
 
-<div style="margin-top:7px">
+<div style="margin-top:8px">
 ${paymentStatus}
 </div>
 
-<div class="muted" style="margin-top:7px">
+<div class="muted" style="margin-top:8px">
 
 ${c.services ? safe(c.services)+" • " : ""}
 
@@ -1988,7 +2565,9 @@ Directions
 id="move-${c.id}"
 class="move-box card">
 
-<label>New Date</label>
+<label>
+New Date
+</label>
 
 <input
 type="date"
@@ -2440,11 +3019,11 @@ ${inv.paidDate
 
 </div>
 
-<div class="muted" style="margin-top:6px">
+<div class="muted" style="margin-top:7px">
 ${safe(inv.description || "")}
 </div>
 
-<div style="margin-top:8px">
+<div style="margin-top:9px">
 
 <span class="badge ${status}">
 
