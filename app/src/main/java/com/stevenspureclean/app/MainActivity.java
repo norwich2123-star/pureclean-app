@@ -113,11 +113,6 @@ public class MainActivity extends Activity {
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
 
-        /*
-         * IMPORTANT FIX:
-         * Allows JavaScript alert() and confirm() boxes
-         * to work inside the Android WebView.
-         */
         webView.setWebChromeClient(
                 new WebChromeClient()
         );
@@ -281,6 +276,19 @@ public class MainActivity extends Activity {
                     () -> openTextMessage(phone)
             );
         }
+
+        @JavascriptInterface
+        public void shareCsv(
+                String fileName,
+                String csvText) {
+
+            runOnUiThread(
+                    () -> shareCsvFile(
+                            fileName,
+                            csvText
+                    )
+            );
+        }
     }
 
     private void openDialler(String phone) {
@@ -366,6 +374,141 @@ public class MainActivity extends Activity {
             Toast.makeText(
                     this,
                     "Could not open messages.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    private void shareCsvFile(
+            String fileName,
+            String csvText) {
+
+        if (
+                csvText == null
+                        ||
+                csvText.trim().isEmpty()
+        ) {
+
+            Toast.makeText(
+                    this,
+                    "There is no CSV data to share.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
+        try {
+
+            String safeFileName =
+                    fileName;
+
+            if (
+                    safeFileName == null
+                            ||
+                    safeFileName.trim().isEmpty()
+            ) {
+
+                safeFileName =
+                        "PureClean-Accountant.csv";
+            }
+
+            if (
+                    !safeFileName
+                            .toLowerCase()
+                            .endsWith(".csv")
+            ) {
+
+                safeFileName += ".csv";
+            }
+
+            File folder =
+                    new File(
+                            getCacheDir(),
+                            "exports"
+                    );
+
+            if (!folder.exists()) {
+
+                folder.mkdirs();
+            }
+
+            File csvFile =
+                    new File(
+                            folder,
+                            safeFileName
+                    );
+
+            FileOutputStream output =
+                    new FileOutputStream(
+                            csvFile
+                    );
+
+            output.write(
+                    csvText.getBytes(
+                            "UTF-8"
+                    )
+            );
+
+            output.flush();
+            output.close();
+
+            Uri csvUri =
+                    FileProvider.getUriForFile(
+                            this,
+                            getPackageName()
+                                    +
+                                    ".fileprovider",
+                            csvFile
+                    );
+
+            Intent shareIntent =
+                    new Intent(
+                            Intent.ACTION_SEND
+                    );
+
+            shareIntent.setType(
+                    "text/csv"
+            );
+
+            shareIntent.putExtra(
+                    Intent.EXTRA_STREAM,
+                    csvUri
+            );
+
+            shareIntent.putExtra(
+                    Intent.EXTRA_SUBJECT,
+                    "Pure Clean Accountant Export"
+            );
+
+            shareIntent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    "Pure Clean accountant invoice export attached."
+            );
+
+            shareIntent.setClipData(
+                    ClipData.newRawUri(
+                            "Accountant CSV",
+                            csvUri
+                    )
+            );
+
+            shareIntent.addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+            );
+
+            startActivity(
+                    Intent.createChooser(
+                            shareIntent,
+                            "Share Accountant CSV"
+                    )
+            );
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not create accountant CSV.",
                     Toast.LENGTH_LONG
             ).show();
         }
@@ -1221,4 +1364,4 @@ public class MainActivity extends Activity {
 
         return file;
     }
-}
+                }
