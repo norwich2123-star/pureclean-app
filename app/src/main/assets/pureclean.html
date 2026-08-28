@@ -296,6 +296,21 @@ background:#5a438f;
 color:#fff;
 }
 
+.cashbtn{
+background:#247b45;
+color:#fff;
+}
+
+.bankbtn{
+background:#1c5f9c;
+color:#fff;
+}
+
+.unpaidbtn{
+background:#8a5a16;
+color:#fff;
+}
+
 .customer-list,
 .invoice-list,
 .job-list{
@@ -369,6 +384,12 @@ border:1px solid #555;
 background:#17314a;
 color:#79bdff;
 border:1px solid #285170;
+}
+
+.paymentBadge{
+background:#1f3c27;
+color:#6ee59b;
+border:1px solid #326343;
 }
 
 .filterbar{
@@ -448,9 +469,7 @@ gap:9px;
 margin-top:11px;
 }
 
-.backup-buttons .action{
-margin-top:0;
-}
+.backup-buttons .action{margin-top:0}
 
 .job-detail{
 margin-top:9px;
@@ -557,6 +576,56 @@ text-align:center;
 color:#888;
 font-size:11px;
 margin-top:6px;
+}
+
+/* PAYMENT POPUP */
+
+.modalOverlay{
+display:none;
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.78);
+z-index:999;
+align-items:center;
+justify-content:center;
+padding:20px;
+}
+
+.modalOverlay.show{
+display:flex;
+}
+
+.paymentModal{
+width:100%;
+max-width:420px;
+background:#111;
+border:1px solid #3d3d3d;
+border-radius:18px;
+padding:18px;
+box-shadow:0 12px 40px rgba(0,0,0,.7);
+}
+
+.paymentModal h3{
+margin:0;
+color:var(--lime);
+font-size:20px;
+}
+
+.paymentModal .customer{
+font-size:16px;
+font-weight:bold;
+margin-top:10px;
+}
+
+.paymentModal .amount{
+font-size:28px;
+font-weight:bold;
+color:var(--green);
+margin-top:5px;
+}
+
+.paymentModal .action{
+margin-top:10px;
 }
 
 </style>
@@ -902,31 +971,19 @@ oninput="renderInvoices()">
 
 <div class="filterbar">
 
-<button
-class="action small selected"
-data-filter="all"
-onclick="setInvoiceFilter('all',this)">
+<button class="action small selected" data-filter="all" onclick="setInvoiceFilter('all',this)">
 All
 </button>
 
-<button
-class="action small secondary"
-data-filter="unpaid"
-onclick="setInvoiceFilter('unpaid',this)">
+<button class="action small secondary" data-filter="unpaid" onclick="setInvoiceFilter('unpaid',this)">
 Unpaid
 </button>
 
-<button
-class="action small secondary"
-data-filter="overdue"
-onclick="setInvoiceFilter('overdue',this)">
+<button class="action small secondary" data-filter="overdue" onclick="setInvoiceFilter('overdue',this)">
 Overdue
 </button>
 
-<button
-class="action small secondary"
-data-filter="paid"
-onclick="setInvoiceFilter('paid',this)">
+<button class="action small secondary" data-filter="paid" onclick="setInvoiceFilter('paid',this)">
 Paid
 </button>
 
@@ -938,10 +995,7 @@ Paid
 Accountant Export
 </button>
 
-<div
-id="accountantExportBox"
-class="card exportBox"
-style="display:none">
+<div id="accountantExportBox" class="card exportBox" style="display:none">
 
 <h3 style="color:#9bd600;margin-top:0">
 Accountant Export
@@ -1056,6 +1110,50 @@ Refresh Customer Pins
 
 </main>
 
+<!-- PAYMENT CHOICE -->
+
+<div id="paymentModalOverlay" class="modalOverlay">
+
+<div class="paymentModal">
+
+<h3>Complete Job</h3>
+
+<div id="paymentCustomerName" class="customer"></div>
+
+<div id="paymentAmount" class="amount"></div>
+
+<div class="muted" style="margin-top:6px">
+How was this job paid?
+</div>
+
+<button
+class="action cashbtn"
+onclick="finishCompletedJob('Cash')">
+Paid Cash
+</button>
+
+<button
+class="action bankbtn"
+onclick="finishCompletedJob('Bank Transfer')">
+Paid Bank
+</button>
+
+<button
+class="action unpaidbtn"
+onclick="finishCompletedJob('Unpaid')">
+Unpaid
+</button>
+
+<button
+class="action secondary"
+onclick="closePaymentModal()">
+Cancel
+</button>
+
+</div>
+
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
@@ -1071,6 +1169,8 @@ let customerFilter="active";
 
 let map=null;
 let mapMarkers=[];
+
+let completingCustomerId=null;
 
 function activeCustomers(){
 
@@ -1259,6 +1359,16 @@ c.archived=false;
 
 if(typeof c.roundArea==="undefined"){
 c.roundArea="";
+}
+
+}
+);
+
+invoices.forEach(
+inv=>{
+
+if(typeof inv.paymentMethod==="undefined"){
+inv.paymentMethod="";
 }
 
 }
@@ -1697,6 +1807,12 @@ ${status==="paid"
 
 </span>
 
+${inv.paid && inv.paymentMethod
+? `<span class="badge paymentBadge">
+${safe(inv.paymentMethod)}
+</span>`
+: ""}
+
 </div>
 
 </div>
@@ -2123,75 +2239,54 @@ ${c.phone
 ${c.phone
 ? `
 
-<button
-class="action small callbtn"
-onclick="callCustomer('${c.id}')">
+<button class="action small callbtn" onclick="callCustomer('${c.id}')">
 Call
 </button>
 
-<button
-class="action small textbtn"
-onclick="textCustomer('${c.id}')">
+<button class="action small textbtn" onclick="textCustomer('${c.id}')">
 Text
 </button>
 
 `
 : ""}
 
-<button
-class="action small historybtn"
-onclick="toggleCustomerHistory('${c.id}')">
+<button class="action small historybtn" onclick="toggleCustomerHistory('${c.id}')">
 History
 </button>
 
-<button
-class="action small"
-onclick="editCustomer('${c.id}')">
+<button class="action small" onclick="editCustomer('${c.id}')">
 Edit
 </button>
 
-<button
-class="action small blue"
-onclick="openCustomerMap('${c.id}')">
+<button class="action small blue" onclick="openCustomerMap('${c.id}')">
 Map
 </button>
 
 ${!c.archived
 ? `
 
-<button
-class="action small secondary"
-onclick="quickInvoice('${c.id}')">
+<button class="action small secondary" onclick="quickInvoice('${c.id}')">
 Invoice
 </button>
 
-<button
-class="action small archivebtn"
-onclick="archiveCustomer('${c.id}')">
+<button class="action small archivebtn" onclick="archiveCustomer('${c.id}')">
 Archive
 </button>
 
 `
 : `
 
-<button
-class="action small restoreCustomerBtn"
-onclick="restoreCustomer('${c.id}')">
+<button class="action small restoreCustomerBtn" onclick="restoreCustomer('${c.id}')">
 Restore Customer
 </button>
 
-<button
-class="action small danger"
-onclick="deleteCustomerPermanently('${c.id}')">
+<button class="action small danger" onclick="deleteCustomerPermanently('${c.id}')">
 Delete Permanently
 </button>
 
 `}
 
-<div
-id="history-${c.id}"
-class="history-box">
-</div>
+<div id="history-${c.id}" class="history-box"></div>
 
 </div>
 
@@ -2315,15 +2410,8 @@ ${c.notes
 ? `
 
 <div class="job-notes">
-
-<strong>
-Access Notes:
-</strong>
-
-<br>
-
+<strong>Access Notes:</strong><br>
 ${safe(c.notes)}
-
 </div>
 
 `
@@ -2331,52 +2419,35 @@ ${safe(c.notes)}
 
 <div class="job-buttons">
 
-<button
-class="action"
-onclick="completeJob('${c.id}')">
+<button class="action" onclick="completeJob('${c.id}')">
 ✓ Complete
 </button>
 
-<button
-class="action skipbtn"
-onclick="skipJob('${c.id}')">
+<button class="action skipbtn" onclick="skipJob('${c.id}')">
 Skip
 </button>
 
-<button
-class="action movebtn"
-onclick="showMoveJob('${c.id}')">
+<button class="action movebtn" onclick="showMoveJob('${c.id}')">
 Move Date
 </button>
 
-<button
-class="action secondary"
-onclick="openCustomerMap('${c.id}')">
+<button class="action secondary" onclick="openCustomerMap('${c.id}')">
 Directions
 </button>
 
 </div>
 
-<div
-id="move-${c.id}"
-class="move-box card">
+<div id="move-${c.id}" class="move-box card">
 
 <label>New Date</label>
 
-<input
-type="date"
-id="move-date-${c.id}"
-value="${date}">
+<input type="date" id="move-date-${c.id}" value="${date}">
 
-<button
-class="action"
-onclick="moveJob('${c.id}')">
+<button class="action" onclick="moveJob('${c.id}')">
 Save New Date
 </button>
 
-<button
-class="action secondary"
-onclick="hideMoveJob('${c.id}')">
+<button class="action secondary" onclick="hideMoveJob('${c.id}')">
 Cancel
 </button>
 
@@ -2389,6 +2460,8 @@ Cancel
 
 }
 
+/* NEW COMPLETION / PAYMENT SYSTEM */
+
 function completeJob(id){
 
 let c=
@@ -2398,12 +2471,42 @@ if(!c || c.archived){
 return;
 }
 
-let makeInvoice=
-confirm(
-"Job completed.\n\nCreate an invoice for this clean?"
+completingCustomerId=id;
+
+paymentCustomerName.innerText=
+c.name;
+
+paymentAmount.innerText=
+"£"+Number(c.price || 0).toFixed(2);
+
+paymentModalOverlay.classList.add("show");
+
+}
+
+function closePaymentModal(){
+
+paymentModalOverlay.classList.remove("show");
+
+completingCustomerId=null;
+
+}
+
+function finishCompletedJob(paymentChoice){
+
+let c=
+customers.find(
+x=>x.id===completingCustomerId
 );
 
-if(makeInvoice){
+if(!c || c.archived){
+
+closePaymentModal();
+return;
+
+}
+
+let paid=
+paymentChoice!=="Unpaid";
 
 let invoiceDate=
 today();
@@ -2416,9 +2519,11 @@ Date.now().toString(),
 invoiceNumber:
 getNextInvoiceNumber(),
 
-customerId:c.id,
+customerId:
+c.id,
 
-customerName:c.name,
+customerName:
+c.name,
 
 amount:
 Number(c.price || 0),
@@ -2432,13 +2537,16 @@ invoiceDate,
 dueDate:
 addDays(invoiceDate,7),
 
-paid:false,
+paid:
+paid,
 
-paidDate:""
+paidDate:
+paid ? invoiceDate : "",
+
+paymentMethod:
+paid ? paymentChoice : ""
 
 });
-
-}
 
 c.nextClean=
 addDays(
@@ -2446,14 +2554,40 @@ c.nextClean || today(),
 Number(c.frequency || 4)*7
 );
 
-saveData();
-renderPlanner();
+let nextDate=
+c.nextClean;
 
-alert(
-"Job completed.\n\nNext clean: "
+closePaymentModal();
+
+saveData();
+
+renderPlanner();
+renderInvoices();
+renderCustomers();
+
+let message=
+"Job completed.";
+
+if(paid){
+
+message+=
+"\n\nPaid: "
 +
-formatDate(c.nextClean)
-);
+paymentChoice;
+
+}else{
+
+message+=
+"\n\nInvoice marked unpaid.";
+
+}
+
+message+=
+"\n\nNext clean: "
++
+formatDate(nextDate);
+
+alert(message);
 
 }
 
@@ -2630,7 +2764,9 @@ addDays(invoiceDate,7),
 
 paid:false,
 
-paidDate:""
+paidDate:"",
+
+paymentMethod:""
 
 });
 
@@ -2719,6 +2855,7 @@ let text=
 [
 inv.customerName || "",
 inv.description || "",
+inv.paymentMethod || "",
 String(invoiceNumber(inv))
 ]
 .join(" ")
@@ -2783,6 +2920,10 @@ ${inv.paidDate
 ? "<br>Paid date: "+formatDate(inv.paidDate)
 : ""}
 
+${inv.paid && inv.paymentMethod
+? "<br>Payment: "+safe(inv.paymentMethod)
+: ""}
+
 </div>
 
 </div>
@@ -2809,6 +2950,12 @@ ${status==="paid"
 
 </span>
 
+${inv.paid && inv.paymentMethod
+? `<span class="badge paymentBadge">
+${safe(inv.paymentMethod)}
+</span>`
+: ""}
+
 ${status==="overdue"
 ? `<span class="overdue-text" style="margin-left:6px">
 ${overdueDays} day${overdueDays===1 ? "" : "s"} overdue
@@ -2820,35 +2967,27 @@ ${overdueDays} day${overdueDays===1 ? "" : "s"} overdue
 ${!inv.paid
 ? `
 
-<button
-class="action small"
-onclick="markPaid('${inv.id}')">
+<button class="action small" onclick="markPaid('${inv.id}')">
 Mark Paid
 </button>
 
 `
 : `
 
-<button
-class="action small undopaidbtn"
-onclick="undoPaid('${inv.id}')">
+<button class="action small undopaidbtn" onclick="undoPaid('${inv.id}')">
 Undo Paid
 </button>
 
 `}
 
-<button
-class="action small emailbtn"
-onclick="emailInvoice('${inv.id}')">
+<button class="action small emailbtn" onclick="emailInvoice('${inv.id}')">
 Email Customer
 </button>
 
 ${!inv.paid
 ? `
 
-<button
-class="action small reminderbtn"
-onclick="sendReminder('${inv.id}')">
+<button class="action small reminderbtn" onclick="sendReminder('${inv.id}')">
 Send Reminder
 </button>
 
@@ -2873,8 +3012,22 @@ if(!inv){
 return;
 }
 
+let bank=
+confirm(
+"Was this payment received by bank transfer?\n\nOK = Bank Transfer\nCancel = Cash"
+);
+
 inv.paid=true;
-inv.paidDate=today();
+
+inv.paidDate=
+today();
+
+inv.paymentMethod=
+bank
+?
+"Bank Transfer"
+:
+"Cash";
 
 saveData();
 renderInvoices();
@@ -2901,6 +3054,7 @@ return;
 
 inv.paid=false;
 inv.paidDate="";
+inv.paymentMethod="";
 
 saveData();
 renderInvoices();
@@ -3201,6 +3355,7 @@ let csv=[
 "Description",
 "Amount",
 "Status",
+"Payment Method",
 "Paid Date"
 ]
 .map(csvCell)
@@ -3225,6 +3380,7 @@ formatDate(invoiceDueDate(inv)),
 inv.description || "",
 Number(inv.amount || 0).toFixed(2),
 invoiceStatus(inv).toUpperCase(),
+inv.paymentMethod || "",
 inv.paidDate ? formatDate(inv.paidDate) : ""
 ]
 .map(csvCell)
@@ -3878,6 +4034,15 @@ changed=true;
 
 }
 
+if(
+typeof inv.paymentMethod==="undefined"
+){
+
+inv.paymentMethod="";
+changed=true;
+
+}
+
 }
 );
 
@@ -3903,4 +4068,4 @@ updateEarnings();
 </script>
 
 </body>
-</html>
+  </html>
