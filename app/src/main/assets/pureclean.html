@@ -311,9 +311,15 @@ background:#8a5a16;
 color:#fff;
 }
 
+.owesbtn{
+background:#7b3b16;
+color:#fff;
+}
+
 .customer-list,
 .invoice-list,
-.job-list{
+.job-list,
+.owes-list{
 display:grid;
 gap:10px;
 margin-top:12px;
@@ -352,6 +358,7 @@ border-radius:20px;
 font-size:10px;
 font-weight:bold;
 letter-spacing:.35px;
+margin-right:3px;
 }
 
 .paid,
@@ -417,7 +424,8 @@ border-color:var(--lime);
 }
 
 .invoice-summary,
-.planner-summary{
+.planner-summary,
+.owes-summary{
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:9px;
@@ -541,12 +549,17 @@ font-weight:bold;
 margin-top:5px;
 }
 
-.history-entry{
+.history-entry,
+.owed-invoice{
 background:#151515;
 border:1px solid #292929;
 border-radius:11px;
 padding:11px;
 margin-top:8px;
+}
+
+.owed-invoice.overdueInvoice{
+border-color:#6b2230;
 }
 
 .earnings-info{
@@ -717,8 +730,8 @@ No jobs due today
 Unpaid Invoices
 </h3>
 
-<button class="action small secondary" onclick="openPage('invoices')">
-View all
+<button class="action small owesbtn" onclick="openOwesPage()">
+Money Owed
 </button>
 
 </div>
@@ -936,6 +949,10 @@ All Areas
 
 <h2>Invoices</h2>
 
+<button class="action owesbtn" onclick="openOwesPage()">
+£ Money Owed
+</button>
+
 <button class="action" onclick="openInvoiceForm()">
 + New Invoice
 </button>
@@ -1048,6 +1065,55 @@ Share CSV for Accountant
 </div>
 
 <div id="invoiceList" class="invoice-list"></div>
+
+</section>
+
+<!-- MONEY OWED SCREEN -->
+
+<section id="owes" class="screen">
+
+<div class="row">
+
+<h2 style="margin-bottom:0">
+Money Owed
+</h2>
+
+<button class="action small secondary" onclick="openPage('invoices')">
+Back
+</button>
+
+</div>
+
+<div class="owes-summary">
+
+<div class="mini-stat">
+<div class="label">TOTAL OWED</div>
+<div class="num orange" id="owesTotal">£0.00</div>
+</div>
+
+<div class="mini-stat">
+<div class="label">CUSTOMERS OWING</div>
+<div class="num" id="owesCustomers">0</div>
+</div>
+
+<div class="mini-stat">
+<div class="label">OVERDUE</div>
+<div class="num red" id="owesOverdue">£0.00</div>
+</div>
+
+<div class="mini-stat">
+<div class="label">UNPAID INVOICES</div>
+<div class="num" id="owesInvoices">0</div>
+</div>
+
+</div>
+
+<input
+id="owesSearch"
+placeholder="Search customer..."
+oninput="renderOwes()">
+
+<div id="owesList" class="owes-list"></div>
 
 </section>
 
@@ -1348,6 +1414,14 @@ refreshRoundAreas();
 updateDashboard();
 updateEarnings();
 
+if(
+document
+.getElementById("owes")
+.classList.contains("active")
+){
+renderOwes();
+}
+
 }
 
 function backupBusinessData(){
@@ -1492,6 +1566,7 @@ refreshRoundAreas();
 renderCustomers();
 renderPlanner();
 renderInvoices();
+renderOwes();
 updateDashboard();
 updateEarnings();
 
@@ -1537,6 +1612,10 @@ if(id==="invoices"){
 renderInvoices();
 }
 
+if(id==="owes"){
+renderOwes();
+}
+
 if(id==="earnings"){
 updateEarnings();
 }
@@ -1544,6 +1623,13 @@ updateEarnings();
 if(id==="map"){
 setTimeout(renderMap,250);
 }
+
+}
+
+function openOwesPage(){
+
+openPage("owes");
+renderOwes();
 
 }
 
@@ -1697,6 +1783,295 @@ paid:paid,
 outstanding:outstanding,
 count:records.length
 };
+
+}
+
+/* MONEY OWED */
+
+function customersWhoOwe(){
+
+let ids=
+[
+...new Set(
+invoices
+.filter(inv=>!inv.paid)
+.map(inv=>inv.customerId)
+)
+];
+
+return ids
+.map(
+id=>customers.find(c=>c.id===id)
+)
+.filter(Boolean);
+
+}
+
+function renderOwes(){
+
+let unpaid=
+invoices.filter(inv=>!inv.paid);
+
+let total=
+unpaid.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+let overdue=
+unpaid
+.filter(inv=>invoiceStatus(inv)==="overdue")
+.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+let owingCustomers=
+customersWhoOwe();
+
+owesTotal.innerText=
+"£"+total.toFixed(2);
+
+owesCustomers.innerText=
+owingCustomers.length;
+
+owesOverdue.innerText=
+"£"+overdue.toFixed(2);
+
+owesInvoices.innerText=
+unpaid.length;
+
+let search=
+(
+document.getElementById("owesSearch").value || ""
+)
+.toLowerCase()
+.trim();
+
+let filtered=
+owingCustomers
+.filter(
+c=>
+(c.name || "")
+.toLowerCase()
+.includes(search)
+||
+(c.address || "")
+.toLowerCase()
+.includes(search)
+||
+(c.postcode || "")
+.toLowerCase()
+.includes(search)
+)
+.sort(
+(a,b)=>{
+
+let aTotal=
+customerHistoryTotals(a.id).outstanding;
+
+let bTotal=
+customerHistoryTotals(b.id).outstanding;
+
+return bTotal-aTotal;
+
+}
+);
+
+if(filtered.length===0){
+
+owesList.innerHTML=
+'<div class="item empty">Nobody owes money.</div>';
+
+return;
+
+}
+
+owesList.innerHTML=
+filtered.map(
+c=>{
+
+let customerUnpaid=
+invoices
+.filter(
+inv=>
+inv.customerId===c.id
+&&
+!inv.paid
+)
+.sort(
+(a,b)=>
+String(a.date || "")
+.localeCompare(
+String(b.date || "")
+)
+);
+
+let totalOwed=
+customerUnpaid.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+let overdueTotal=
+customerUnpaid
+.filter(inv=>invoiceStatus(inv)==="overdue")
+.reduce(
+(sum,inv)=>sum+Number(inv.amount || 0),
+0
+);
+
+let invoiceHtml=
+customerUnpaid.map(
+inv=>{
+
+let status=
+invoiceStatus(inv);
+
+return `
+
+<div class="owed-invoice ${status==="overdue" ? "overdueInvoice" : ""}">
+
+<div class="row">
+
+<div>
+
+<strong>
+Invoice #${safe(invoiceNumber(inv))}
+</strong>
+
+<div class="muted">
+${formatDate(inv.date)}
+<br>
+Due ${formatDate(invoiceDueDate(inv))}
+</div>
+
+</div>
+
+<div class="price">
+£${Number(inv.amount || 0).toFixed(2)}
+</div>
+
+</div>
+
+<div style="margin-top:8px">
+
+<span class="badge ${status}">
+${status==="overdue" ? "OVERDUE" : "UNPAID"}
+</span>
+
+${status==="overdue"
+? `<span class="overdue-text">
+${daysOverdue(inv)} day${daysOverdue(inv)===1 ? "" : "s"} overdue
+</span>`
+: ""}
+
+</div>
+
+<button
+class="action small reminderbtn"
+onclick="sendReminder('${inv.id}')">
+Email Reminder
+</button>
+
+<button
+class="action small"
+onclick="markPaid('${inv.id}')">
+Mark Paid
+</button>
+
+</div>
+
+`;
+
+}
+).join("");
+
+return `
+
+<div class="item">
+
+<div class="row">
+
+<div>
+
+<div class="customer-name">
+${safe(c.name)}
+</div>
+
+<div class="muted">
+${safe(c.address)}
+${c.postcode ? "<br>"+safe(c.postcode) : ""}
+</div>
+
+</div>
+
+<div style="text-align:right">
+
+<div class="label">
+OWES
+</div>
+
+<div class="price" style="font-size:20px;color:#ffc33d">
+£${totalOwed.toFixed(2)}
+</div>
+
+</div>
+
+</div>
+
+<div style="margin-top:9px">
+
+<span class="badge owesstatus">
+${customerUnpaid.length} UNPAID
+</span>
+
+${overdueTotal>0
+? `<span class="badge overdue">
+OVERDUE £${overdueTotal.toFixed(2)}
+</span>`
+: ""}
+
+</div>
+
+${c.phone
+? `
+
+<button
+class="action small callbtn"
+onclick="callCustomer('${c.id}')">
+Call
+</button>
+
+<button
+class="action small textbtn"
+onclick="textCustomer('${c.id}')">
+Text
+</button>
+
+`
+: ""}
+
+${!c.email
+? '<div class="muted" style="margin-top:8px">No email address saved.</div>'
+: ""}
+
+<div style="margin-top:10px">
+
+<strong style="color:#b8e63e">
+Unpaid Invoices
+</strong>
+
+</div>
+
+${invoiceHtml}
+
+</div>
+
+`;
+
+}
+).join("");
 
 }
 
@@ -2117,6 +2492,7 @@ customerName.value=c.name || "";
 customerAddress.value=c.address || "";
 customerPostcode.value=c.postcode || "";
 customerRoundArea.value=c.roundArea || "";
+
 customerPreferredDay.value=
 typeof c.preferredDay==="undefined"
 ?
@@ -4197,10 +4573,11 @@ refreshRoundAreas();
 renderCustomers();
 renderPlanner();
 renderInvoices();
+renderOwes();
 updateDashboard();
 updateEarnings();
 
 </script>
 
 </body>
-</html>
+  </html>
