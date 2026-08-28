@@ -651,6 +651,58 @@ color:var(--green);
 margin-top:5px;
 }
 
+/* NEW PLANNER DAY ARROWS */
+
+.planner-date-card{
+background:linear-gradient(180deg,#151515,#0e0e0e);
+border:1px solid #303030;
+border-radius:15px;
+padding:13px;
+margin-bottom:12px;
+}
+
+.planner-date-nav{
+display:grid;
+grid-template-columns:58px 1fr 58px;
+gap:8px;
+align-items:center;
+}
+
+.planner-arrow{
+border:1px solid #3b3b3b;
+background:#1d1d1d;
+color:var(--lime);
+font-size:25px;
+font-weight:bold;
+border-radius:11px;
+min-height:52px;
+}
+
+.planner-today{
+border:0;
+background:linear-gradient(180deg,var(--lime2),var(--lime));
+color:#000;
+font-weight:bold;
+font-size:15px;
+border-radius:11px;
+min-height:52px;
+}
+
+.planner-date-title{
+text-align:center;
+font-size:20px;
+font-weight:bold;
+color:#fff;
+margin-top:12px;
+}
+
+.planner-date-subtitle{
+text-align:center;
+font-size:12px;
+color:#999;
+margin-top:4px;
+}
+
 /* PIN SECURITY */
 
 .pin-lock{
@@ -664,9 +716,7 @@ justify-content:center;
 padding:22px;
 }
 
-.pin-lock.show{
-display:flex;
-}
+.pin-lock.show{display:flex}
 
 .pin-box{
 width:100%;
@@ -714,9 +764,7 @@ font-size:12px;
 font-weight:bold;
 }
 
-.security-card{
-margin-top:13px;
-}
+.security-card{margin-top:13px}
 
 .security-status{
 display:flex;
@@ -793,25 +841,28 @@ Continue
 </button>
 
 </div>
-
 </div>
 
 <header>
+
 <img src="logo.jpg" class="logo" alt="logo">
 
 <div class="brand">
 <h1>Steven's Pure Clean Exteriors</h1>
 <p>Pure Results • Clean Exteriors</p>
 </div>
+
 </header>
 
 <nav>
+
 <button class="active" onclick="openPage('dashboard',this)">Dashboard</button>
 <button onclick="openPage('customers',this)">Customers</button>
 <button onclick="openPage('planner',this)">Planner</button>
 <button onclick="openPage('invoices',this)">Invoices</button>
 <button onclick="openPage('earnings',this)">Earnings</button>
 <button onclick="openPage('map',this)">Map</button>
+
 </nav>
 
 <main>
@@ -852,7 +903,7 @@ Continue
 Today's Round
 </h3>
 
-<button class="action small secondary" onclick="openPage('planner')">
+<button class="action small secondary" onclick="openPlannerToday()">
 View all
 </button>
 
@@ -1081,12 +1132,35 @@ Cancel
 
 <h2>Daily Planner</h2>
 
-<label>Round Date</label>
+<div class="planner-date-card">
+
+<div class="planner-date-nav">
+
+<button class="planner-arrow" onclick="changePlannerDay(-1)">
+←
+</button>
+
+<button class="planner-today" onclick="plannerToday()">
+Today
+</button>
+
+<button class="planner-arrow" onclick="changePlannerDay(1)">
+→
+</button>
+
+</div>
+
+<div id="plannerDateTitle" class="planner-date-title"></div>
+
+<div id="plannerDateSubtitle" class="planner-date-subtitle"></div>
 
 <input
 type="date"
 id="plannerDate"
+style="display:none"
 onchange="renderPlanner()">
+
+</div>
 
 <label>Round Area</label>
 
@@ -1446,13 +1520,9 @@ About these figures
 </h3>
 
 <div class="muted">
-
 Paid figures are based on invoices you have marked as paid.
-
 <br><br>
-
 Next 7 Days Work and Yearly Round Estimate only include active customers.
-
 </div>
 
 </div>
@@ -1621,7 +1691,6 @@ let map=null;
 let mapMarkers=[];
 
 let completingCustomerId=null;
-
 let pinMode="unlock";
 
 /* PIN SECURITY */
@@ -1692,7 +1761,6 @@ pinError.innerText=
 "Please enter exactly 4 numbers.";
 
 return;
-
 }
 
 if(pinMode==="setup"){
@@ -1706,7 +1774,6 @@ pinError.innerText=
 "Please confirm your 4-digit PIN.";
 
 return;
-
 }
 
 if(pin!==confirmPin){
@@ -1715,9 +1782,7 @@ pinError.innerText=
 "The two PIN numbers do not match.";
 
 pinConfirmInput.value="";
-
 return;
-
 }
 
 localStorage.setItem("pcAppPin",pin);
@@ -1729,14 +1794,12 @@ updateSecurityStatus();
 alert("PIN lock is now enabled.");
 
 return;
-
 }
 
 if(pin===currentPin()){
 
 hidePinScreen();
 return;
-
 }
 
 pinError.innerText=
@@ -1757,7 +1820,6 @@ if(!validPin(pin)){
 
 showPinScreen("setup");
 return;
-
 }
 
 if(pinLockEnabled()){
@@ -1772,7 +1834,6 @@ if(!validPin(currentPin())){
 
 showPinScreen("setup");
 return;
-
 }
 
 showPinScreen("unlock");
@@ -1781,8 +1842,11 @@ showPinScreen("unlock");
 
 function updateSecurityStatus(){
 
-let status=document.getElementById("pinStatusText");
-let button=document.getElementById("togglePinButton");
+let status=
+document.getElementById("pinStatusText");
+
+let button=
+document.getElementById("togglePinButton");
 
 if(!status || !button){
 return;
@@ -1819,7 +1883,6 @@ if(entered!==currentPin()){
 
 alert("Incorrect PIN.");
 return;
-
 }
 
 if(
@@ -1837,7 +1900,6 @@ updateSecurityStatus();
 alert("PIN lock has been turned off.");
 
 return;
-
 }
 
 localStorage.setItem("pcPinEnabled","true");
@@ -1861,7 +1923,6 @@ if(oldPin!==currentPin()){
 
 alert("Incorrect current PIN.");
 return;
-
 }
 
 let newPin=
@@ -1875,7 +1936,6 @@ if(!validPin(newPin)){
 
 alert("Your PIN must contain exactly 4 numbers.");
 return;
-
 }
 
 let confirmPin=
@@ -1889,7 +1949,6 @@ if(newPin!==confirmPin){
 
 alert("The new PIN numbers did not match.");
 return;
-
 }
 
 localStorage.setItem("pcAppPin",newPin);
@@ -2140,7 +2199,6 @@ if(
 
 alert("This is not a valid Pure Clean business backup.");
 return;
-
 }
 
 customers=backup.customers;
@@ -2289,6 +2347,14 @@ setTimeout(renderMap,250);
 
 }
 
+function openPlannerToday(){
+
+plannerDate.value=today();
+openPage("planner");
+renderPlanner();
+
+}
+
 function openOwesPage(){
 
 openPage("owes");
@@ -2333,6 +2399,78 @@ return "";
 d.setDate(d.getDate()+days);
 
 return d.toISOString().split("T")[0];
+
+}
+
+/* NEW PLANNER DATE CONTROLS */
+
+function plannerToday(){
+
+plannerDate.value=today();
+
+renderPlanner();
+
+}
+
+function changePlannerDay(amount){
+
+if(!plannerDate.value){
+plannerDate.value=today();
+}
+
+plannerDate.value=
+addDays(
+plannerDate.value,
+amount
+);
+
+renderPlanner();
+
+}
+
+function updatePlannerDateHeader(){
+
+if(!plannerDate.value){
+plannerDate.value=today();
+}
+
+let d=
+new Date(
+plannerDate.value+"T12:00:00"
+);
+
+let title=
+d.toLocaleDateString(
+"en-GB",
+{
+weekday:"long"
+}
+);
+
+let subtitle=
+d.toLocaleDateString(
+"en-GB",
+{
+day:"numeric",
+month:"long",
+year:"numeric"
+}
+);
+
+if(plannerDate.value===today()){
+
+plannerDateTitle.innerText=
+"Today — "+title;
+
+}else{
+
+plannerDateTitle.innerText=
+title;
+
+}
+
+plannerDateSubtitle.innerText=
+subtitle;
 
 }
 
@@ -2773,11 +2911,7 @@ reportBestMonth.innerText=
 monthLabel(best.month);
 
 reportBestAmount.innerText=
-"£"
-+
-best.amount.toFixed(2)
-+
-" received";
+"£"+best.amount.toFixed(2)+" received";
 
 }else{
 
@@ -2873,9 +3007,7 @@ owesInvoices.innerText=
 unpaid.length;
 
 let search=
-(
-owesSearch.value || ""
-)
+(owesSearch.value || "")
 .toLowerCase()
 .trim();
 
@@ -2883,17 +3015,11 @@ let filtered=
 owingCustomers
 .filter(
 c=>
-(c.name || "")
-.toLowerCase()
-.includes(search)
+(c.name || "").toLowerCase().includes(search)
 ||
-(c.address || "")
-.toLowerCase()
-.includes(search)
+(c.address || "").toLowerCase().includes(search)
 ||
-(c.postcode || "")
-.toLowerCase()
-.includes(search)
+(c.postcode || "").toLowerCase().includes(search)
 )
 .sort(
 (a,b)=>
@@ -2908,7 +3034,6 @@ owesList.innerHTML=
 '<div class="item empty">Nobody owes money.</div>';
 
 return;
-
 }
 
 owesList.innerHTML=
@@ -3197,7 +3322,6 @@ if(box.classList.contains("show")){
 
 box.classList.remove("show");
 return;
-
 }
 
 document
@@ -3398,7 +3522,6 @@ if(!name){
 
 alert("Please enter the customer's name.");
 return;
-
 }
 
 let email=
@@ -3414,7 +3537,6 @@ email
 
 alert("That email address does not look right.");
 return;
-
 }
 
 let existingCustomer=
@@ -3547,7 +3669,6 @@ if(!c || !c.phone){
 
 alert("This customer does not have a phone number saved.");
 return;
-
 }
 
 if(
@@ -3576,7 +3697,6 @@ if(!c || !c.phone){
 
 alert("This customer does not have a phone number saved.");
 return;
-
 }
 
 if(
@@ -3613,27 +3733,19 @@ let filtered=
 source.filter(
 c=>
 
-(c.name || "")
-.toLowerCase()
-.includes(search)
+(c.name || "").toLowerCase().includes(search)
 
 ||
 
-(c.address || "")
-.toLowerCase()
-.includes(search)
+(c.address || "").toLowerCase().includes(search)
 
 ||
 
-(c.postcode || "")
-.toLowerCase()
-.includes(search)
+(c.postcode || "").toLowerCase().includes(search)
 
 ||
 
-(c.roundArea || "")
-.toLowerCase()
-.includes(search)
+(c.roundArea || "").toLowerCase().includes(search)
 
 ||
 
@@ -3653,7 +3765,6 @@ customerFilter==="archived"
 '<div class="item empty">No active customers found.</div>';
 
 return;
-
 }
 
 customerList.innerHTML=
@@ -3798,6 +3909,8 @@ Delete Permanently
 
 }
 
+/* PLANNER */
+
 function renderPlanner(){
 
 refreshRoundAreas();
@@ -3805,6 +3918,8 @@ refreshRoundAreas();
 if(!plannerDate.value){
 plannerDate.value=today();
 }
+
+updatePlannerDateHeader();
 
 let date=
 plannerDate.value;
@@ -3850,10 +3965,9 @@ plannerRoundTotal.innerText=
 if(jobs.length===0){
 
 plannerJobs.innerHTML=
-'<div class="item empty">No jobs scheduled for this date and area.</div>';
+'<div class="item empty">No jobs scheduled for this day.</div>';
 
 return;
-
 }
 
 plannerJobs.innerHTML=
@@ -3989,15 +4103,13 @@ c.name;
 paymentAmount.innerText=
 "£"+Number(c.price || 0).toFixed(2);
 
-paymentModalOverlay
-.classList.add("show");
+paymentModalOverlay.classList.add("show");
 
 }
 
 function closePaymentModal(){
 
-paymentModalOverlay
-.classList.remove("show");
+paymentModalOverlay.classList.remove("show");
 
 completingCustomerId=null;
 
@@ -4014,7 +4126,6 @@ if(!c || c.archived){
 
 closePaymentModal();
 return;
-
 }
 
 let paid=
@@ -4166,7 +4277,6 @@ if(
 
 alert("Please choose a new date.");
 return;
-
 }
 
 c.nextClean=
@@ -4182,6 +4292,8 @@ formatDate(c.nextClean)
 );
 
 }
+
+/* INVOICES */
 
 function openInvoiceForm(){
 
@@ -4220,7 +4332,6 @@ alert(
 );
 
 return;
-
 }
 
 openPage("invoices");
@@ -4251,7 +4362,6 @@ if(!c || c.archived){
 
 alert("Please select an active customer.");
 return;
-
 }
 
 let invoiceDate=
@@ -4389,7 +4499,6 @@ invoiceList.innerHTML=
 '<div class="item empty">No invoices match this view.</div>';
 
 return;
-
 }
 
 let ordered=
@@ -4597,21 +4706,18 @@ if(!customer){
 
 alert("Customer details could not be found.");
 return;
-
 }
 
 if(!customer.email){
 
 alert("This customer does not have an email address saved.");
 return;
-
 }
 
 if(!validEmail(customer.email)){
 
 alert("The customer's saved email address is invalid.");
 return;
-
 }
 
 if(
@@ -4671,7 +4777,6 @@ if(inv.paid){
 
 alert("This invoice is already marked as paid.");
 return;
-
 }
 
 let customer=
@@ -4683,21 +4788,18 @@ if(!customer){
 
 alert("Customer details could not be found.");
 return;
-
 }
 
 if(!customer.email){
 
 alert("This customer does not have an email address saved.");
 return;
-
 }
 
 if(!validEmail(customer.email)){
 
 alert("The customer's saved email address is invalid.");
 return;
-
 }
 
 if(inv.lastReminderDate){
@@ -4884,14 +4986,12 @@ if(!from || !to){
 
 alert("Please choose both From and To dates.");
 return null;
-
 }
 
 if(from>to){
 
 alert("The From date must be before the To date.");
 return null;
-
 }
 
 }
@@ -5055,7 +5155,6 @@ if(rows.length===0){
 
 alert("There are no invoices matching those export choices.");
 return;
-
 }
 
 let columns=
@@ -5065,7 +5164,6 @@ if(columns.length===0){
 
 alert("Please select at least one column to export.");
 return;
-
 }
 
 let csv=[];
@@ -5250,12 +5348,13 @@ csvText
 );
 
 return;
-
 }
 
 alert("Android CSV sharing is not available.");
 
 }
+
+/* DASHBOARD */
 
 function updateDashboard(){
 
@@ -5549,6 +5648,8 @@ earnYearlyEstimate.innerText=
 
 }
 
+/* MAP */
+
 async function postcodeCoordinates(postcode){
 
 let cleaned=
@@ -5607,7 +5708,6 @@ mapStatus.innerText=
 "Map could not load. Check your internet connection.";
 
 return;
-
 }
 
 map=
@@ -5658,7 +5758,6 @@ mapStatus.innerText=
 "Add active customer postcodes to show pins on the map.";
 
 return;
-
 }
 
 mapStatus.innerText=
@@ -5749,7 +5848,6 @@ if(!query){
 
 alert("This customer has no address or postcode.");
 return;
-
 }
 
 window.location.href=
@@ -5850,7 +5948,6 @@ inv.invoiceNumber=
 nextNumber++;
 
 changed=true;
-
 }
 
 if(
@@ -5863,7 +5960,6 @@ inv.dueDate=
 addDays(inv.date,7);
 
 changed=true;
-
 }
 
 if(
@@ -5872,7 +5968,6 @@ typeof inv.paidDate==="undefined"
 
 inv.paidDate="";
 changed=true;
-
 }
 
 if(
@@ -5881,7 +5976,6 @@ typeof inv.paymentMethod==="undefined"
 
 inv.paymentMethod="";
 changed=true;
-
 }
 
 if(
@@ -5890,7 +5984,6 @@ typeof inv.lastReminderDate==="undefined"
 
 inv.lastReminderDate="";
 changed=true;
-
 }
 
 if(
@@ -5899,7 +5992,6 @@ typeof inv.reminderCount==="undefined"
 
 inv.reminderCount=0;
 changed=true;
-
 }
 
 });
