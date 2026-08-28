@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.content.Intent;
 import android.content.ClipData;
 
+import android.content.pm.ResolveInfo;
+
 import android.net.Uri;
 
 import android.provider.MediaStore;
@@ -53,6 +55,7 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import java.util.zip.ZipEntry;
@@ -75,6 +78,10 @@ public class MainActivity extends Activity {
     private String backupJson = "";
 
     private String pendingExpenseId = "";
+
+    /*
+     * Camera uses a temporary cache file first.
+     */
     private File pendingCameraFile = null;
 
     @Override
@@ -355,11 +362,6 @@ public class MainActivity extends Activity {
             );
         }
 
-        /*
-         * FULL BACKUP
-         * Includes normal business JSON plus receipt photos.
-         */
-
         @JavascriptInterface
         public void backupBusinessDataWithPhotos(
                 String json) {
@@ -376,10 +378,6 @@ public class MainActivity extends Activity {
                     () -> startFullRestore()
             );
         }
-
-        /*
-         * EXPENSE RECEIPT PHOTOS
-         */
 
         @JavascriptInterface
         public void takeExpenseReceipt(
@@ -464,10 +462,6 @@ public class MainActivity extends Activity {
 
             return file.delete();
         }
-
-        /*
-         * EXPENSE ACCOUNTANT PACK
-         */
 
         @JavascriptInterface
         public void shareExpenseAccountantPack(
@@ -661,6 +655,12 @@ public class MainActivity extends Activity {
         }
     }
 
+    /*
+     * =========================================================
+     * CAMERA
+     * =========================================================
+     */
+
     private void startExpenseCamera(
             String expenseId) {
 
@@ -673,15 +673,38 @@ public class MainActivity extends Activity {
 
         try {
 
-            File file =
+            /*
+             * Camera writes to CACHE first.
+             * This is much more reliable across Samsung /
+             * Android camera apps.
+             */
+
+            File cameraFolder =
                     new File(
-                            receiptFolder(),
-                            newReceiptFileName(
-                                    pendingExpenseId
-                            )
+                            getCacheDir(),
+                            "camera_receipts"
                     );
 
-            pendingCameraFile = file;
+            if (!cameraFolder.exists()) {
+
+                if (!cameraFolder.mkdirs()) {
+
+                    Toast.makeText(
+                            this,
+                            "Could not prepare camera storage.",
+                            Toast.LENGTH_LONG
+                    ).show();
+
+                    return;
+                }
+            }
+
+            pendingCameraFile =
+                    File.createTempFile(
+                            "receipt_camera_",
+                            ".jpg",
+                            cameraFolder
+                    );
 
             Uri photoUri =
                     FileProvider.getUriForFile(
@@ -689,7 +712,7 @@ public class MainActivity extends Activity {
                             getPackageName()
                                     +
                                     ".fileprovider",
-                            file
+                            pendingCameraFile
                     );
 
             Intent intent =
@@ -715,6 +738,37 @@ public class MainActivity extends Activity {
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
             );
 
+            List<ResolveInfo> cameraApps =
+                    getPackageManager()
+                            .queryIntentActivities(
+                                    intent,
+                                    0
+                            );
+
+            for (ResolveInfo resolveInfo : cameraApps) {
+
+                if (
+                        resolveInfo == null
+                                ||
+                        resolveInfo.activityInfo == null
+                ) {
+                    continue;
+                }
+
+                String packageName =
+                        resolveInfo
+                                .activityInfo
+                                .packageName;
+
+                grantUriPermission(
+                        packageName,
+                        photoUri,
+                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                                |
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                );
+            }
+
             if (
                     intent.resolveActivity(
                             getPackageManager()
@@ -722,6 +776,15 @@ public class MainActivity extends Activity {
                             ==
                     null
             ) {
+
+                if (
+                        pendingCameraFile != null
+                                &&
+                        pendingCameraFile.exists()
+                ) {
+
+                    pendingCameraFile.delete();
+                }
 
                 pendingCameraFile = null;
 
@@ -740,6 +803,15 @@ public class MainActivity extends Activity {
             );
 
         } catch (Exception e) {
+
+            if (
+                    pendingCameraFile != null
+                            &&
+                    pendingCameraFile.exists()
+            ) {
+
+                pendingCameraFile.delete();
+            }
 
             pendingCameraFile = null;
 
@@ -1139,64 +1211,65 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void compressCameraReceipt() {
+    /*
+     * Takes the temporary camera photo and saves it permanently
+     * inside the private receipt folder.
+     */
+
+    private File saveCameraReceipt() {
 
         if (
                 pendingCameraFile == null
                         ||
                 !pendingCameraFile.exists()
+                        ||
+                pendingCameraFile.length() <= 0
         ) {
-            return;
+
+            return null;
         }
+
+        File destination =
+                new File(
+                        receiptFolder(),
+                        newReceiptFileName(
+                                pendingExpenseId
+                        )
+                );
 
         try {
 
-            File compressed =
-                    new File(
-                            receiptFolder(),
-                            "compressed_"
-                                    +
-                                    pendingCameraFile
-                                            .getName()
-                    );
-
-            boolean success =
+            boolean compressed =
                     compressReceiptImage(
                             pendingCameraFile,
-                            compressed
+                            destination
                     );
 
-            if (success) {
+            if (!compressed) {
 
-                if (
-                        pendingCameraFile
-                                .delete()
-                ) {
+                copyFile(
+                        pendingCameraFile,
+                        destination
+                );
+            }
 
-                    if (
-                            !compressed.renameTo(
-                                    pendingCameraFile
-                            )
-                    ) {
+            if (
+                    destination.exists()
+                            &&
+                    destination.length() > 0
+            ) {
 
-                        copyFile(
-                                compressed,
-                                pendingCameraFile
-                        );
-
-                        compressed.delete();
-                    }
-                }
-
-            } else {
-
-                if (compressed.exists()) {
-                    compressed.delete();
-                }
+                return destination;
             }
 
         } catch (Exception ignored) {
         }
+
+        if (destination.exists()) {
+            destination.delete();
+        }
+
+        return null;
     }
 
     private void notifyExpenseReceiptSaved(
@@ -1415,10 +1488,6 @@ public class MainActivity extends Activity {
                             rawOutput
                     );
 
-            /*
-             * Business JSON
-             */
-
             zip.putNextEntry(
                     new ZipEntry(
                             "business.json"
@@ -1435,10 +1504,6 @@ public class MainActivity extends Activity {
             );
 
             zip.closeEntry();
-
-            /*
-             * Receipt photos
-             */
 
             File[] receipts =
                     receiptFolder()
@@ -1730,10 +1795,6 @@ public class MainActivity extends Activity {
                 return;
             }
 
-            /*
-             * Only replace receipt files after validating JSON.
-             */
-
             File liveReceipts =
                     receiptFolder();
 
@@ -1867,8 +1928,7 @@ public class MainActivity extends Activity {
             if (
                     safeFileName == null
                             ||
-                    safeFileName.trim()
-                            .isEmpty()
+                    safeFileName.trim().isEmpty()
             ) {
 
                 safeFileName =
@@ -1907,10 +1967,6 @@ public class MainActivity extends Activity {
                             )
                     );
 
-            /*
-             * CSV
-             */
-
             zip.putNextEntry(
                     new ZipEntry(
                             "expenses.csv"
@@ -1924,10 +1980,6 @@ public class MainActivity extends Activity {
             );
 
             zip.closeEntry();
-
-            /*
-             * Selected receipt photos
-             */
 
             JSONArray receiptNames;
 
@@ -2073,7 +2125,7 @@ public class MainActivity extends Activity {
 
     /*
      * =========================================================
-     * EXISTING PHONE / TEXT FEATURES
+     * PHONE / TEXT
      * =========================================================
      */
 
@@ -2181,7 +2233,7 @@ public class MainActivity extends Activity {
 
     /*
      * =========================================================
-     * EXISTING CSV EXPORT
+     * CSV
      * =========================================================
      */
 
@@ -2321,7 +2373,7 @@ public class MainActivity extends Activity {
 
     /*
      * =========================================================
-     * EXISTING JSON BACKUP
+     * JSON BACKUP
      * =========================================================
      */
 
@@ -2455,18 +2507,14 @@ public class MainActivity extends Activity {
                     RESULT_OK
             ) {
 
-                if (
-                        pendingCameraFile != null
-                                &&
-                        pendingCameraFile.exists()
-                ) {
+                File savedReceipt =
+                        saveCameraReceipt();
 
-                    compressCameraReceipt();
+                if (savedReceipt != null) {
 
                     notifyExpenseReceiptSaved(
                             pendingExpenseId,
-                            pendingCameraFile
-                                    .getName()
+                            savedReceipt.getName()
                     );
 
                     Toast.makeText(
@@ -2474,18 +2522,24 @@ public class MainActivity extends Activity {
                             "Receipt photo saved.",
                             Toast.LENGTH_SHORT
                     ).show();
+
+                } else {
+
+                    Toast.makeText(
+                            this,
+                            "The camera photo could not be saved.",
+                            Toast.LENGTH_LONG
+                    ).show();
                 }
+            }
 
-            } else {
+            if (
+                    pendingCameraFile != null
+                            &&
+                    pendingCameraFile.exists()
+            ) {
 
-                if (
-                        pendingCameraFile != null
-                                &&
-                        pendingCameraFile.exists()
-                ) {
-
-                    pendingCameraFile.delete();
-                }
+                pendingCameraFile.delete();
             }
 
             pendingCameraFile = null;
@@ -2523,10 +2577,6 @@ public class MainActivity extends Activity {
 
             return;
         }
-
-        /*
-         * OTHER FILE ACTIONS REQUIRE A URI
-         */
 
         if (
                 resultCode != RESULT_OK
@@ -3560,4 +3610,4 @@ public class MainActivity extends Activity {
 
         return file;
     }
-                            }
+                }
