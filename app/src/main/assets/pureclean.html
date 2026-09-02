@@ -681,22 +681,14 @@ nav{grid-template-columns:repeat(4,1fr)}
 Enter your 4-digit PIN to open the app.
 </p>
 
-<input
-id="pinInput"
-class="pin-input"
-type="password"
-inputmode="numeric"
-maxlength="4"
+<input id="pinInput" class="pin-input" type="password" inputmode="numeric" maxlength="4"
 oninput="pinInput.value=pinInput.value.replace(/\D/g,'').slice(0,4)">
 
 <div id="pinConfirmWrap" style="display:none">
-<input
-id="pinConfirmInput"
-class="pin-input"
-type="password"
-inputmode="numeric"
-maxlength="4"
+
+<input id="pinConfirmInput" class="pin-input" type="password" inputmode="numeric" maxlength="4"
 oninput="pinConfirmInput.value=pinConfirmInput.value.replace(/\D/g,'').slice(0,4)">
+
 </div>
 
 <div id="pinError" class="pin-error"></div>
@@ -1422,6 +1414,9 @@ let tomorrowTextQueue=[];
 let tomorrowTextIndex=0;
 
 let draftExpenseReceipts=[];
+let originalExpenseReceipts=[];
+let newExpenseReceipts=[];
+let removedExpenseReceipts=[];
 
 let map=null;
 let mapMarkers=[];
@@ -1485,12 +1480,6 @@ return customers.filter(c=>c.archived!==true);
 function archivedCustomers(){
 return customers.filter(c=>c.archived===true);
 }
-
-/*
-IMPORTANT:
-BUSINESS DATA IS SAVED FIRST.
-SCREEN REFRESH ERRORS CAN NEVER STOP CUSTOMER SAVING.
-*/
 
 function saveData(){
 
@@ -2075,18 +2064,10 @@ customers[index]=c;
 customers.push(c);
 }
 
-/*
-SAVE FIRST.
-*/
-
 localStorage.setItem(
 "pcCustomers",
 JSON.stringify(customers)
 );
-
-/*
-THEN REFRESH EVERYTHING.
-*/
 
 saveData();
 
@@ -3219,7 +3200,46 @@ html.join("")
 
 /* EXPENSES */
 
+function deleteExpenseReceiptFile(name){
+
+if(!name)return;
+
+try{
+
+if(
+typeof Android!=="undefined"
+&&
+Android.deleteExpenseReceipt
+){
+
+Android.deleteExpenseReceipt(name);
+}
+
+}catch(e){}
+}
+
+function clearExpenseReceiptTracking(){
+
+draftExpenseReceipts=[];
+originalExpenseReceipts=[];
+newExpenseReceipts=[];
+removedExpenseReceipts=[];
+}
+
+function cleanupUnsavedExpenseReceipts(){
+
+newExpenseReceipts.forEach(name=>{
+deleteExpenseReceiptFile(name);
+});
+
+clearExpenseReceiptTracking();
+}
+
 function newExpense(){
+
+if(expenseForm.classList.contains("show")){
+cleanupUnsavedExpenseReceipts();
+}
 
 expenseForm.classList.add("show");
 
@@ -3238,7 +3258,7 @@ expenseNet.value="0.00";
 expensePaymentMethod.value="Bank Card";
 expenseNotes.value="";
 
-draftExpenseReceipts=[];
+clearExpenseReceiptTracking();
 
 renderExpenseReceiptPreviews();
 }
@@ -3248,6 +3268,10 @@ function editExpense(id){
 let exp=expenses.find(x=>x.id===id);
 
 if(!exp)return;
+
+if(expenseForm.classList.contains("show")){
+cleanupUnsavedExpenseReceipts();
+}
 
 expenseForm.classList.add("show");
 
@@ -3264,12 +3288,18 @@ expenseNet.value=Number(exp.net || 0).toFixed(2);
 expensePaymentMethod.value=exp.paymentMethod || "Bank Card";
 expenseNotes.value=exp.notes || "";
 
-draftExpenseReceipts=
+originalExpenseReceipts=
 Array.isArray(exp.receipts)
 ?
 [...exp.receipts]
 :
 [];
+
+draftExpenseReceipts=
+[...originalExpenseReceipts];
+
+newExpenseReceipts=[];
+removedExpenseReceipts=[];
 
 renderExpenseReceiptPreviews();
 
@@ -3330,6 +3360,16 @@ if(!draftExpenseReceipts.includes(fileName)){
 
 draftExpenseReceipts.push(fileName);
 }
+
+if(!newExpenseReceipts.includes(fileName)){
+
+newExpenseReceipts.push(fileName);
+}
+
+removedExpenseReceipts=
+removedExpenseReceipts.filter(
+name=>name!==fileName
+);
 
 renderExpenseReceiptPreviews();
 }
@@ -3405,9 +3445,25 @@ if(!confirm("Delete this receipt photo?")){
 return;
 }
 
-Android.deleteExpenseReceipt(name);
-
 draftExpenseReceipts.splice(index,1);
+
+if(newExpenseReceipts.includes(name)){
+
+deleteExpenseReceiptFile(name);
+
+newExpenseReceipts=
+newExpenseReceipts.filter(
+x=>x!==name
+);
+
+}else if(originalExpenseReceipts.includes(name)){
+
+if(!removedExpenseReceipts.includes(name)){
+
+removedExpenseReceipts.push(name);
+}
+
+}
 
 renderExpenseReceiptPreviews();
 }
@@ -3474,11 +3530,34 @@ expenses[index]=exp;
 expenses.push(exp);
 }
 
+/*
+SAVE THE EXPENSE DATA FIRST.
+*/
+
+localStorage.setItem(
+"pcExpenses",
+JSON.stringify(expenses)
+);
+
 saveData();
+
+/*
+ONLY AFTER THE DATA HAS SAVED,
+DELETE OLD RECEIPTS REMOVED DURING EDITING.
+*/
+
+removedExpenseReceipts.forEach(name=>{
+
+if(!draftExpenseReceipts.includes(name)){
+
+deleteExpenseReceiptFile(name);
+}
+
+});
 
 expenseForm.classList.remove("show");
 
-draftExpenseReceipts=[];
+clearExpenseReceiptTracking();
 
 renderExpenses();
 
@@ -3487,8 +3566,22 @@ alert("Expense saved.");
 
 function cancelExpenseForm(){
 
+/*
+ONLY DELETE NEW PHOTOS CREATED DURING THIS EDIT.
+ORIGINAL RECEIPTS ARE LEFT ALONE.
+*/
+
+newExpenseReceipts.forEach(name=>{
+
+deleteExpenseReceiptFile(name);
+
+});
+
 expenseForm.classList.remove("show");
-draftExpenseReceipts=[];
+
+clearExpenseReceiptTracking();
+
+renderExpenses();
 }
 
 function deleteExpense(id){
@@ -3503,9 +3596,7 @@ return;
 
 (exp.receipts || []).forEach(name=>{
 
-try{
-Android.deleteExpenseReceipt(name);
-}catch(e){}
+deleteExpenseReceiptFile(name);
 
 });
 
