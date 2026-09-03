@@ -1,6 +1,7 @@
 package com.stevenspureclean.app;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.os.Bundle;
 
 import android.content.Intent;
@@ -79,9 +80,6 @@ public class MainActivity extends Activity {
 
     private String pendingExpenseId = "";
 
-    /*
-     * Camera uses a temporary cache file first.
-     */
     private File pendingCameraFile = null;
 
     @Override
@@ -347,7 +345,8 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
-        public void backupBusinessData(String json) {
+        public void backupBusinessData(
+                String json) {
 
             runOnUiThread(
                     () -> startBackup(json)
@@ -479,15 +478,19 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
-        public void callPhone(String phone) {
+        public void callPhone(
+                String phone) {
 
             runOnUiThread(
-                    () -> openDialler(phone)
+                    () -> openDialler(
+                            phone
+                    )
             );
         }
 
         @JavascriptInterface
-        public void textPhone(String phone) {
+        public void textPhone(
+                String phone) {
 
             runOnUiThread(
                     () -> openTextMessage(
@@ -563,6 +566,33 @@ public class MainActivity extends Activity {
         );
     }
 
+    private int countReceiptPhotos() {
+
+        File[] files =
+                receiptFolder()
+                        .listFiles();
+
+        if (files == null) {
+            return 0;
+        }
+
+        int count = 0;
+
+        for (File file : files) {
+
+            if (
+                    file != null
+                            &&
+                    file.isFile()
+            ) {
+
+                count++;
+            }
+        }
+
+        return count;
+    }
+
     private String safeExpenseId(
             String expenseId) {
 
@@ -635,6 +665,7 @@ public class MainActivity extends Activity {
                             ||
                     !file.isFile()
             ) {
+
                 return null;
             }
 
@@ -815,7 +846,7 @@ public class MainActivity extends Activity {
                     Toast.LENGTH_LONG
             ).show();
         }
-                }
+    }
         private void startExpensePhotoPicker(
             String expenseId) {
 
@@ -964,6 +995,7 @@ public class MainActivity extends Activity {
                             &&
                     tempFile.exists()
             ) {
+
                 tempFile.delete();
             }
         }
@@ -994,11 +1026,11 @@ public class MainActivity extends Activity {
                             ||
                     bounds.outHeight <= 0
             ) {
+
                 return false;
             }
 
             int maxDecodeSize = 2200;
-
             int sample = 1;
 
             while (
@@ -1111,12 +1143,8 @@ public class MainActivity extends Activity {
 
                 float scale =
                         Math.min(
-                                (float) maxSide
-                                        /
-                                width,
-                                (float) maxSide
-                                        /
-                                height
+                                (float) maxSide / width,
+                                (float) maxSide / height
                         );
 
                 int newWidth =
@@ -1377,14 +1405,12 @@ public class MainActivity extends Activity {
             return;
         }
 
-        /*
-         * Make sure this really is a complete current backup
-         * before allowing it to be saved.
-         */
         try {
 
             JSONObject backup =
-                    new JSONObject(json);
+                    new JSONObject(
+                            json
+                    );
 
             JSONArray customers =
                     backup.optJSONArray(
@@ -1418,6 +1444,92 @@ public class MainActivity extends Activity {
                 return;
             }
 
+            int receiptCount =
+                    countReceiptPhotos();
+
+            String message =
+                    "This backup will contain:\n\n"
+                            +
+                            customers.length()
+                            +
+                            " customer"
+                            +
+                            (
+                                    customers.length() == 1
+                                            ?
+                                    ""
+                                            :
+                                    "s"
+                            )
+                            +
+                            "\n"
+                            +
+                            invoices.length()
+                            +
+                            " invoice"
+                            +
+                            (
+                                    invoices.length() == 1
+                                            ?
+                                    ""
+                                            :
+                                    "s"
+                            )
+                            +
+                            "\n"
+                            +
+                            expenses.length()
+                            +
+                            " expense"
+                            +
+                            (
+                                    expenses.length() == 1
+                                            ?
+                                    ""
+                                            :
+                                    "s"
+                            )
+                            +
+                            "\n"
+                            +
+                            receiptCount
+                            +
+                            " receipt photo"
+                            +
+                            (
+                                    receiptCount == 1
+                                            ?
+                                    ""
+                                            :
+                                    "s"
+                            )
+                            +
+                            "\n\nSave this backup now?";
+
+            new AlertDialog.Builder(
+                    this
+            )
+                    .setTitle(
+                            "Backup Everything"
+                    )
+                    .setMessage(
+                            message
+                    )
+                    .setNegativeButton(
+                            "Cancel",
+                            null
+                    )
+                    .setPositiveButton(
+                            "Save Backup",
+                            (dialog, which) -> {
+
+                                backupJson = json;
+
+                                openFullBackupSaveScreen();
+                            }
+                    )
+                    .show();
+
         } catch (Exception e) {
 
             Toast.makeText(
@@ -1425,15 +1537,14 @@ public class MainActivity extends Activity {
                     "Business data could not be prepared for backup.",
                     Toast.LENGTH_LONG
             ).show();
-
-            return;
         }
+    }
 
-        backupJson = json;
+    private void openFullBackupSaveScreen() {
 
-        String date =
+        String stamp =
                 new SimpleDateFormat(
-                        "yyyy-MM-dd",
+                        "yyyy-MM-dd-HHmmss",
                         Locale.UK
                 ).format(
                         new Date()
@@ -1456,7 +1567,7 @@ public class MainActivity extends Activity {
                 Intent.EXTRA_TITLE,
                 "PureClean-Full-Backup-"
                         +
-                        date
+                        stamp
                         +
                         ".zip"
         );
@@ -1517,9 +1628,18 @@ public class MainActivity extends Activity {
 
             OutputStream rawOutput =
                     getContentResolver()
-                            .openOutputStream(uri);
+                            .openOutputStream(
+                                    uri
+                            );
 
             if (rawOutput == null) {
+
+                Toast.makeText(
+                        this,
+                        "Could not create backup file.",
+                        Toast.LENGTH_LONG
+                ).show();
+
                 return;
             }
 
@@ -1563,6 +1683,7 @@ public class MainActivity extends Activity {
                                     ||
                             !receipt.isFile()
                     ) {
+
                         continue;
                     }
 
@@ -1595,7 +1716,6 @@ public class MainActivity extends Activity {
                     }
 
                     input.close();
-
                     zip.closeEntry();
 
                     receiptCount++;
@@ -1605,31 +1725,59 @@ public class MainActivity extends Activity {
             zip.finish();
             zip.close();
 
+            JSONObject saved =
+                    new JSONObject(
+                            backupJson
+                    );
+
+            int customerCount =
+                    saved
+                            .optJSONArray(
+                                    "customers"
+                            )
+                            .length();
+
+            int invoiceCount =
+                    saved
+                            .optJSONArray(
+                                    "invoices"
+                            )
+                            .length();
+
+            int expenseCount =
+                    saved
+                            .optJSONArray(
+                                    "expenses"
+                            )
+                            .length();
+
             backupJson = "";
 
             Toast.makeText(
                     this,
-                    "Full backup saved with "
+                    "Backup saved: "
+                            +
+                            customerCount
+                            +
+                            " customers, "
+                            +
+                            invoiceCount
+                            +
+                            " invoices, "
+                            +
+                            expenseCount
+                            +
+                            " expenses, "
                             +
                             receiptCount
                             +
-                            " receipt photo"
-                            +
-                            (
-                                    receiptCount
-                                            ==
-                                    1
-                                            ?
-                                    ""
-                                            :
-                                    "s"
-                            )
-                            +
-                            ".",
+                            " receipt photos.",
                     Toast.LENGTH_LONG
             ).show();
 
         } catch (Exception e) {
+
+            backupJson = "";
 
             Toast.makeText(
                     this,
@@ -1661,9 +1809,16 @@ public class MainActivity extends Activity {
 
             InputStream rawInput =
                     getContentResolver()
-                            .openInputStream(uri);
+                            .openInputStream(
+                                    uri
+                            );
 
             if (rawInput == null) {
+
+                deleteFolder(
+                        restoreFolder
+                );
+
                 return;
             }
 
@@ -1731,11 +1886,14 @@ public class MainActivity extends Activity {
                 ) {
 
                     String safeName =
-                            new File(name)
+                            new File(
+                                    name
+                            )
                                     .getName();
 
                     if (
-                            safeName.trim()
+                            safeName
+                                    .trim()
                                     .isEmpty()
                     ) {
 
@@ -1784,8 +1942,7 @@ public class MainActivity extends Activity {
             if (
                     restoredJson == null
                             ||
-                    restoredJson.trim()
-                            .isEmpty()
+                    restoredJson.trim().isEmpty()
             ) {
 
                 deleteFolder(
@@ -1821,13 +1978,6 @@ public class MainActivity extends Activity {
                             "expenses"
                     );
 
-            /*
-             * IMPORTANT:
-             * A valid current backup must contain all three.
-             * This prevents an older or incomplete backup from
-             * appearing to restore successfully while expenses
-             * silently disappear.
-             */
             if (
                     customers == null
                             ||
@@ -1842,7 +1992,176 @@ public class MainActivity extends Activity {
 
                 Toast.makeText(
                         this,
-                        "This backup is incomplete. Customers, invoices and expenses are all required.",
+                        "This backup is incomplete and will not be restored.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+            final String finalRestoredJson =
+                    restoredJson;
+
+            final int finalReceiptCount =
+                    receiptCount;
+
+            final File finalRestoreFolder =
+                    restoreFolder;
+
+            String message =
+                    "This backup contains:\n\n"
+                            +
+                            customers.length()
+                            +
+                            " customer"
+                            +
+                            (
+                                    customers.length() == 1
+                                            ?
+                                    ""
+                                            :
+                                    "s"
+                            )
+                            +
+                            "\n"
+                            +
+                            invoices.length()
+                            +
+                            " invoice"
+                            +
+                            (
+                                    invoices.length() == 1
+                                            ?
+                                    ""
+                                            :
+                                    "s"
+                            )
+                            +
+                            "\n"
+                            +
+                            expenses.length()
+                            +
+                            " expense"
+                            +
+                            (
+                                    expenses.length() == 1
+                                            ?
+                                    ""
+                                            :
+                                    "s"
+                            )
+                            +
+                            "\n"
+                            +
+                            finalReceiptCount
+                            +
+                            " receipt photo"
+                            +
+                            (
+                                    finalReceiptCount == 1
+                                            ?
+                                    ""
+                                            :
+                                    "s"
+                            )
+                            +
+                            "\n\nThis will replace the current app data.\n\nContinue?";
+
+            new AlertDialog.Builder(
+                    this
+            )
+                    .setTitle(
+                            "Restore Backup"
+                    )
+                    .setMessage(
+                            message
+                    )
+                    .setNegativeButton(
+                            "Cancel",
+                            (dialog, which) -> {
+
+                                deleteFolder(
+                                        finalRestoreFolder
+                                );
+                            }
+                    )
+                    .setPositiveButton(
+                            "Restore",
+                            (dialog, which) -> {
+
+                                performFullRestore(
+                                        finalRestoredJson,
+                                        finalRestoreFolder,
+                                        finalReceiptCount
+                                );
+                            }
+                    )
+                    .setOnCancelListener(
+                            dialog -> {
+
+                                deleteFolder(
+                                        finalRestoreFolder
+                                );
+                            }
+                    )
+                    .show();
+
+        } catch (Exception e) {
+
+            deleteFolder(
+                    restoreFolder
+            );
+
+            Toast.makeText(
+                    this,
+                    "Could not read this backup.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    private void performFullRestore(
+            String restoredJson,
+            File restoreFolder,
+            int receiptCount) {
+
+        try {
+
+            JSONObject backup =
+                    new JSONObject(
+                            restoredJson
+                    );
+
+            JSONArray customers =
+                    backup.optJSONArray(
+                            "customers"
+                    );
+
+            JSONArray invoices =
+                    backup.optJSONArray(
+                            "invoices"
+                    );
+
+            JSONArray expenses =
+                    backup.optJSONArray(
+                            "expenses"
+                    );
+
+            if (
+                    customers == null
+                            ||
+                    invoices == null
+                            ||
+                    expenses == null
+            ) {
+
+                deleteFolder(
+                        restoreFolder
+                );
+
+                Toast.makeText(
+                        this,
+                        "Restore stopped because the backup is incomplete.",
                         Toast.LENGTH_LONG
                 ).show();
 
@@ -1853,7 +2172,8 @@ public class MainActivity extends Activity {
                     receiptFolder();
 
             File[] existing =
-                    liveReceipts.listFiles();
+                    liveReceipts
+                            .listFiles();
 
             if (existing != null) {
 
@@ -1871,7 +2191,8 @@ public class MainActivity extends Activity {
             }
 
             File[] restoredFiles =
-                    restoreFolder.listFiles();
+                    restoreFolder
+                            .listFiles();
 
             if (restoredFiles != null) {
 
@@ -1918,59 +2239,19 @@ public class MainActivity extends Activity {
                             +
                             customers.length()
                             +
-                            " customer"
-                            +
-                            (
-                                    customers.length() == 1
-                                            ?
-                                    ""
-                                            :
-                                    "s"
-                            )
-                            +
-                            ", "
+                            " customers, "
                             +
                             invoices.length()
                             +
-                            " invoice"
-                            +
-                            (
-                                    invoices.length() == 1
-                                            ?
-                                    ""
-                                            :
-                                    "s"
-                            )
-                            +
-                            ", "
+                            " invoices, "
                             +
                             expenses.length()
                             +
-                            " expense"
-                            +
-                            (
-                                    expenses.length() == 1
-                                            ?
-                                    ""
-                                            :
-                                    "s"
-                            )
-                            +
-                            ", "
+                            " expenses, "
                             +
                             receiptCount
                             +
-                            " receipt photo"
-                            +
-                            (
-                                    receiptCount == 1
-                                            ?
-                                    ""
-                                            :
-                                    "s"
-                            )
-                            +
-                            ".",
+                            " receipt photos.",
                     Toast.LENGTH_LONG
             ).show();
 
@@ -1982,7 +2263,7 @@ public class MainActivity extends Activity {
 
             Toast.makeText(
                     this,
-                    "Could not restore full backup.",
+                    "Could not complete restore.",
                     Toast.LENGTH_LONG
             ).show();
         }
@@ -2109,7 +2390,9 @@ public class MainActivity extends Activity {
                         );
 
                 File receipt =
-                        receiptFile(name);
+                        receiptFile(
+                                name
+                        );
 
                 if (
                         !receipt.exists()
@@ -2222,7 +2505,8 @@ public class MainActivity extends Activity {
      * =========================================================
      */
 
-    private void openDialler(String phone) {
+    private void openDialler(
+            String phone) {
 
         if (
                 phone == null
@@ -2254,7 +2538,9 @@ public class MainActivity extends Activity {
                     )
             );
 
-            startActivity(intent);
+            startActivity(
+                    intent
+            );
 
         } catch (Exception e) {
 
@@ -2312,7 +2598,9 @@ public class MainActivity extends Activity {
                 );
             }
 
-            startActivity(intent);
+            startActivity(
+                    intent
+            );
 
         } catch (Exception e) {
 
@@ -2470,7 +2758,8 @@ public class MainActivity extends Activity {
      * =========================================================
      */
 
-    private void startBackup(String json) {
+    private void startBackup(
+            String json) {
 
         if (
                 json == null
@@ -2490,7 +2779,9 @@ public class MainActivity extends Activity {
         try {
 
             JSONObject backup =
-                    new JSONObject(json);
+                    new JSONObject(
+                            json
+                    );
 
             JSONArray customers =
                     backup.optJSONArray(
@@ -2537,9 +2828,9 @@ public class MainActivity extends Activity {
 
         backupJson = json;
 
-        String date =
+        String stamp =
                 new SimpleDateFormat(
-                        "yyyy-MM-dd",
+                        "yyyy-MM-dd-HHmmss",
                         Locale.UK
                 ).format(
                         new Date()
@@ -2562,7 +2853,7 @@ public class MainActivity extends Activity {
                 Intent.EXTRA_TITLE,
                 "PureClean-Backup-"
                         +
-                        date
+                        stamp
                         +
                         ".json"
         );
@@ -2595,7 +2886,9 @@ public class MainActivity extends Activity {
                 Intent.CATEGORY_OPENABLE
         );
 
-        intent.setType("*/*");
+        intent.setType(
+                "*/*"
+        );
 
         try {
 
@@ -2647,7 +2940,9 @@ public class MainActivity extends Activity {
                 File savedReceipt =
                         saveCameraReceipt();
 
-                if (savedReceipt != null) {
+                if (
+                        savedReceipt != null
+                ) {
 
                     notifyExpenseReceiptSaved(
                             pendingExpenseId,
@@ -2731,7 +3026,9 @@ public class MainActivity extends Activity {
                 SAVE_BACKUP
         ) {
 
-            saveBackup(uri);
+            saveBackup(
+                    uri
+            );
 
         } else if (
                 requestCode
@@ -2739,7 +3036,9 @@ public class MainActivity extends Activity {
                 RESTORE_BACKUP
         ) {
 
-            loadBackup(uri);
+            loadBackup(
+                    uri
+            );
 
         } else if (
                 requestCode
@@ -2747,7 +3046,9 @@ public class MainActivity extends Activity {
                 SAVE_FULL_BACKUP
         ) {
 
-            saveFullBackup(uri);
+            saveFullBackup(
+                    uri
+            );
 
         } else if (
                 requestCode
@@ -2755,17 +3056,22 @@ public class MainActivity extends Activity {
                 RESTORE_FULL_BACKUP
         ) {
 
-            restoreFullBackup(uri);
+            restoreFullBackup(
+                    uri
+            );
         }
     }
 
-    private void saveBackup(Uri uri) {
+    private void saveBackup(
+            Uri uri) {
 
         try {
 
             OutputStream output =
                     getContentResolver()
-                            .openOutputStream(uri);
+                            .openOutputStream(
+                                    uri
+                            );
 
             if (output == null) {
                 return;
@@ -2780,15 +3086,67 @@ public class MainActivity extends Activity {
             output.flush();
             output.close();
 
+            JSONObject saved =
+                    new JSONObject(
+                            backupJson
+                    );
+
+            JSONArray customers =
+                    saved.optJSONArray(
+                            "customers"
+                    );
+
+            JSONArray invoices =
+                    saved.optJSONArray(
+                            "invoices"
+                    );
+
+            JSONArray expenses =
+                    saved.optJSONArray(
+                            "expenses"
+                    );
+
             backupJson = "";
 
             Toast.makeText(
                     this,
-                    "Business backup saved successfully.",
+                    "Backup saved: "
+                            +
+                            (
+                                    customers == null
+                                            ?
+                                    0
+                                            :
+                                    customers.length()
+                            )
+                            +
+                            " customers, "
+                            +
+                            (
+                                    invoices == null
+                                            ?
+                                    0
+                                            :
+                                    invoices.length()
+                            )
+                            +
+                            " invoices, "
+                            +
+                            (
+                                    expenses == null
+                                            ?
+                                    0
+                                            :
+                                    expenses.length()
+                            )
+                            +
+                            " expenses.",
                     Toast.LENGTH_LONG
             ).show();
 
         } catch (Exception e) {
+
+            backupJson = "";
 
             Toast.makeText(
                     this,
@@ -2798,13 +3156,16 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void loadBackup(Uri uri) {
+    private void loadBackup(
+            Uri uri) {
 
         try {
 
             InputStream input =
                     getContentResolver()
-                            .openInputStream(uri);
+                            .openInputStream(
+                                    uri
+                            );
 
             if (input == null) {
                 return;
@@ -2829,17 +3190,22 @@ public class MainActivity extends Activity {
                     null
             ) {
 
-                text.append(line);
+                text.append(
+                        line
+                );
             }
 
             reader.close();
             input.close();
 
             String json =
-                    text.toString().trim();
+                    text.toString()
+                            .trim();
 
             JSONObject backup =
-                    new JSONObject(json);
+                    new JSONObject(
+                            json
+                    );
 
             JSONArray customers =
                     backup.optJSONArray(
@@ -2873,21 +3239,8 @@ public class MainActivity extends Activity {
                 return;
             }
 
-            String javascript =
-                    "restoreBusinessBackup("
-                            +
-                            JSONObject.quote(json)
-                            +
-                            ");";
-
-            webView.evaluateJavascript(
-                    javascript,
-                    null
-            );
-
-            Toast.makeText(
-                    this,
-                    "Backup restored: "
+            String message =
+                    "This backup contains:\n\n"
                             +
                             customers.length()
                             +
@@ -2901,7 +3254,7 @@ public class MainActivity extends Activity {
                                     "s"
                             )
                             +
-                            ", "
+                            "\n"
                             +
                             invoices.length()
                             +
@@ -2915,7 +3268,7 @@ public class MainActivity extends Activity {
                                     "s"
                             )
                             +
-                            ", "
+                            "\n"
                             +
                             expenses.length()
                             +
@@ -2929,9 +3282,59 @@ public class MainActivity extends Activity {
                                     "s"
                             )
                             +
-                            ".",
-                    Toast.LENGTH_LONG
-            ).show();
+                            "\n\nThis will replace the current app data.\n\nContinue?";
+
+            new AlertDialog.Builder(
+                    this
+            )
+                    .setTitle(
+                            "Restore Backup"
+                    )
+                    .setMessage(
+                            message
+                    )
+                    .setNegativeButton(
+                            "Cancel",
+                            null
+                    )
+                    .setPositiveButton(
+                            "Restore",
+                            (dialog, which) -> {
+
+                                String javascript =
+                                        "restoreBusinessBackup("
+                                                +
+                                                JSONObject.quote(
+                                                        json
+                                                )
+                                                +
+                                                ");";
+
+                                webView.evaluateJavascript(
+                                        javascript,
+                                        null
+                                );
+
+                                Toast.makeText(
+                                        this,
+                                        "Backup restored: "
+                                                +
+                                                customers.length()
+                                                +
+                                                " customers, "
+                                                +
+                                                invoices.length()
+                                                +
+                                                " invoices, "
+                                                +
+                                                expenses.length()
+                                                +
+                                                " expenses.",
+                                        Toast.LENGTH_LONG
+                                ).show();
+                            }
+                    )
+                    .show();
 
         } catch (Exception e) {
 
@@ -3002,11 +3405,17 @@ public class MainActivity extends Activity {
         File[] files =
                 folder.listFiles();
 
-        if (files != null) {
+        if (
+                files != null
+        ) {
 
-            for (File file : files) {
+            for (
+                    File file : files
+            ) {
 
-                if (file.isDirectory()) {
+                if (
+                        file.isDirectory()
+                ) {
 
                     deleteFolder(
                             file
@@ -3028,7 +3437,8 @@ public class MainActivity extends Activity {
      * =========================================================
      */
 
-    private boolean validEmail(String email) {
+    private boolean validEmail(
+            String email) {
 
         return email != null
                 &&
@@ -3052,7 +3462,11 @@ public class MainActivity extends Activity {
             String amount,
             String description) {
 
-        if (!validEmail(email)) {
+        if (
+                !validEmail(
+                        email
+                )
+        ) {
 
             Toast.makeText(
                     this,
@@ -3176,11 +3590,15 @@ public class MainActivity extends Activity {
                         "com.google.android.gm"
                 );
 
-                startActivity(intent);
+                startActivity(
+                        intent
+                );
 
             } catch (Exception e) {
 
-                intent.setPackage(null);
+                intent.setPackage(
+                        null
+                );
 
                 startActivity(
                         Intent.createChooser(
@@ -3198,7 +3616,7 @@ public class MainActivity extends Activity {
                     Toast.LENGTH_LONG
             ).show();
         }
-    }
+}
         private void reminderEmail(
             String email,
             String customerName,
@@ -3277,13 +3695,19 @@ public class MainActivity extends Activity {
                     "com.google.android.gm"
             );
 
-            startActivity(intent);
+            startActivity(
+                    intent
+            );
 
         } catch (Exception e) {
 
-            intent.setPackage(null);
+            intent.setPackage(
+                    null
+            );
 
-            startActivity(intent);
+            startActivity(
+                    intent
+            );
         }
     }
 
@@ -3379,7 +3803,9 @@ public class MainActivity extends Activity {
                 Color.WHITE
         );
 
-        paint.setColor(dark);
+        paint.setColor(
+                dark
+        );
 
         canvas.drawRect(
                 0,
@@ -3398,10 +3824,9 @@ public class MainActivity extends Activity {
                             );
 
             Bitmap logo =
-                    BitmapFactory
-                            .decodeStream(
-                                    input
-                            );
+                    BitmapFactory.decodeStream(
+                            input
+                    );
 
             if (logo != null) {
 
@@ -3426,9 +3851,17 @@ public class MainActivity extends Activity {
         } catch (Exception ignored) {
         }
 
-        paint.setColor(lime);
-        paint.setFakeBoldText(true);
-        paint.setTextSize(21);
+        paint.setColor(
+                lime
+        );
+
+        paint.setFakeBoldText(
+                true
+        );
+
+        paint.setTextSize(
+                21
+        );
 
         canvas.drawText(
                 "Steven's Pure Clean Exteriors",
@@ -3437,8 +3870,13 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(false);
-        paint.setTextSize(12);
+        paint.setFakeBoldText(
+                false
+        );
+
+        paint.setTextSize(
+                12
+        );
 
         canvas.drawText(
                 "Pure Results • Clean Exteriors",
@@ -3447,9 +3885,17 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(Color.WHITE);
-        paint.setFakeBoldText(true);
-        paint.setTextSize(30);
+        paint.setColor(
+                Color.WHITE
+        );
+
+        paint.setFakeBoldText(
+                true
+        );
+
+        paint.setTextSize(
+                30
+        );
 
         canvas.drawText(
                 "INVOICE",
@@ -3458,9 +3904,17 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(dark);
-        paint.setFakeBoldText(true);
-        paint.setTextSize(13);
+        paint.setColor(
+                dark
+        );
+
+        paint.setFakeBoldText(
+                true
+        );
+
+        paint.setTextSize(
+                13
+        );
 
         canvas.drawText(
                 "INVOICE NUMBER",
@@ -3483,9 +3937,17 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(false);
-        paint.setColor(grey);
-        paint.setTextSize(13);
+        paint.setFakeBoldText(
+                false
+        );
+
+        paint.setColor(
+                grey
+        );
+
+        paint.setTextSize(
+                13
+        );
 
         canvas.drawText(
                 "#" + invoiceNumber,
@@ -3508,7 +3970,9 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(lightGrey);
+        paint.setColor(
+                lightGrey
+        );
 
         canvas.drawRect(
                 35,
@@ -3518,9 +3982,17 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(dark);
-        paint.setFakeBoldText(true);
-        paint.setTextSize(15);
+        paint.setColor(
+                dark
+        );
+
+        paint.setFakeBoldText(
+                true
+        );
+
+        paint.setTextSize(
+                15
+        );
 
         canvas.drawText(
                 "BILL TO",
@@ -3529,8 +4001,13 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(false);
-        paint.setTextSize(16);
+        paint.setFakeBoldText(
+                false
+        );
+
+        paint.setTextSize(
+                16
+        );
 
         canvas.drawText(
                 customerName == null
@@ -3543,8 +4020,13 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(grey);
-        paint.setTextSize(12);
+        paint.setColor(
+                grey
+        );
+
+        paint.setTextSize(
+                12
+        );
 
         if (
                 customerAddress != null
@@ -3574,7 +4056,9 @@ public class MainActivity extends Activity {
             );
         }
 
-        paint.setColor(lightGrey);
+        paint.setColor(
+                lightGrey
+        );
 
         RectF serviceBox =
                 new RectF(
@@ -3591,9 +4075,17 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(dark);
-        paint.setFakeBoldText(true);
-        paint.setTextSize(13);
+        paint.setColor(
+                dark
+        );
+
+        paint.setFakeBoldText(
+                true
+        );
+
+        paint.setTextSize(
+                13
+        );
 
         canvas.drawText(
                 "DESCRIPTION",
@@ -3602,8 +4094,13 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(false);
-        paint.setTextSize(14);
+        paint.setFakeBoldText(
+                false
+        );
+
+        paint.setTextSize(
+                14
+        );
 
         String cleanDescription =
                 description == null
@@ -3612,7 +4109,9 @@ public class MainActivity extends Activity {
                         :
                         description.trim();
 
-        if (cleanDescription.isEmpty()) {
+        if (
+                cleanDescription.isEmpty()
+        ) {
 
             cleanDescription =
                     "Exterior cleaning service";
@@ -3625,7 +4124,9 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(dark);
+        paint.setColor(
+                dark
+        );
 
         RectF amountBox =
                 new RectF(
@@ -3642,9 +4143,17 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(Color.WHITE);
-        paint.setTextSize(12);
-        paint.setFakeBoldText(false);
+        paint.setColor(
+                Color.WHITE
+        );
+
+        paint.setTextSize(
+                12
+        );
+
+        paint.setFakeBoldText(
+                false
+        );
 
         canvas.drawText(
                 "AMOUNT DUE",
@@ -3653,9 +4162,17 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(lime);
-        paint.setFakeBoldText(true);
-        paint.setTextSize(27);
+        paint.setColor(
+                lime
+        );
+
+        paint.setFakeBoldText(
+                true
+        );
+
+        paint.setTextSize(
+                27
+        );
 
         canvas.drawText(
                 "£" + amount,
@@ -3664,9 +4181,17 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(dark);
-        paint.setFakeBoldText(true);
-        paint.setTextSize(15);
+        paint.setColor(
+                dark
+        );
+
+        paint.setFakeBoldText(
+                true
+        );
+
+        paint.setTextSize(
+                15
+        );
 
         canvas.drawText(
                 "Payment Details",
@@ -3675,8 +4200,13 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(false);
-        paint.setTextSize(13);
+        paint.setFakeBoldText(
+                false
+        );
+
+        paint.setTextSize(
+                13
+        );
 
         canvas.drawText(
                 "Please make payment within 7 days.",
@@ -3685,7 +4215,9 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(lightGrey);
+        paint.setColor(
+                lightGrey
+        );
 
         RectF bankBox =
                 new RectF(
@@ -3702,9 +4234,17 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(dark);
-        paint.setFakeBoldText(true);
-        paint.setTextSize(14);
+        paint.setColor(
+                dark
+        );
+
+        paint.setFakeBoldText(
+                true
+        );
+
+        paint.setTextSize(
+                14
+        );
 
         canvas.drawText(
                 "BANK TRANSFER",
@@ -3713,8 +4253,13 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(false);
-        paint.setTextSize(13);
+        paint.setFakeBoldText(
+                false
+        );
+
+        paint.setTextSize(
+                13
+        );
 
         canvas.drawText(
                 "Account name: Steven B Attew",
@@ -3744,8 +4289,13 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(grey);
-        paint.setTextSize(11);
+        paint.setColor(
+                grey
+        );
+
+        paint.setTextSize(
+                11
+        );
 
         canvas.drawText(
                 "Thank you for your custom.",
@@ -3769,18 +4319,22 @@ public class MainActivity extends Activity {
                 Paint.Align.LEFT
         );
 
-        document.finishPage(page);
+        document.finishPage(
+                page
+        );
 
         FileOutputStream output =
                 new FileOutputStream(
                         file
                 );
 
-        document.writeTo(output);
+        document.writeTo(
+                output
+        );
 
         output.close();
         document.close();
 
         return file;
     }
-}
+            }
