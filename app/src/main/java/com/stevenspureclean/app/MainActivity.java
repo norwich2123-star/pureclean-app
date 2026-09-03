@@ -673,12 +673,6 @@ public class MainActivity extends Activity {
 
         try {
 
-            /*
-             * Camera writes to CACHE first.
-             * This is much more reliable across Samsung /
-             * Android camera apps.
-             */
-
             File cameraFolder =
                     new File(
                             getCacheDir(),
@@ -821,9 +815,8 @@ public class MainActivity extends Activity {
                     Toast.LENGTH_LONG
             ).show();
         }
-    }
-
-    private void startExpensePhotoPicker(
+                }
+        private void startExpensePhotoPicker(
             String expenseId) {
 
         pendingExpenseId =
@@ -1211,11 +1204,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    /*
-     * Takes the temporary camera photo and saves it permanently
-     * inside the private receipt folder.
-     */
-
     private File saveCameraReceipt() {
 
         if (
@@ -1383,6 +1371,58 @@ public class MainActivity extends Activity {
             Toast.makeText(
                     this,
                     "No business data to back up.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
+        /*
+         * Make sure this really is a complete current backup
+         * before allowing it to be saved.
+         */
+        try {
+
+            JSONObject backup =
+                    new JSONObject(json);
+
+            JSONArray customers =
+                    backup.optJSONArray(
+                            "customers"
+                    );
+
+            JSONArray invoices =
+                    backup.optJSONArray(
+                            "invoices"
+                    );
+
+            JSONArray expenses =
+                    backup.optJSONArray(
+                            "expenses"
+                    );
+
+            if (
+                    customers == null
+                            ||
+                    invoices == null
+                            ||
+                    expenses == null
+            ) {
+
+                Toast.makeText(
+                        this,
+                        "Backup could not be created because some business data is missing.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Business data could not be prepared for backup.",
                     Toast.LENGTH_LONG
             ).show();
 
@@ -1776,10 +1816,24 @@ public class MainActivity extends Activity {
                             "invoices"
                     );
 
+            JSONArray expenses =
+                    backup.optJSONArray(
+                            "expenses"
+                    );
+
+            /*
+             * IMPORTANT:
+             * A valid current backup must contain all three.
+             * This prevents an older or incomplete backup from
+             * appearing to restore successfully while expenses
+             * silently disappear.
+             */
             if (
                     customers == null
                             ||
                     invoices == null
+                            ||
+                    expenses == null
             ) {
 
                 deleteFolder(
@@ -1788,7 +1842,7 @@ public class MainActivity extends Activity {
 
                 Toast.makeText(
                         this,
-                        "This full backup is not valid.",
+                        "This backup is incomplete. Customers, invoices and expenses are all required.",
                         Toast.LENGTH_LONG
                 ).show();
 
@@ -1860,16 +1914,56 @@ public class MainActivity extends Activity {
 
             Toast.makeText(
                     this,
-                    "Full backup restored with "
+                    "Restore complete: "
+                            +
+                            customers.length()
+                            +
+                            " customer"
+                            +
+                            (
+                                    customers.length() == 1
+                                            ?
+                                    ""
+                                            :
+                                    "s"
+                            )
+                            +
+                            ", "
+                            +
+                            invoices.length()
+                            +
+                            " invoice"
+                            +
+                            (
+                                    invoices.length() == 1
+                                            ?
+                                    ""
+                                            :
+                                    "s"
+                            )
+                            +
+                            ", "
+                            +
+                            expenses.length()
+                            +
+                            " expense"
+                            +
+                            (
+                                    expenses.length() == 1
+                                            ?
+                                    ""
+                                            :
+                                    "s"
+                            )
+                            +
+                            ", "
                             +
                             receiptCount
                             +
                             " receipt photo"
                             +
                             (
-                                    receiptCount
-                                            ==
-                                    1
+                                    receiptCount == 1
                                             ?
                                     ""
                                             :
@@ -1899,7 +1993,6 @@ public class MainActivity extends Activity {
      * EXPENSE ACCOUNTANT ZIP
      * =========================================================
      */
-
     private void shareExpensePack(
             String fileName,
             String csvText,
@@ -2394,6 +2487,54 @@ public class MainActivity extends Activity {
             return;
         }
 
+        try {
+
+            JSONObject backup =
+                    new JSONObject(json);
+
+            JSONArray customers =
+                    backup.optJSONArray(
+                            "customers"
+                    );
+
+            JSONArray invoices =
+                    backup.optJSONArray(
+                            "invoices"
+                    );
+
+            JSONArray expenses =
+                    backup.optJSONArray(
+                            "expenses"
+                    );
+
+            if (
+                    customers == null
+                            ||
+                    invoices == null
+                            ||
+                    expenses == null
+            ) {
+
+                Toast.makeText(
+                        this,
+                        "Backup could not be created because some business data is missing.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Business data could not be prepared for backup.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
         backupJson = json;
 
         String date =
@@ -2491,10 +2632,6 @@ public class MainActivity extends Activity {
                 data
         );
 
-        /*
-         * CAMERA
-         */
-
         if (
                 requestCode
                         ==
@@ -2547,10 +2684,6 @@ public class MainActivity extends Activity {
 
             return;
         }
-
-        /*
-         * CHOOSE EXISTING PHOTO
-         */
 
         if (
                 requestCode
@@ -2718,15 +2851,22 @@ public class MainActivity extends Activity {
                             "invoices"
                     );
 
+            JSONArray expenses =
+                    backup.optJSONArray(
+                            "expenses"
+                    );
+
             if (
                     customers == null
                             ||
                     invoices == null
+                            ||
+                    expenses == null
             ) {
 
                 Toast.makeText(
                         this,
-                        "This is not a Pure Clean backup.",
+                        "This backup is incomplete. Customers, invoices and expenses are all required.",
                         Toast.LENGTH_LONG
                 ).show();
 
@@ -2747,15 +2887,49 @@ public class MainActivity extends Activity {
 
             Toast.makeText(
                     this,
-                    "Backup loaded: "
+                    "Backup restored: "
                             +
                             customers.length()
                             +
-                            " customers, "
+                            " customer"
+                            +
+                            (
+                                    customers.length() == 1
+                                            ?
+                                    ""
+                                            :
+                                    "s"
+                            )
+                            +
+                            ", "
                             +
                             invoices.length()
                             +
-                            " invoices",
+                            " invoice"
+                            +
+                            (
+                                    invoices.length() == 1
+                                            ?
+                                    ""
+                                            :
+                                    "s"
+                            )
+                            +
+                            ", "
+                            +
+                            expenses.length()
+                            +
+                            " expense"
+                            +
+                            (
+                                    expenses.length() == 1
+                                            ?
+                                    ""
+                                            :
+                                    "s"
+                            )
+                            +
+                            ".",
                     Toast.LENGTH_LONG
             ).show();
 
@@ -3025,8 +3199,7 @@ public class MainActivity extends Activity {
             ).show();
         }
     }
-
-    private void reminderEmail(
+        private void reminderEmail(
             String email,
             String customerName,
             String invoiceNumber,
@@ -3610,4 +3783,4 @@ public class MainActivity extends Activity {
 
         return file;
     }
-                }
+}
