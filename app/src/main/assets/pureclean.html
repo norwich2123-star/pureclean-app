@@ -875,8 +875,6 @@ Backs up your customers, invoices, expenses and all saved receipt photos togethe
 <button class="action small secondary" data-filter="paid" onclick="setInvoiceFilter('paid',this)">Paid</button>
 </div>
 </div>
-
-<button class="action exportbtn" onclick="exportInvoicesCsv()">Accountant Invoice CSV</button>
 <div id="invoiceList" class="invoice-list"></div>
 </section>
 
@@ -1597,6 +1595,13 @@ customerFrequency.value="4";
 customerNextClean.value=today();
 customerServices.value="Window Cleaning";
 customerNotes.value="";
+
+setTimeout(()=>{
+customerForm.scrollIntoView({
+behavior:"smooth",
+block:"start"
+});
+},100);
 }
 
 function closeCustomerForm(){
@@ -1657,13 +1662,20 @@ customers[index]=c;
 customers.push(c);
 }
 
-localStorage.setItem("pcCustomers",JSON.stringify(customers));
+localStorage.setItem(
+"pcCustomers",
+JSON.stringify(customers)
+);
 
 saveData();
+
 closeCustomerForm();
+
 renderCustomers();
 
-try{renderPlanner();}catch(e){}
+try{
+renderPlanner();
+}catch(e){}
 
 alert("Customer saved.");
 }
@@ -1672,24 +1684,54 @@ function editCustomer(id){
 
 let c=customers.find(x=>x.id===id);
 
-if(!c)return;
+if(!c){
+alert("Customer could not be found.");
+return;
+}
 
 customerForm.classList.add("show");
+
 customerFormTitle.innerText="Edit Customer";
 
-customerId.value=c.id;
+customerId.value=c.id || "";
 customerName.value=c.name || "";
 customerAddress.value=c.address || "";
 customerPostcode.value=c.postcode || "";
 customerRoundArea.value=c.roundArea || "";
-customerPreferredDay.value=String(c.preferredDay ?? "");
+customerPreferredDay.value=
+typeof c.preferredDay==="undefined"
+?
+""
+:
+String(c.preferredDay);
+
 customerPhone.value=c.phone || "";
 customerEmail.value=c.email || "";
-customerPrice.value=c.price || "";
-customerFrequency.value=c.frequency || 4;
+customerPrice.value=
+typeof c.price==="undefined"
+?
+""
+:
+c.price;
+
+customerFrequency.value=
+String(c.frequency || 4);
+
 customerNextClean.value=c.nextClean || "";
 customerServices.value=c.services || "";
 customerNotes.value=c.notes || "";
+
+/* FIX - MOVE SCREEN STRAIGHT TO EDIT FORM */
+setTimeout(()=>{
+
+customerForm.scrollIntoView({
+behavior:"smooth",
+block:"start"
+});
+
+customerName.focus();
+
+},120);
 }
 
 function archiveCustomer(id){
@@ -1760,7 +1802,9 @@ alert("No phone number saved.");
 return;
 }
 
+if(typeof Android!=="undefined" && Android.callPhone){
 Android.callPhone(c.phone);
+}
 }
 
 function textCustomer(id){
@@ -1772,7 +1816,9 @@ alert("No phone number saved.");
 return;
 }
 
+if(typeof Android!=="undefined" && Android.textPhone){
 Android.textPhone(c.phone);
+}
 }
 
 function customerInvoices(id){
@@ -1805,7 +1851,9 @@ list=list.filter(c=>
 );
 
 if(!list.length){
-customerList.innerHTML='<div class="item empty">No customers found.</div>';
+customerList.innerHTML=
+'<div class="item empty">No customers found.</div>';
+
 return;
 }
 
@@ -1821,51 +1869,133 @@ return`
 <div class="item">
 
 <div class="row">
+
 <div>
-<div class="customer-name">${safe(c.name)}</div>
-<div class="muted">
-${safe(c.address)}
-${c.postcode ? "<br>"+safe(c.postcode) : ""}
-</div>
+
+<div class="customer-name">
+${safe(c.name)}
 </div>
 
-<div class="price">£${Number(c.price || 0).toFixed(2)}</div>
+<div class="muted">
+${safe(c.address)}
+
+${c.postcode
+?
+"<br>"+safe(c.postcode)
+:
+""}
+
+</div>
+
+</div>
+
+<div class="price">
+£${Number(c.price || 0).toFixed(2)}
+</div>
+
 </div>
 
 <div style="margin-top:8px">
-<span class="badge areaBadge">${safe(c.roundArea || "Unassigned")}</span>
+
+<span class="badge areaBadge">
+${safe(c.roundArea || "Unassigned")}
+</span>
 
 ${weekdayName(c.preferredDay)
-? `<span class="badge dayBadge">${safe(weekdayName(c.preferredDay))}</span>`
-: ""}
+?
+`
+<span class="badge dayBadge">
+${safe(weekdayName(c.preferredDay))}
+</span>
+`
+:
+""
+}
 
 ${owed>0
-? `<span class="badge unpaid">OWES £${owed.toFixed(2)}</span>`
-: `<span class="badge paid">PAID UP</span>`}
+?
+`
+<span class="badge unpaid">
+OWES £${owed.toFixed(2)}
+</span>
+`
+:
+`
+<span class="badge paid">
+PAID UP
+</span>
+`
+}
+
 </div>
 
 <div class="muted" style="margin-top:8px">
+
 ${safe(c.services || "")}
+
 <br>
+
 Every ${c.frequency || 4} weeks
-${c.nextClean ? "<br>Next: "+formatDate(c.nextClean) : ""}
+
+${c.nextClean
+?
+"<br>Next: "+formatDate(c.nextClean)
+:
+""
+}
+
 </div>
 
 ${c.phone
-? `
-<button class="action small callbtn" onclick="callCustomer('${c.id}')">Call</button>
-<button class="action small textbtn" onclick="textCustomer('${c.id}')">Text</button>
+?
 `
-: ""}
+<button
+class="action small callbtn"
+onclick="callCustomer('${c.id}')">
+Call
+</button>
 
-<button class="action small" onclick="editCustomer('${c.id}')">Edit</button>
+<button
+class="action small textbtn"
+onclick="textCustomer('${c.id}')">
+Text
+</button>
+`
+:
+""
+}
+
+<button
+class="action small"
+onclick="editCustomer('${c.id}')">
+Edit
+</button>
 
 ${!c.archived
-? `<button class="action small archivebtn" onclick="archiveCustomer('${c.id}')">Archive</button>`
-: `
-<button class="action small" onclick="restoreCustomer('${c.id}')">Restore</button>
-<button class="action small danger" onclick="deleteCustomerPermanently('${c.id}')">Delete</button>
-`}
+?
+`
+<button
+class="action small archivebtn"
+onclick="archiveCustomer('${c.id}')">
+Archive
+</button>
+`
+:
+`
+<button
+class="action small"
+onclick="restoreCustomer('${c.id}')">
+Restore
+</button>
+
+<button
+class="action small danger"
+onclick="deleteCustomerPermanently('${c.id}')">
+Delete
+</button>
+`
+}
+
 </div>
 `;
 
@@ -1875,27 +2005,49 @@ ${!c.archived
 /* PLANNER */
 
 function plannerToday(){
+
 plannerDate.value=today();
+
 renderPlanner();
 }
 
 function openPlannerToday(){
+
 plannerDate.value=today();
+
 openPage("planner");
+
 renderPlanner();
 }
 
 function changePlannerDay(amount){
-plannerDate.value=addDays(plannerDate.value || today(),amount);
+
+plannerDate.value=
+addDays(
+plannerDate.value || today(),
+amount
+);
+
 renderPlanner();
 }
 
 function updatePlannerDateHeader(){
 
-let date=plannerDate.value || today();
-let d=new Date(date+"T12:00:00");
+let date=
+plannerDate.value || today();
 
-let day=d.toLocaleDateString("en-GB",{weekday:"long"});
+let d=
+new Date(
+date+"T12:00:00"
+);
+
+let day=
+d.toLocaleDateString(
+"en-GB",
+{
+weekday:"long"
+}
+);
 
 plannerDateTitle.innerText=
 date===today()
@@ -1921,9 +2073,14 @@ if(plannerDate.value===today()){
 return "today";
 }
 
-let d=new Date(plannerDate.value+"T12:00:00");
+let d=
+new Date(
+plannerDate.value+"T12:00:00"
+);
 
-return "on "+
+return(
+"on "
++
 d.toLocaleDateString(
 "en-GB",
 {
@@ -1931,6 +2088,7 @@ weekday:"long",
 day:"numeric",
 month:"long"
 }
+)
 );
 }
 
@@ -1954,17 +2112,35 @@ dateText
 
 function textBeforeClean(id){
 
-let c=customers.find(x=>x.id===id);
+let c=
+customers.find(
+x=>x.id===id
+);
 
 if(!c || !c.phone){
-alert("No phone number saved.");
+
+alert(
+"No phone number saved."
+);
+
 return;
 }
 
+if(
+typeof Android!=="undefined"
+&&
+Android.textPhoneWithMessage
+){
+
 Android.textPhoneWithMessage(
 c.phone,
-makePreCleanMessage(c,plannerMessageDate())
+makePreCleanMessage(
+c,
+plannerMessageDate()
+)
 );
+
+}
 }
 
 function renderPlanner(){
@@ -1977,167 +2153,349 @@ plannerDate.value=today();
 
 updatePlannerDateHeader();
 
-let date=plannerDate.value;
-let area=plannerArea.value || "all";
+let date=
+plannerDate.value;
+
+let area=
+plannerArea.value || "all";
 
 let jobs=
 activeCustomers()
-.filter(c=>c.nextClean===date)
+.filter(
+c=>c.nextClean===date
+)
 .filter(c=>{
 
-if(area==="all")return true;
-
-if(area==="unassigned"){
-return !(c.roundArea || "").trim();
+if(area==="all"){
+return true;
 }
 
-return (c.roundArea || "").trim()===area;
+if(area==="unassigned"){
+
+return !(
+c.roundArea || ""
+).trim();
+}
+
+return(
+c.roundArea || ""
+).trim()===area;
+
 });
 
-plannerJobCount.innerText=jobs.length;
+plannerJobCount.innerText=
+jobs.length;
 
 plannerRoundTotal.innerText=
 "£"+
 jobs
-.reduce((s,c)=>s+Number(c.price || 0),0)
+.reduce(
+(s,c)=>
+s+Number(c.price || 0),
+0
+)
 .toFixed(2);
 
 if(!jobs.length){
-plannerJobs.innerHTML='<div class="item empty">No jobs scheduled for this day.</div>';
+
+plannerJobs.innerHTML=
+'<div class="item empty">No jobs scheduled for this day.</div>';
+
 return;
 }
 
 plannerJobs.innerHTML=
-jobs.map((c,index)=>`
+jobs.map(
+(c,index)=>`
 
 <div class="item">
 
 <div class="row">
+
 <div>
-<div class="customer-name">${index+1}. ${safe(c.name)}</div>
-<div class="muted">
-${safe(c.address)}
-${c.postcode ? "<br>"+safe(c.postcode) : ""}
-</div>
+
+<div class="customer-name">
+${index+1}. ${safe(c.name)}
 </div>
 
-<div class="price">£${Number(c.price || 0).toFixed(2)}</div>
+<div class="muted">
+
+${safe(c.address)}
+
+${c.postcode
+?
+"<br>"+safe(c.postcode)
+:
+""}
+
+</div>
+
+</div>
+
+<div class="price">
+£${Number(c.price || 0).toFixed(2)}
+</div>
+
 </div>
 
 <div style="margin-top:8px">
-<span class="badge areaBadge">${safe(c.roundArea || "Unassigned")}</span>
+
+<span class="badge areaBadge">
+${safe(c.roundArea || "Unassigned")}
+</span>
+
 </div>
 
 <div class="job-detail muted">
-<strong>Service:</strong> ${safe(c.services || "Window Cleaning")}
+
+<strong>Service:</strong>
+${safe(c.services || "Window Cleaning")}
+
 <br>
-<strong>Frequency:</strong> Every ${c.frequency || 4} weeks
+
+<strong>Frequency:</strong>
+Every ${c.frequency || 4} weeks
+
 </div>
 
 ${c.notes
-? `
+?
+`
 <div class="job-notes">
-<strong>⚠ IMPORTANT ACCESS NOTE</strong>
+
+<strong>
+⚠ IMPORTANT ACCESS NOTE
+</strong>
+
 ${safe(c.notes)}
+
 </div>
 `
-: ""}
+:
+""
+}
 
 <div class="job-buttons">
 
 ${c.phone
-? `
-<button class="action precleanbtn preclean-full" onclick="textBeforeClean('${c.id}')">
+?
+`
+<button
+class="action precleanbtn preclean-full"
+onclick="textBeforeClean('${c.id}')">
+
 📱 Text Before Clean
+
 </button>
 `
-: ""}
+:
+""
+}
 
-<button class="action" onclick="completeJob('${c.id}')">✓ Complete</button>
-<button class="action skipbtn" onclick="skipJob('${c.id}')">Skip</button>
-<button class="action movebtn" onclick="showMoveJob('${c.id}')">Move Date</button>
-<button class="action secondary" onclick="openCustomerMap('${c.id}')">Directions</button>
+<button
+class="action"
+onclick="completeJob('${c.id}')">
+
+✓ Complete
+
+</button>
+
+<button
+class="action skipbtn"
+onclick="skipJob('${c.id}')">
+
+Skip
+
+</button>
+
+<button
+class="action movebtn"
+onclick="showMoveJob('${c.id}')">
+
+Move Date
+
+</button>
+
+<button
+class="action secondary"
+onclick="openCustomerMap('${c.id}')">
+
+Directions
+
+</button>
+
 </div>
 
-<div id="move-${c.id}" class="move-box">
-<label>New Date</label>
-<input type="date" id="move-date-${c.id}" value="${date}">
-<button class="action" onclick="moveJob('${c.id}')">Save New Date</button>
-</div>
+<div
+id="move-${c.id}"
+class="move-box">
+
+<label>
+New Date
+</label>
+
+<input
+type="date"
+id="move-date-${c.id}"
+value="${date}">
+
+<button
+class="action"
+onclick="moveJob('${c.id}')">
+
+Save New Date
+
+</button>
 
 </div>
 
-`).join("");
+</div>
+
+`
+).join("");
 }
 
 function completeJob(id){
 
-let c=customers.find(x=>x.id===id);
+let c=
+customers.find(
+x=>x.id===id
+);
 
 if(!c)return;
 
 completingCustomerId=id;
-paymentCustomerName.innerText=c.name;
-paymentAmount.innerText="£"+Number(c.price || 0).toFixed(2);
 
-paymentModalOverlay.classList.add("show");
+paymentCustomerName.innerText=
+c.name;
+
+paymentAmount.innerText=
+"£"+
+Number(c.price || 0).toFixed(2);
+
+paymentModalOverlay.classList.add(
+"show"
+);
 }
 
 function closePaymentModal(){
-paymentModalOverlay.classList.remove("show");
+
+paymentModalOverlay.classList.remove(
+"show"
+);
+
 completingCustomerId=null;
 }
 
 function finishCompletedJob(method){
 
-let c=customers.find(x=>x.id===completingCustomerId);
+let c=
+customers.find(
+x=>x.id===completingCustomerId
+);
 
 if(!c)return;
 
-let paid=method!=="Unpaid";
-let date=today();
+let paid=
+method!=="Unpaid";
+
+let date=
+today();
 
 invoices.push({
-id:Date.now().toString(),
-invoiceNumber:getNextInvoiceNumber(),
-customerId:c.id,
-customerName:c.name,
-amount:Number(c.price || 0),
-description:c.services || "",
-date:date,
-dueDate:addDays(date,7),
-paid:paid,
-paidDate:paid ? date : "",
-paymentMethod:paid ? method : "",
-lastReminderDate:"",
-reminderCount:0
+
+id:
+Date.now().toString(),
+
+invoiceNumber:
+getNextInvoiceNumber(),
+
+customerId:
+c.id,
+
+customerName:
+c.name,
+
+amount:
+Number(c.price || 0),
+
+description:
+c.services || "",
+
+date:
+date,
+
+dueDate:
+addDays(date,7),
+
+paid:
+paid,
+
+paidDate:
+paid
+?
+date
+:
+"",
+
+paymentMethod:
+paid
+?
+method
+:
+"",
+
+lastReminderDate:
+"",
+
+reminderCount:
+0
+
 });
 
-c.nextClean=nextRecurringDate(c,c.nextClean || today());
+c.nextClean=
+nextRecurringDate(
+c,
+c.nextClean || today()
+);
 
 closePaymentModal();
 
 saveData();
+
 renderPlanner();
+
 renderInvoices();
+
 renderCustomers();
 }
 
 function skipJob(id){
 
-let c=customers.find(x=>x.id===id);
+let c=
+customers.find(
+x=>x.id===id
+);
 
 if(!c)return;
 
-c.nextClean=nextRecurringDate(c,c.nextClean || today());
+c.nextClean=
+nextRecurringDate(
+c,
+c.nextClean || today()
+);
 
 saveData();
+
 renderPlanner();
 }
 
 function showMoveJob(id){
 
-let box=document.getElementById("move-"+id);
+let box=
+document.getElementById(
+"move-"+id
+);
 
 if(box){
 box.classList.toggle("show");
@@ -2146,28 +2504,48 @@ box.classList.toggle("show");
 
 function moveJob(id){
 
-let c=customers.find(x=>x.id===id);
-let input=document.getElementById("move-date-"+id);
+let c=
+customers.find(
+x=>x.id===id
+);
 
-if(!c || !input.value)return;
+let input=
+document.getElementById(
+"move-date-"+id
+);
 
-c.nextClean=input.value;
+if(!c || !input.value){
+return;
+}
+
+c.nextClean=
+input.value;
 
 saveData();
+
 renderPlanner();
 }
 
 /* TOMORROW TEXT */
 
 function tomorrowDate(){
-return addDays(today(),1);
+
+return addDays(
+today(),
+1
+);
 }
 
 function tomorrowDateText(){
 
-let d=new Date(tomorrowDate()+"T12:00:00");
+let d=
+new Date(
+tomorrowDate()+"T12:00:00"
+);
 
-return "tomorrow, "+
+return(
+"tomorrow, "
++
 d.toLocaleDateString(
 "en-GB",
 {
@@ -2175,6 +2553,7 @@ weekday:"long",
 day:"numeric",
 month:"long"
 }
+)
 );
 }
 
@@ -2195,42 +2574,77 @@ if(!tomorrowTextQueue.length){
 
 let jobsTomorrow=
 activeCustomers()
-.filter(c=>c.nextClean===tomorrowDate());
+.filter(
+c=>
+c.nextClean===tomorrowDate()
+);
 
 if(jobsTomorrow.length){
-alert("There are customers booked tomorrow, but none have a phone number saved.");
+
+alert(
+"There are customers booked tomorrow, but none have a phone number saved."
+);
+
 }else{
-alert("There are no customers booked for tomorrow.");
+
+alert(
+"There are no customers booked for tomorrow."
+);
+
 }
 
 return;
 }
 
 renderTomorrowTextQueue();
-tomorrowTextOverlay.classList.add("show");
+
+tomorrowTextOverlay.classList.add(
+"show"
+);
 }
 
 function renderTomorrowTextQueue(){
 
-let c=tomorrowTextQueue[tomorrowTextIndex];
+let c=
+tomorrowTextQueue[
+tomorrowTextIndex
+];
 
 if(!c)return;
 
 tomorrowQueueProgress.innerText=
-"Customer "+(tomorrowTextIndex+1)+" of "+tomorrowTextQueue.length;
+"Customer "
++
+(tomorrowTextIndex+1)
++
+" of "
++
+tomorrowTextQueue.length;
 
-tomorrowQueueName.innerText=c.name;
+tomorrowQueueName.innerText=
+c.name;
 
 tomorrowQueueAddress.innerHTML=
 safe(c.address || "")
 +
-(c.postcode ? "<br>"+safe(c.postcode) : "");
+(
+c.postcode
+?
+"<br>"+safe(c.postcode)
+:
+""
+);
 
 tomorrowQueueMessage.innerText=
-makePreCleanMessage(c,tomorrowDateText());
+makePreCleanMessage(
+c,
+tomorrowDateText()
+);
 
 tomorrowNextButton.innerText=
-tomorrowTextIndex===tomorrowTextQueue.length-1
+tomorrowTextIndex
+===
+tomorrowTextQueue.length-1
 ?
 "Finish ✓"
 :
@@ -2239,31 +2653,56 @@ tomorrowTextIndex===tomorrowTextQueue.length-1
 
 function textCurrentTomorrowCustomer(){
 
-let c=tomorrowTextQueue[tomorrowTextIndex];
+let c=
+tomorrowTextQueue[
+tomorrowTextIndex
+];
 
 if(!c)return;
 
+if(
+typeof Android!=="undefined"
+&&
+Android.textPhoneWithMessage
+){
+
 Android.textPhoneWithMessage(
 c.phone,
-makePreCleanMessage(c,tomorrowDateText())
+makePreCleanMessage(
+c,
+tomorrowDateText()
+)
 );
+
+}
 }
 
 function nextTomorrowCustomer(){
 
-if(tomorrowTextIndex>=tomorrowTextQueue.length-1){
+if(
+tomorrowTextIndex
+>=
+tomorrowTextQueue.length-1
+){
+
 closeTomorrowTextQueue();
+
 return;
 }
 
 tomorrowTextIndex++;
+
 renderTomorrowTextQueue();
 }
 
 function closeTomorrowTextQueue(){
 
-tomorrowTextOverlay.classList.remove("show");
+tomorrowTextOverlay.classList.remove(
+"show"
+);
+
 tomorrowTextQueue=[];
+
 tomorrowTextIndex=0;
 }
 
@@ -2272,19 +2711,41 @@ tomorrowTextIndex=0;
 function getNextInvoiceNumber(){
 
 let next=
-Number(localStorage.getItem("pcNextInvoiceNumber") || 1001);
+Number(
+localStorage.getItem(
+"pcNextInvoiceNumber"
+)
+||
+1001
+);
 
-localStorage.setItem("pcNextInvoiceNumber",String(next+1));
+localStorage.setItem(
+"pcNextInvoiceNumber",
+String(next+1)
+);
 
 return next;
 }
 
 function invoiceNumber(inv){
-return inv.invoiceNumber || inv.id;
+
+return(
+inv.invoiceNumber
+||
+inv.id
+);
 }
 
 function invoiceDueDate(inv){
-return inv.dueDate || addDays(inv.date,7);
+
+return(
+inv.dueDate
+||
+addDays(
+inv.date,
+7
+)
+);
 }
 
 function invoiceStatus(inv){
@@ -2293,7 +2754,11 @@ if(inv.paid){
 return "paid";
 }
 
-return invoiceDueDate(inv)<today()
+return(
+invoiceDueDate(inv)
+<
+today()
+)
 ?
 "overdue"
 :
@@ -2302,11 +2767,16 @@ return invoiceDueDate(inv)<today()
 
 function openInvoiceForm(){
 
-invoiceForm.classList.add("show");
+invoiceForm.classList.add(
+"show"
+);
 
 invoiceCustomer.innerHTML=
 activeCustomers()
-.map(c=>`<option value="${c.id}">${safe(c.name)}</option>`)
+.map(
+c=>
+`<option value="${c.id}">${safe(c.name)}</option>`
+)
 .join("");
 
 invoiceAmount.value="";
@@ -2314,51 +2784,111 @@ invoiceDescription.value="";
 }
 
 function closeInvoiceForm(){
-invoiceForm.classList.remove("show");
+
+invoiceForm.classList.remove(
+"show"
+);
 }
 
 function saveInvoice(){
 
-let c=customers.find(x=>x.id===invoiceCustomer.value);
+let c=
+customers.find(
+x=>
+x.id===invoiceCustomer.value
+);
 
 if(!c)return;
 
-let date=today();
+let date=
+today();
 
 invoices.push({
-id:Date.now().toString(),
-invoiceNumber:getNextInvoiceNumber(),
-customerId:c.id,
-customerName:c.name,
-amount:Number(invoiceAmount.value || 0),
-description:invoiceDescription.value.trim(),
-date:date,
-dueDate:addDays(date,7),
-paid:false,
-paidDate:"",
-paymentMethod:"",
-lastReminderDate:"",
-reminderCount:0
+
+id:
+Date.now().toString(),
+
+invoiceNumber:
+getNextInvoiceNumber(),
+
+customerId:
+c.id,
+
+customerName:
+c.name,
+
+amount:
+Number(
+invoiceAmount.value || 0
+),
+
+description:
+invoiceDescription.value.trim(),
+
+date:
+date,
+
+dueDate:
+addDays(
+date,
+7
+),
+
+paid:
+false,
+
+paidDate:
+"",
+
+paymentMethod:
+"",
+
+lastReminderDate:
+"",
+
+reminderCount:
+0
+
 });
 
 saveData();
+
 closeInvoiceForm();
+
 renderInvoices();
 }
 
-function setInvoiceFilter(filter,button){
+function setInvoiceFilter(
+filter,
+button
+){
 
-invoiceFilter=filter;
+invoiceFilter=
+filter;
 
 document
-.querySelectorAll("[data-filter]")
+.querySelectorAll(
+"[data-filter]"
+)
 .forEach(b=>{
-b.classList.remove("selected");
-b.classList.add("secondary");
+
+b.classList.remove(
+"selected"
+);
+
+b.classList.add(
+"secondary"
+);
+
 });
 
-button.classList.add("selected");
-button.classList.remove("secondary");
+button.classList.add(
+"selected"
+);
+
+button.classList.remove(
+"secondary"
+);
 
 renderInvoices();
 }
@@ -2367,85 +2897,181 @@ function renderInvoices(){
 
 let outstanding=
 invoices
-.filter(i=>!i.paid)
-.reduce((s,i)=>s+Number(i.amount || 0),0);
+.filter(
+i=>!i.paid
+)
+.reduce(
+(s,i)=>
+s+Number(i.amount || 0),
+0
+);
 
 let overdue=
 invoices
-.filter(i=>invoiceStatus(i)==="overdue")
-.reduce((s,i)=>s+Number(i.amount || 0),0);
+.filter(
+i=>
+invoiceStatus(i)==="overdue"
+)
+.reduce(
+(s,i)=>
+s+Number(i.amount || 0),
+0
+);
 
-invoiceOutstanding.innerText="£"+outstanding.toFixed(2);
-invoiceOverdueTotal.innerText="£"+overdue.toFixed(2);
+invoiceOutstanding.innerText=
+"£"+
+outstanding.toFixed(2);
 
-let search=(invoiceSearch.value || "").toLowerCase();
+invoiceOverdueTotal.innerText=
+"£"+
+overdue.toFixed(2);
+
+let search=
+(invoiceSearch.value || "")
+.toLowerCase();
 
 let list=
 invoices
 .filter(i=>{
 
-if(invoiceFilter!=="all" && invoiceStatus(i)!==invoiceFilter){
+if(
+invoiceFilter!=="all"
+&&
+invoiceStatus(i)!==invoiceFilter
+){
 return false;
 }
 
 return(
-(i.customerName || "").toLowerCase().includes(search)
+(i.customerName || "")
+.toLowerCase()
+.includes(search)
 ||
-String(invoiceNumber(i)).includes(search)
+String(
+invoiceNumber(i)
+)
+.includes(search)
 ||
-(i.description || "").toLowerCase().includes(search)
+(i.description || "")
+.toLowerCase()
+.includes(search)
 );
 
 })
-.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+.sort(
+(a,b)=>
+String(b.date)
+.localeCompare(
+String(a.date)
+)
+);
 
 if(!list.length){
-invoiceList.innerHTML='<div class="item empty">No invoices found.</div>';
+
+invoiceList.innerHTML=
+'<div class="item empty">No invoices found.</div>';
+
 return;
 }
 
 invoiceList.innerHTML=
 list.map(inv=>{
 
-let status=invoiceStatus(inv);
+let status=
+invoiceStatus(inv);
 
 return`
 
 <div class="item">
 
 <div class="row">
+
 <div>
-<div class="customer-name">${safe(inv.customerName)}</div>
-<div class="muted">
-Invoice #${safe(invoiceNumber(inv))}
-<br>
-${formatDate(inv.date)}
-<br>
-Due ${formatDate(invoiceDueDate(inv))}
-</div>
+
+<div class="customer-name">
+${safe(inv.customerName)}
 </div>
 
-<div class="price">£${Number(inv.amount || 0).toFixed(2)}</div>
+<div class="muted">
+
+Invoice #${safe(invoiceNumber(inv))}
+
+<br>
+
+${formatDate(inv.date)}
+
+<br>
+
+Due ${formatDate(invoiceDueDate(inv))}
+
+</div>
+
+</div>
+
+<div class="price">
+£${Number(inv.amount || 0).toFixed(2)}
+</div>
+
 </div>
 
 <div style="margin-top:8px">
-<span class="badge ${status}">${status.toUpperCase()}</span>
+
+<span class="badge ${status}">
+${status.toUpperCase()}
+</span>
 
 ${inv.lastReminderDate
-? `<span class="badge reminderBadge">REMINDER ${Number(inv.reminderCount || 0)}</span>`
-: ""}
+?
+`
+<span class="badge reminderBadge">
+REMINDER ${Number(inv.reminderCount || 0)}
+</span>
+`
+:
+""
+}
+
 </div>
 
 ${!inv.paid
-? `
-<button class="action small" onclick="markPaid('${inv.id}')">Mark Paid</button>
-<button class="action small reminderbtn" onclick="sendReminder('${inv.id}')">Send Reminder</button>
+?
 `
-: `
-<button class="action small secondary" onclick="undoPaid('${inv.id}')">Undo Paid</button>
-`}
+<button
+class="action small"
+onclick="markPaid('${inv.id}')">
 
-<button class="action small emailbtn" onclick="emailInvoice('${inv.id}')">Email Customer</button>
+Mark Paid
+
+</button>
+
+<button
+class="action small reminderbtn"
+onclick="sendReminder('${inv.id}')">
+
+Send Reminder
+
+</button>
+`
+:
+`
+<button
+class="action small secondary"
+onclick="undoPaid('${inv.id}')">
+
+Undo Paid
+
+</button>
+`
+}
+
+<button
+class="action small emailbtn"
+onclick="emailInvoice('${inv.id}')">
+
+Email Customer
+
+</button>
+
 </div>
 
 `;
@@ -2455,7 +3081,10 @@ ${!inv.paid
 
 function markPaid(id){
 
-let inv=invoices.find(x=>x.id===id);
+let inv=
+invoices.find(
+x=>x.id===id
+);
 
 if(!inv)return;
 
@@ -2471,24 +3100,45 @@ if(choice===null){
 return;
 }
 
-choice=String(choice).trim();
+choice=
+String(choice).trim();
 
-if(choice!=="1" && choice!=="2"){
-alert("Enter 1 for Bank Transfer or 2 for Cash.");
+if(
+choice!=="1"
+&&
+choice!=="2"
+){
+
+alert(
+"Enter 1 for Bank Transfer or 2 for Cash."
+);
+
 return;
 }
 
 inv.paid=true;
-inv.paidDate=today();
-inv.paymentMethod=choice==="1" ? "Bank Transfer" : "Cash";
+
+inv.paidDate=
+today();
+
+inv.paymentMethod=
+choice==="1"
+?
+"Bank Transfer"
+:
+"Cash";
 
 saveData();
+
 renderInvoices();
 }
 
 function undoPaid(id){
 
-let inv=invoices.find(x=>x.id===id);
+let inv=
+invoices.find(
+x=>x.id===id
+);
 
 if(!inv)return;
 
@@ -2497,21 +3147,38 @@ inv.paidDate="";
 inv.paymentMethod="";
 
 saveData();
+
 renderInvoices();
 }
 
 function emailInvoice(id){
 
-let inv=invoices.find(x=>x.id===id);
+let inv=
+invoices.find(
+x=>x.id===id
+);
 
 if(!inv)return;
 
-let c=customers.find(x=>x.id===inv.customerId);
+let c=
+customers.find(
+x=>x.id===inv.customerId
+);
 
 if(!c || !c.email){
-alert("Customer has no email address saved.");
+
+alert(
+"Customer has no email address saved."
+);
+
 return;
 }
+
+if(
+typeof Android!=="undefined"
+&&
+Android.emailCustomerWithAddress
+){
 
 Android.emailCustomerWithAddress(
 c.email,
@@ -2524,19 +3191,33 @@ formatDate(invoiceDueDate(inv)),
 Number(inv.amount || 0).toFixed(2),
 inv.description || ""
 );
+
+}
 }
 
 function sendReminder(id){
 
-let inv=invoices.find(x=>x.id===id);
+let inv=
+invoices.find(
+x=>x.id===id
+);
 
 if(!inv)return;
 
-let c=customers.find(x=>x.id===inv.customerId);
+let c=
+customers.find(
+x=>x.id===inv.customerId
+);
 
 if(!c || !c.email){
 return;
 }
+
+if(
+typeof Android!=="undefined"
+&&
+Android.sendReminder
+){
 
 Android.sendReminder(
 c.email,
@@ -2549,69 +3230,146 @@ inv.description || "",
 invoiceStatus(inv)==="overdue"
 );
 
-inv.lastReminderDate=today();
-inv.reminderCount=Number(inv.reminderCount || 0)+1;
+}
+
+inv.lastReminderDate=
+today();
+
+inv.reminderCount=
+Number(
+inv.reminderCount || 0
+)
++
+1;
 
 saveData();
+
 renderInvoices();
 }
 
 /* MONEY OWED */
 
 function openOwesPage(){
+
 openPage("owes");
+
 renderOwes();
 }
 
 function renderOwes(){
 
-let unpaid=invoices.filter(i=>!i.paid);
+let unpaid=
+invoices.filter(
+i=>!i.paid
+);
 
 owesTotal.innerText=
 "£"+
 unpaid
-.reduce((s,i)=>s+Number(i.amount || 0),0)
+.reduce(
+(s,i)=>
+s+Number(i.amount || 0),
+0
+)
 .toFixed(2);
 
-let customerIds=[...new Set(unpaid.map(i=>i.customerId))];
+let customerIds=
+[
+...new Set(
+unpaid.map(
+i=>i.customerId
+)
+)
+];
 
-owesCustomers.innerText=customerIds.length;
+owesCustomers.innerText=
+customerIds.length;
 
-let search=(owesSearch.value || "").toLowerCase();
+let search=
+(owesSearch.value || "")
+.toLowerCase();
+
 let html=[];
 
 customerIds.forEach(id=>{
 
-let c=customers.find(x=>x.id===id);
+let c=
+customers.find(
+x=>x.id===id
+);
 
 if(!c)return;
 
-if(!(c.name || "").toLowerCase().includes(search)){
+if(
+!(c.name || "")
+.toLowerCase()
+.includes(search)
+){
 return;
 }
 
-let records=unpaid.filter(i=>i.customerId===id);
-let total=records.reduce((s,i)=>s+Number(i.amount || 0),0);
+let records=
+unpaid.filter(
+i=>i.customerId===id
+);
+
+let total=
+records.reduce(
+(s,i)=>
+s+Number(i.amount || 0),
+0
+);
 
 html.push(`
+
 <div class="item">
+
 <div class="row">
-<div class="customer-name">${safe(c.name)}</div>
-<div class="expense-cost">£${total.toFixed(2)}</div>
+
+<div class="customer-name">
+${safe(c.name)}
+</div>
+
+<div class="expense-cost">
+£${total.toFixed(2)}
+</div>
+
 </div>
 
 <div class="muted" style="margin-top:8px">
-${records.length} unpaid invoice${records.length===1 ? "" : "s"}
+
+${records.length}
+unpaid invoice${records.length===1 ? "" : "s"}
+
 </div>
 
 ${c.phone
-? `
-<button class="action small callbtn" onclick="callCustomer('${c.id}')">Call</button>
-<button class="action small textbtn" onclick="textCustomer('${c.id}')">Text</button>
+?
 `
-: ""}
+<button
+class="action small callbtn"
+onclick="callCustomer('${c.id}')">
+
+Call
+
+</button>
+
+<button
+class="action small textbtn"
+onclick="textCustomer('${c.id}')">
+
+Text
+
+</button>
+`
+:
+""
+}
+
 </div>
+
 `);
+
 });
 
 owesList.innerHTML=
@@ -2629,7 +3387,11 @@ if(!name)return;
 
 try{
 
-if(typeof Android!=="undefined" && Android.deleteExpenseReceipt){
+if(
+typeof Android!=="undefined"
+&&
+Android.deleteExpenseReceipt
+){
 Android.deleteExpenseReceipt(name);
 }
 
@@ -2655,15 +3417,23 @@ clearExpenseReceiptTracking();
 
 function newExpense(){
 
-if(expenseForm.classList.contains("show")){
+if(
+expenseForm.classList.contains("show")
+){
 cleanupUnsavedExpenseReceipts();
 }
 
 expenseForm.classList.add("show");
-expenseFormTitle.innerText="Add Expense";
 
-expenseId.value="exp_"+Date.now();
-expenseDate.value=today();
+expenseFormTitle.innerText=
+"Add Expense";
+
+expenseId.value=
+"exp_"+Date.now();
+
+expenseDate.value=
+today();
+
 expenseSupplier.value="";
 expenseCategory.value="Fuel";
 expenseDescription.value="";
@@ -2674,32 +3444,59 @@ expensePaymentMethod.value="Bank Card";
 expenseNotes.value="";
 
 clearExpenseReceiptTracking();
+
 renderExpenseReceiptPreviews();
 }
 
 function editExpense(id){
 
-let exp=expenses.find(x=>x.id===id);
+let exp=
+expenses.find(
+x=>x.id===id
+);
 
 if(!exp)return;
 
-if(expenseForm.classList.contains("show")){
+if(
+expenseForm.classList.contains("show")
+){
 cleanupUnsavedExpenseReceipts();
 }
 
 expenseForm.classList.add("show");
-expenseFormTitle.innerText="Edit Expense";
 
-expenseId.value=exp.id;
-expenseDate.value=exp.date || today();
-expenseSupplier.value=exp.supplier || "";
-expenseCategory.value=exp.category || "Other";
-expenseDescription.value=exp.description || "";
-expenseTotal.value=Number(exp.total || 0).toFixed(2);
-expenseVat.value=Number(exp.vat || 0).toFixed(2);
-expenseNet.value=Number(exp.net || 0).toFixed(2);
-expensePaymentMethod.value=exp.paymentMethod || "Bank Card";
-expenseNotes.value=exp.notes || "";
+expenseFormTitle.innerText=
+"Edit Expense";
+
+expenseId.value=
+exp.id;
+
+expenseDate.value=
+exp.date || today();
+
+expenseSupplier.value=
+exp.supplier || "";
+
+expenseCategory.value=
+exp.category || "Other";
+
+expenseDescription.value=
+exp.description || "";
+
+expenseTotal.value=
+Number(exp.total || 0).toFixed(2);
+
+expenseVat.value=
+Number(exp.vat || 0).toFixed(2);
+
+expenseNet.value=
+Number(exp.net || 0).toFixed(2);
+
+expensePaymentMethod.value=
+exp.paymentMethod || "Bank Card";
+
+expenseNotes.value=
+exp.notes || "";
 
 originalExpenseReceipts=
 Array.isArray(exp.receipts)
@@ -2708,46 +3505,104 @@ Array.isArray(exp.receipts)
 :
 [];
 
-draftExpenseReceipts=[...originalExpenseReceipts];
+draftExpenseReceipts=
+[...originalExpenseReceipts];
+
 newExpenseReceipts=[];
 removedExpenseReceipts=[];
 
 renderExpenseReceiptPreviews();
-window.scrollTo(0,0);
+
+setTimeout(()=>{
+
+expenseForm.scrollIntoView({
+behavior:"smooth",
+block:"start"
+});
+
+},100);
 }
 
 function calculateExpenseNet(){
 
-let total=Number(expenseTotal.value || 0);
-let vat=Number(expenseVat.value || 0);
+let total=
+Number(
+expenseTotal.value || 0
+);
 
-if(vat<0)vat=0;
-if(vat>total)vat=total;
+let vat=
+Number(
+expenseVat.value || 0
+);
 
-expenseNet.value=Math.max(0,total-vat).toFixed(2);
+if(vat<0){
+vat=0;
+}
+
+if(vat>total){
+vat=total;
+}
+
+expenseNet.value=
+Math.max(
+0,
+total-vat
+)
+.toFixed(2);
 }
 
 function takeExpensePhoto(){
 
 if(!expenseId.value){
-alert("Open an expense first.");
+
+alert(
+"Open an expense first."
+);
+
 return;
 }
 
-Android.takeExpenseReceipt(expenseId.value);
+if(
+typeof Android!=="undefined"
+&&
+Android.takeExpenseReceipt
+){
+
+Android.takeExpenseReceipt(
+expenseId.value
+);
+
+}
 }
 
 function chooseExpensePhoto(){
 
 if(!expenseId.value){
-alert("Open an expense first.");
+
+alert(
+"Open an expense first."
+);
+
 return;
 }
 
-Android.chooseExpenseReceipt(expenseId.value);
+if(
+typeof Android!=="undefined"
+&&
+Android.chooseExpenseReceipt
+){
+
+Android.chooseExpenseReceipt(
+expenseId.value
+);
+
+}
 }
 
-function expenseReceiptSaved(expenseIdFromAndroid,fileName){
+function expenseReceiptSaved(
+expenseIdFromAndroid,
+fileName
+){
 
 if(!fileName){
 return;
@@ -2759,32 +3614,62 @@ if(
 expenseId.value!==expenseIdFromAndroid
 ){
 
-deleteExpenseReceiptFile(fileName);
+deleteExpenseReceiptFile(
+fileName
+);
+
 return;
 }
 
-if(!draftExpenseReceipts.includes(fileName)){
-draftExpenseReceipts.push(fileName);
+if(
+!draftExpenseReceipts.includes(
+fileName
+)
+){
+
+draftExpenseReceipts.push(
+fileName
+);
+
 }
 
 if(
-!originalExpenseReceipts.includes(fileName)
+!originalExpenseReceipts.includes(
+fileName
+)
 &&
-!newExpenseReceipts.includes(fileName)
+!newExpenseReceipts.includes(
+fileName
+)
 ){
-newExpenseReceipts.push(fileName);
+
+newExpenseReceipts.push(
+fileName
+);
+
 }
 
 removedExpenseReceipts=
-removedExpenseReceipts.filter(name=>name!==fileName);
+removedExpenseReceipts
+.filter(
+name=>name!==fileName
+);
 
 renderExpenseReceiptPreviews();
 }
 
 function receiptUrl(fileName){
 
-if(typeof Android!=="undefined" && Android.getExpenseReceiptUrl){
-return Android.getExpenseReceiptUrl(fileName);
+if(
+typeof Android!=="undefined"
+&&
+Android.getExpenseReceiptUrl
+){
+
+return Android.getExpenseReceiptUrl(
+fileName
+);
+
 }
 
 return "";
@@ -2792,60 +3677,127 @@ return "";
 
 function renderExpenseReceiptPreviews(){
 
-if(!draftExpenseReceipts.length){
-expenseReceiptPreviews.innerHTML='<div class="muted">No receipt photos saved yet.</div>';
+if(
+!draftExpenseReceipts.length
+){
+
+expenseReceiptPreviews.innerHTML=
+'<div class="muted">No receipt photos saved yet.</div>';
+
 return;
 }
 
 expenseReceiptPreviews.innerHTML=
-draftExpenseReceipts.map((name,index)=>{
+draftExpenseReceipts
+.map(
+(name,index)=>{
 
-let url=receiptUrl(name);
+let url=
+receiptUrl(name);
 
 return`
+
 <div class="receipt-preview">
 
 ${url
-? `<img src="${safe(url)}">`
-: `<div class="muted">Receipt photo</div>`}
+?
+`<img src="${safe(url)}">`
+:
+`<div class="muted">Receipt photo</div>`
+}
 
-<button class="action receiptbtn" onclick="openExpenseReceipt('${safe(name)}')">View</button>
+<button
+class="action receiptbtn"
+onclick="openExpenseReceipt('${safe(name)}')">
 
-<button class="action danger" onclick="removeDraftReceipt(${index})">Delete</button>
+View
+
+</button>
+
+<button
+class="action danger"
+onclick="removeDraftReceipt(${index})">
+
+Delete
+
+</button>
 
 </div>
+
 `;
 
-}).join("");
+}
+)
+.join("");
 }
 
 function openExpenseReceipt(name){
-Android.openExpenseReceipt(name);
+
+if(
+typeof Android!=="undefined"
+&&
+Android.openExpenseReceipt
+){
+
+Android.openExpenseReceipt(
+name
+);
+
+}
 }
 
 function removeDraftReceipt(index){
 
-let name=draftExpenseReceipts[index];
+let name=
+draftExpenseReceipts[index];
 
 if(!name)return;
 
-if(!confirm("Remove this receipt photo from the expense?")){
+if(
+!confirm(
+"Remove this receipt photo from the expense?"
+)
+){
 return;
 }
 
-draftExpenseReceipts.splice(index,1);
+draftExpenseReceipts.splice(
+index,
+1
+);
 
-if(newExpenseReceipts.includes(name)){
+if(
+newExpenseReceipts.includes(
+name
+)
+){
 
-deleteExpenseReceiptFile(name);
+deleteExpenseReceiptFile(
+name
+);
 
 newExpenseReceipts=
-newExpenseReceipts.filter(x=>x!==name);
+newExpenseReceipts
+.filter(
+x=>x!==name
+);
 
-}else if(originalExpenseReceipts.includes(name)){
+}else if(
+originalExpenseReceipts.includes(
+name
+)
+){
 
-if(!removedExpenseReceipts.includes(name)){
-removedExpenseReceipts.push(name);
+if(
+!removedExpenseReceipts.includes(
+name
+)
+){
+
+removedExpenseReceipts.push(
+name
+);
+
 }
 
 }
@@ -2855,138 +3807,301 @@ renderExpenseReceiptPreviews();
 
 function saveExpense(){
 
-let total=Number(expenseTotal.value || 0);
+let total=
+Number(
+expenseTotal.value || 0
+);
 
-if(!expenseDate.value){
-alert("Choose the expense date.");
+if(
+!expenseDate.value
+){
+
+alert(
+"Choose the expense date."
+);
+
 return;
 }
 
-if(!expenseSupplier.value.trim()){
-alert("Enter the supplier or shop.");
+if(
+!expenseSupplier.value.trim()
+){
+
+alert(
+"Enter the supplier or shop."
+);
+
 return;
 }
 
-if(total<=0){
-alert("Enter the total cost of the expense.");
+if(
+total<=0
+){
+
+alert(
+"Enter the total cost of the expense."
+);
+
 return;
 }
 
 calculateExpenseNet();
 
 let exp={
-id:expenseId.value || "exp_"+Date.now(),
-date:expenseDate.value,
-supplier:expenseSupplier.value.trim(),
-category:expenseCategory.value,
-description:expenseDescription.value.trim(),
-total:total,
-vat:Number(expenseVat.value || 0),
-net:Number(expenseNet.value || 0),
-paymentMethod:expensePaymentMethod.value,
-notes:expenseNotes.value.trim(),
-receipts:[...draftExpenseReceipts]
+
+id:
+expenseId.value
+||
+"exp_"+Date.now(),
+
+date:
+expenseDate.value,
+
+supplier:
+expenseSupplier.value.trim(),
+
+category:
+expenseCategory.value,
+
+description:
+expenseDescription.value.trim(),
+
+total:
+total,
+
+vat:
+Number(
+expenseVat.value || 0
+),
+
+net:
+Number(
+expenseNet.value || 0
+),
+
+paymentMethod:
+expensePaymentMethod.value,
+
+notes:
+expenseNotes.value.trim(),
+
+receipts:
+[...draftExpenseReceipts]
+
 };
 
-let index=expenses.findIndex(x=>x.id===exp.id);
+let index=
+expenses.findIndex(
+x=>x.id===exp.id
+);
 
 if(index>=0){
+
 expenses[index]=exp;
+
 }else{
+
 expenses.push(exp);
+
 }
+
+/* SAVE BEFORE REMOVING OLD RECEIPTS */
 
 saveData();
 
-removedExpenseReceipts.forEach(name=>{
+removedExpenseReceipts
+.forEach(name=>{
 
-if(!draftExpenseReceipts.includes(name)){
-deleteExpenseReceiptFile(name);
+if(
+!draftExpenseReceipts.includes(
+name
+)
+){
+
+deleteExpenseReceiptFile(
+name
+);
+
 }
 
 });
 
-expenseForm.classList.remove("show");
+expenseForm.classList.remove(
+"show"
+);
+
 clearExpenseReceiptTracking();
 
 renderExpenses();
 
-alert("Expense saved.");
+alert(
+"Expense saved."
+);
 }
 
 function cancelExpenseForm(){
 
-newExpenseReceipts.forEach(name=>{
-deleteExpenseReceiptFile(name);
+/*
+ONLY NEW UNSAVED PHOTOS ARE DELETED.
+OLD SAVED RECEIPTS STAY SAFE.
+*/
+
+newExpenseReceipts
+.forEach(name=>{
+
+deleteExpenseReceiptFile(
+name
+);
+
 });
 
-expenseForm.classList.remove("show");
+expenseForm.classList.remove(
+"show"
+);
+
 clearExpenseReceiptTracking();
+
 renderExpenses();
 }
 
 function deleteExpense(id){
 
-let exp=expenses.find(x=>x.id===id);
+let exp=
+expenses.find(
+x=>x.id===id
+);
 
 if(!exp)return;
 
-if(!confirm("Delete this expense?")){
+if(
+!confirm(
+"Delete this expense?"
+)
+){
 return;
 }
 
-(exp.receipts || []).forEach(name=>{
-deleteExpenseReceiptFile(name);
+(exp.receipts || [])
+.forEach(name=>{
+
+deleteExpenseReceiptFile(
+name
+);
+
 });
 
-expenses=expenses.filter(x=>x.id!==id);
+expenses=
+expenses.filter(
+x=>x.id!==id
+);
 
 saveData();
+
 renderExpenses();
 }
 
 function renderExpenseTotals(){
 
-if(!document.getElementById("expenseMonthTotal")){
+if(
+!document.getElementById(
+"expenseMonthTotal"
+)
+){
 return;
 }
 
-let now=new Date();
+let now=
+new Date();
 
 let currentMonth=
 now.getFullYear()
 +
 "-"
 +
-String(now.getMonth()+1).padStart(2,"0");
+String(
+now.getMonth()+1
+)
+.padStart(
+2,
+"0"
+);
 
-let currentYear=String(now.getFullYear());
+let currentYear=
+String(
+now.getFullYear()
+);
 
 let monthExpenses=
-expenses.filter(e=>monthKey(e.date)===currentMonth);
+expenses.filter(
+e=>
+monthKey(e.date)
+===
+currentMonth
+);
 
 let yearExpenses=
-expenses.filter(e=>String(e.date || "").startsWith(currentYear));
+expenses.filter(
+e=>
+String(
+e.date || ""
+)
+.startsWith(
+currentYear
+)
+);
 
 let monthTotal=
-monthExpenses.reduce((s,e)=>s+Number(e.total || 0),0);
-
-let yearTotal=
-yearExpenses.reduce((s,e)=>s+Number(e.total || 0),0);
-
-let yearVat=
-yearExpenses.reduce((s,e)=>s+Number(e.vat || 0),0);
-
-let receiptCount=
-expenses.reduce(
-(s,e)=>s+(Array.isArray(e.receipts) ? e.receipts.length : 0),
+monthExpenses
+.reduce(
+(s,e)=>
+s+Number(e.total || 0),
 0
 );
 
-expenseMonthTotal.innerText="£"+monthTotal.toFixed(2);
-expenseYearTotal.innerText="£"+yearTotal.toFixed(2);
-expenseYearVat.innerText="£"+yearVat.toFixed(2);
-expenseReceiptCount.innerText=receiptCount;
+let yearTotal=
+yearExpenses
+.reduce(
+(s,e)=>
+s+Number(e.total || 0),
+0
+);
+
+let yearVat=
+yearExpenses
+.reduce(
+(s,e)=>
+s+Number(e.vat || 0),
+0
+);
+
+let receiptCount=
+expenses.reduce(
+(s,e)=>
+s+
+(
+Array.isArray(e.receipts)
+?
+e.receipts.length
+:
+0
+),
+0
+);
+
+expenseMonthTotal.innerText=
+"£"+
+monthTotal.toFixed(2);
+
+expenseYearTotal.innerText=
+"£"+
+yearTotal.toFixed(2);
+
+expenseYearVat.innerText=
+"£"+
+yearVat.toFixed(2);
+
+expenseReceiptCount.innerText=
+receiptCount;
 
 renderExpenseCategoryTotals();
 }
@@ -2997,15 +4112,22 @@ let totals={};
 
 expenses.forEach(exp=>{
 
-let category=exp.category || "Other";
+let category=
+exp.category || "Other";
 
-totals[category]=(totals[category] || 0)+Number(exp.total || 0);
+totals[category]=
+(totals[category] || 0)
++
+Number(exp.total || 0);
 
 });
 
 let entries=
 Object.entries(totals)
-.sort((a,b)=>b[1]-a[1]);
+.sort(
+(a,b)=>
+b[1]-a[1]
+);
 
 expenseCategorySummary.innerHTML=
 entries.length
@@ -3013,7 +4135,14 @@ entries.length
 "<strong style='color:#9bd600'>All-Time Category Totals</strong><br>"
 +
 entries
-.map(x=>safe(x[0])+" — £"+Number(x[1]).toFixed(2))
+.map(
+x=>
+safe(x[0])
++
+" — £"
++
+Number(x[1]).toFixed(2)
+)
 .join("<br>")
 :
 "No expenses recorded yet.";
@@ -3023,7 +4152,9 @@ function renderExpenses(){
 
 renderExpenseTotals();
 
-let search=(expenseSearch.value || "").toLowerCase();
+let search=
+(expenseSearch.value || "")
+.toLowerCase();
 
 let list=
 expenses
@@ -3040,13 +4171,24 @@ exp.notes
 .join(" ")
 .toLowerCase();
 
-return text.includes(search);
+return text.includes(
+search
+);
 
 })
-.sort((a,b)=>String(b.date || "").localeCompare(String(a.date || "")));
+.sort(
+(a,b)=>
+String(b.date || "")
+.localeCompare(
+String(a.date || "")
+)
+);
 
 if(!list.length){
-expenseList.innerHTML='<div class="item empty">No expenses recorded yet.</div>';
+
+expenseList.innerHTML=
+'<div class="item empty">No expenses recorded yet.</div>';
+
 return;
 }
 
@@ -3054,53 +4196,110 @@ expenseList.innerHTML=
 list.map(exp=>{
 
 let receipts=
-Array.isArray(exp.receipts)
+Array.isArray(
+exp.receipts
+)
 ?
 exp.receipts
 :
 [];
 
 let receiptButtons=
-receipts.map((name,index)=>`
-<button class="action small receiptbtn" onclick="openExpenseReceipt('${safe(name)}')">
+receipts
+.map(
+(name,index)=>`
+
+<button
+class="action small receiptbtn"
+onclick="openExpenseReceipt('${safe(name)}')">
+
 📷 Receipt ${index+1}
+
 </button>
-`).join("");
+
+`
+)
+.join("");
 
 return`
+
 <div class="item">
 
 <div class="row">
+
 <div>
-<div class="customer-name">${safe(exp.supplier || "Expense")}</div>
-<div class="muted">${formatDate(exp.date)}</div>
+
+<div class="customer-name">
+${safe(exp.supplier || "Expense")}
 </div>
-<div class="expense-cost">£${Number(exp.total || 0).toFixed(2)}</div>
+
+<div class="muted">
+${formatDate(exp.date)}
+</div>
+
+</div>
+
+<div class="expense-cost">
+£${Number(exp.total || 0).toFixed(2)}
+</div>
+
 </div>
 
 <div style="margin-top:8px">
-<span class="badge categoryBadge">${safe(exp.category || "Other")}</span>
+
+<span class="badge categoryBadge">
+${safe(exp.category || "Other")}
+</span>
+
 </div>
 
-<div class="muted" style="margin-top:9px">${safe(exp.description || "")}</div>
+<div class="muted" style="margin-top:9px">
+${safe(exp.description || "")}
+</div>
 
 <div class="expense-breakdown">
-Net: £${Number(exp.net || 0).toFixed(2)}
+
+Net:
+£${Number(exp.net || 0).toFixed(2)}
+
 <br>
-VAT: £${Number(exp.vat || 0).toFixed(2)}
+
+VAT:
+£${Number(exp.vat || 0).toFixed(2)}
+
 <br>
-<strong>Total: £${Number(exp.total || 0).toFixed(2)}</strong>
+
+<strong>
+Total:
+£${Number(exp.total || 0).toFixed(2)}
+</strong>
+
 </div>
 
 ${receiptButtons}
 
-<button class="action small" onclick="editExpense('${exp.id}')">Edit</button>
-<button class="action small danger" onclick="deleteExpense('${exp.id}')">Delete</button>
+<button
+class="action small"
+onclick="editExpense('${exp.id}')">
+
+Edit
+
+</button>
+
+<button
+class="action small danger"
+onclick="deleteExpense('${exp.id}')">
+
+Delete
+
+</button>
 
 </div>
+
 `;
 
-}).join("");
+})
+.join("");
 }
 
 /* EXPENSE EXPORT */
@@ -3117,10 +4316,18 @@ expenseExportRange.value==="custom"
 
 function getUkTaxYearRange(){
 
-let now=new Date();
-let year=now.getFullYear();
+let now=
+new Date();
 
-let start=new Date(year,3,6);
+let year=
+now.getFullYear();
+
+let start=
+new Date(
+year,
+3,
+6
+);
 
 let startYear=
 now>=start
@@ -3130,94 +4337,175 @@ year
 year-1;
 
 return{
-from:startYear+"-04-06",
-to:(startYear+1)+"-04-05"
+
+from:
+startYear+"-04-06",
+
+to:
+(startYear+1)+"-04-05"
+
 };
 }
 
 function csvCell(value){
 
-return '"'
+return(
+'"'
 +
 String(value ?? "")
-.replace(/"/g,'""')
+.replace(
+/"/g,
+'""'
+)
 +
-'"';
+'"'
+);
 }
 
 function getExpenseExportRange(){
 
-let range=expenseExportRange.value || "all";
+let range=
+expenseExportRange.value
+||
+"all";
 
 if(range==="all"){
-return{from:"",to:""};
+
+return{
+from:"",
+to:""
+};
+
 }
 
 if(range==="month"){
 
-let now=new Date();
+let now=
+new Date();
 
-let year=now.getFullYear();
-let month=now.getMonth();
+let year=
+now.getFullYear();
 
-let first=new Date(year,month,1);
-let last=new Date(year,month+1,0);
+let month=
+now.getMonth();
+
+let first=
+new Date(
+year,
+month,
+1
+);
+
+let last=
+new Date(
+year,
+month+1,
+0
+);
 
 return{
-from:localDateString(first),
-to:localDateString(last)
+
+from:
+localDateString(first),
+
+to:
+localDateString(last)
+
 };
+
 }
 
 if(range==="taxyear"){
+
 return getUkTaxYearRange();
 }
 
 if(range==="custom"){
 
-let from=expenseExportFrom.value;
-let to=expenseExportTo.value;
+let from=
+expenseExportFrom.value;
 
-if(!from || !to){
-alert("Choose both From and To dates.");
+let to=
+expenseExportTo.value;
+
+if(
+!from
+||
+!to
+){
+
+alert(
+"Choose both From and To dates."
+);
+
 return null;
 }
 
-if(from>to){
-alert("The From date must be before the To date.");
+if(
+from>to
+){
+
+alert(
+"The From date must be before the To date."
+);
+
 return null;
 }
 
-return{from:from,to:to};
+return{
+from:from,
+to:to
+};
+
 }
 
-return{from:"",to:""};
+return{
+from:"",
+to:""
+};
 }
 
 function exportExpenseAccountantPack(){
 
-let range=getExpenseExportRange();
+let range=
+getExpenseExportRange();
 
 if(!range){
 return;
 }
 
-let category=expenseExportCategory.value || "all";
+let category=
+expenseExportCategory.value
+||
+"all";
 
 let rows=
 expenses.filter(exp=>{
 
-let date=exp.date || "";
+let date=
+exp.date || "";
 
-if(range.from && date<range.from){
+if(
+range.from
+&&
+date<range.from
+){
 return false;
 }
 
-if(range.to && date>range.to){
+if(
+range.to
+&&
+date>range.to
+){
 return false;
 }
 
-if(category!=="all" && exp.category!==category){
+if(
+category!=="all"
+&&
+exp.category!==category
+){
 return false;
 }
 
@@ -3225,7 +4513,11 @@ return true;
 });
 
 if(!rows.length){
-alert("No expenses match the selected export filters.");
+
+alert(
+"No expenses match the selected export filters."
+);
+
 return;
 }
 
@@ -3259,7 +4551,9 @@ exp.receipts
 :
 [];
 
-receipts.push(...files);
+receipts.push(
+...files
+);
 
 csv.push(
 [
@@ -3280,11 +4574,35 @@ files.join(" | ")
 
 });
 
+if(
+typeof Android!=="undefined"
+&&
+Android.shareExpenseAccountantPack
+){
+
 Android.shareExpenseAccountantPack(
-"PureClean-Expenses-"+today()+".zip",
-"\uFEFF"+csv.join("\r\n"),
-JSON.stringify([...new Set(receipts)])
+
+"PureClean-Expenses-"
++
+today()
++
+".zip",
+
+"\uFEFF"
++
+csv.join("\r\n"),
+
+JSON.stringify(
+[
+...new Set(
+receipts
+)
+]
+)
+
 );
+
+}
 }
 
 /* INVOICE CSV */
@@ -3292,7 +4610,11 @@ JSON.stringify([...new Set(receipts)])
 function exportInvoicesCsv(){
 
 if(!invoices.length){
-alert("No invoices to export.");
+
+alert(
+"No invoices to export."
+);
+
 return;
 }
 
@@ -3324,7 +4646,11 @@ inv.description || "",
 Number(inv.amount || 0).toFixed(2),
 invoiceStatus(inv).toUpperCase(),
 inv.paymentMethod || "",
-inv.paidDate ? formatDate(inv.paidDate) : ""
+inv.paidDate
+?
+formatDate(inv.paidDate)
+:
+""
 ]
 .map(csvCell)
 .join(",")
@@ -3332,39 +4658,77 @@ inv.paidDate ? formatDate(inv.paidDate) : ""
 
 });
 
+if(
+typeof Android!=="undefined"
+&&
+Android.shareCsv
+){
+
 Android.shareCsv(
-"PureClean-Accountant-"+today()+".csv",
-"\uFEFF"+csv.join("\r\n")
+
+"PureClean-Accountant-"
++
+today()
++
+".csv",
+
+"\uFEFF"
++
+csv.join("\r\n")
+
 );
+
+}
 }
 
 /* DASHBOARD */
 
 function updateDashboard(){
 
-if(!document.getElementById("dashCustomers")){
+if(
+!document.getElementById(
+"dashCustomers"
+)
+){
 return;
 }
 
-let active=activeCustomers();
+let active=
+activeCustomers();
 
-dashCustomers.innerText=active.length;
+dashCustomers.innerText=
+active.length;
 
 let unpaid=
 invoices
-.filter(i=>!i.paid)
-.reduce((s,i)=>s+Number(i.amount || 0),0);
+.filter(
+i=>!i.paid
+)
+.reduce(
+(s,i)=>
+s+Number(i.amount || 0),
+0
+);
 
-dashUnpaid.innerText="£"+unpaid.toFixed(2);
+dashUnpaid.innerText=
+"£"+
+unpaid.toFixed(2);
 
-let now=new Date();
+let now=
+new Date();
 
 let month=
 now.getFullYear()
 +
 "-"
 +
-String(now.getMonth()+1).padStart(2,"0");
+String(
+now.getMonth()+1
+)
+.padStart(
+2,
+"0"
+);
 
 let paidMonth=
 invoices
@@ -3372,37 +4736,75 @@ invoices
 i=>
 i.paid
 &&
-monthKey(i.paidDate || i.date)===month
+monthKey(
+i.paidDate || i.date
 )
-.reduce((s,i)=>s+Number(i.amount || 0),0);
+===
+month
+)
+.reduce(
+(s,i)=>
+s+Number(i.amount || 0),
+0
+);
 
-dashPaid.innerText="£"+paidMonth.toFixed(2);
+dashPaid.innerText=
+"£"+
+paidMonth.toFixed(2);
 
 let expenseMonth=
 expenses
-.filter(e=>monthKey(e.date)===month)
-.reduce((s,e)=>s+Number(e.total || 0),0);
+.filter(
+e=>
+monthKey(e.date)
+===
+month
+)
+.reduce(
+(s,e)=>
+s+Number(e.total || 0),
+0
+);
 
-dashExpenses.innerText="£"+expenseMonth.toFixed(2);
+dashExpenses.innerText=
+"£"+
+expenseMonth.toFixed(2);
 
 let todays=
-active.filter(c=>c.nextClean===today());
+active.filter(
+c=>
+c.nextClean===today()
+);
 
 todayJobs.innerHTML=
 todays.length
 ?
 todays
-.map(c=>safe(c.name)+" — £"+Number(c.price || 0).toFixed(2))
+.map(
+c=>
+safe(c.name)
++
+" — £"
++
+Number(c.price || 0).toFixed(2)
+)
 .join("<br>")
 :
 "No jobs due today";
 
 let tomorrowJobs=
-active.filter(c=>c.nextClean===tomorrowDate());
+active.filter(
+c=>
+c.nextClean===tomorrowDate()
+);
 
 let tomorrowValue=
 tomorrowJobs
-.reduce((s,c)=>s+Number(c.price || 0),0);
+.reduce(
+(s,c)=>
+s+Number(c.price || 0),
+0
+);
 
 tomorrowSummary.innerHTML=
 tomorrowJobs.length
@@ -3411,7 +4813,13 @@ tomorrowJobs.length
 +
 " job"
 +
-(tomorrowJobs.length===1 ? "" : "s")
+(
+tomorrowJobs.length===1
+?
+""
+:
+"s"
+)
 +
 " • £"
 +
@@ -3420,7 +4828,9 @@ tomorrowValue.toFixed(2)
 "No jobs due tomorrow";
 
 let unpaidInvoices=
-invoices.filter(i=>!i.paid);
+invoices.filter(
+i=>!i.paid
+);
 
 dashInvoices.innerHTML=
 unpaidInvoices.length
@@ -3428,7 +4838,14 @@ unpaidInvoices.length
 unpaidInvoices
 .slice(-4)
 .reverse()
-.map(i=>safe(i.customerName)+" — £"+Number(i.amount || 0).toFixed(2))
+.map(
+i=>
+safe(i.customerName)
++
+" — £"
++
+Number(i.amount || 0).toFixed(2)
+)
 .join("<br>")
 :
 "No unpaid invoices";
@@ -3436,62 +4853,142 @@ unpaidInvoices
 
 /* PROFIT */
 
-function setProfitColour(element,value){
+function setProfitColour(
+element,
+value
+){
 
 if(!element){
 return;
 }
 
-element.classList.remove("profit-positive","profit-negative");
+element.classList.remove(
+"profit-positive",
+"profit-negative"
+);
 
 if(value<0){
-element.classList.add("profit-negative");
+
+element.classList.add(
+"profit-negative"
+);
+
 }else{
-element.classList.add("profit-positive");
+
+element.classList.add(
+"profit-positive"
+);
+
 }
 }
 
 function updateEarnings(){
 
-if(!document.getElementById("earnPaidMonth")){
+if(
+!document.getElementById(
+"earnPaidMonth"
+)
+){
 return;
 }
 
-let now=new Date();
+let now=
+new Date();
 
 let month=
 now.getFullYear()
 +
 "-"
 +
-String(now.getMonth()+1).padStart(2,"0");
+String(
+now.getMonth()+1
+)
+.padStart(
+2,
+"0"
+);
 
-let year=String(now.getFullYear());
+let year=
+String(
+now.getFullYear()
+);
 
 let paidMonth=
 invoices
-.filter(i=>i.paid && monthKey(i.paidDate || i.date)===month)
-.reduce((s,i)=>s+Number(i.amount || 0),0);
+.filter(
+i=>
+i.paid
+&&
+monthKey(
+i.paidDate || i.date
+)
+===
+month
+)
+.reduce(
+(s,i)=>
+s+Number(i.amount || 0),
+0
+);
 
 let paidYear=
 invoices
-.filter(i=>i.paid && String(i.paidDate || i.date).startsWith(year))
-.reduce((s,i)=>s+Number(i.amount || 0),0);
+.filter(
+i=>
+i.paid
+&&
+String(
+i.paidDate || i.date
+)
+.startsWith(
+year
+)
+)
+.reduce(
+(s,i)=>
+s+Number(i.amount || 0),
+0
+);
 
 let expenseMonth=
 expenses
-.filter(e=>monthKey(e.date)===month)
-.reduce((s,e)=>s+Number(e.total || 0),0);
+.filter(
+e=>
+monthKey(e.date)
+===
+month
+)
+.reduce(
+(s,e)=>
+s+Number(e.total || 0),
+0
+);
 
 let expenseYear=
 expenses
-.filter(e=>String(e.date || "").startsWith(year))
-.reduce((s,e)=>s+Number(e.total || 0),0);
+.filter(
+e=>
+String(
+e.date || ""
+)
+.startsWith(
+year
+)
+)
+.reduce(
+(s,e)=>
+s+Number(e.total || 0),
+0
+);
 
-let monthProfit=paidMonth-expenseMonth;
-let yearProfit=paidYear-expenseYear;
+let monthProfit=
+paidMonth-expenseMonth;
 
-let tax=getUkTaxYearRange();
+let yearProfit=
+paidYear-expenseYear;
+
+let tax=
+getUkTaxYearRange();
 
 let taxIncome=
 invoices
@@ -3501,78 +4998,192 @@ if(!i.paid){
 return false;
 }
 
-let paymentDate=i.paidDate || i.date || "";
+let paymentDate=
+i.paidDate
+||
+i.date
+||
+"";
 
-return paymentDate>=tax.from && paymentDate<=tax.to;
+return(
+paymentDate>=tax.from
+&&
+paymentDate<=tax.to
+);
 
 })
-.reduce((s,i)=>s+Number(i.amount || 0),0);
+.reduce(
+(s,i)=>
+s+Number(i.amount || 0),
+0
+);
 
 let taxExpenses=
 expenses
-.filter(e=>e.date && e.date>=tax.from && e.date<=tax.to)
-.reduce((s,e)=>s+Number(e.total || 0),0);
+.filter(
+e=>
+e.date
+&&
+e.date>=tax.from
+&&
+e.date<=tax.to
+)
+.reduce(
+(s,e)=>
+s+Number(e.total || 0),
+0
+);
 
-let taxProfit=taxIncome-taxExpenses;
+let taxProfit=
+taxIncome-taxExpenses;
 
 let outstanding=
 invoices
-.filter(i=>!i.paid)
-.reduce((s,i)=>s+Number(i.amount || 0),0);
+.filter(
+i=>!i.paid
+)
+.reduce(
+(s,i)=>
+s+Number(i.amount || 0),
+0
+);
 
-let end=addDays(today(),7);
+let end=
+addDays(
+today(),
+7
+);
 
 let next7=
 activeCustomers()
-.filter(c=>c.nextClean && c.nextClean>=today() && c.nextClean<=end)
-.reduce((s,c)=>s+Number(c.price || 0),0);
+.filter(
+c=>
+c.nextClean
+&&
+c.nextClean>=today()
+&&
+c.nextClean<=end
+)
+.reduce(
+(s,c)=>
+s+Number(c.price || 0),
+0
+);
 
-earnPaidMonth.innerText="£"+paidMonth.toFixed(2);
-earnExpensesMonth.innerText="£"+expenseMonth.toFixed(2);
-earnProfitMonth.innerText="£"+monthProfit.toFixed(2);
-setProfitColour(earnProfitMonth,monthProfit);
+earnPaidMonth.innerText=
+"£"+
+paidMonth.toFixed(2);
 
-earnPaidYear.innerText="£"+paidYear.toFixed(2);
-earnExpensesYear.innerText="£"+expenseYear.toFixed(2);
-earnProfitYear.innerText="£"+yearProfit.toFixed(2);
-setProfitColour(earnProfitYear,yearProfit);
+earnExpensesMonth.innerText=
+"£"+
+expenseMonth.toFixed(2);
 
-earnTaxIncome.innerText="£"+taxIncome.toFixed(2);
-earnTaxExpenses.innerText="£"+taxExpenses.toFixed(2);
-earnTaxProfit.innerText="£"+taxProfit.toFixed(2);
-setProfitColour(earnTaxProfit,taxProfit);
+earnProfitMonth.innerText=
+"£"+
+monthProfit.toFixed(2);
+
+setProfitColour(
+earnProfitMonth,
+monthProfit
+);
+
+earnPaidYear.innerText=
+"£"+
+paidYear.toFixed(2);
+
+earnExpensesYear.innerText=
+"£"+
+expenseYear.toFixed(2);
+
+earnProfitYear.innerText=
+"£"+
+yearProfit.toFixed(2);
+
+setProfitColour(
+earnProfitYear,
+yearProfit
+);
+
+earnTaxIncome.innerText=
+"£"+
+taxIncome.toFixed(2);
+
+earnTaxExpenses.innerText=
+"£"+
+taxExpenses.toFixed(2);
+
+earnTaxProfit.innerText=
+"£"+
+taxProfit.toFixed(2);
+
+setProfitColour(
+earnTaxProfit,
+taxProfit
+);
 
 taxYearDates.innerText=
-"UK tax year: "+formatDate(tax.from)+" to "+formatDate(tax.to);
+"UK tax year: "
++
+formatDate(tax.from)
++
+" to "
++
+formatDate(tax.to);
 
-earnOutstanding.innerText="£"+outstanding.toFixed(2);
-earnNext7.innerText="£"+next7.toFixed(2);
+earnOutstanding.innerText=
+"£"+
+outstanding.toFixed(2);
+
+earnNext7.innerText=
+"£"+
+next7.toFixed(2);
 }
 
 /* MAP */
 
-async function postcodeCoordinates(postcode){
+async function postcodeCoordinates(
+postcode
+){
 
 try{
 
 let cleaned=
-String(postcode || "")
-.replace(/\s+/g,"");
+String(
+postcode || ""
+)
+.replace(
+/\s+/g,
+""
+);
 
 let response=
 await fetch(
+
 "https://api.postcodes.io/postcodes/"
 +
-encodeURIComponent(cleaned)
+encodeURIComponent(
+cleaned
+)
+
 );
 
-let data=await response.json();
+let data=
+await response.json();
 
-if(data.status===200){
+if(
+data.status===200
+){
+
 return{
-lat:data.result.latitude,
-lng:data.result.longitude
+
+lat:
+data.result.latitude,
+
+lng:
+data.result.longitude
+
 };
+
 }
 
 }catch(e){}
@@ -3583,63 +5194,133 @@ return null;
 function initialiseMap(){
 
 if(map)return;
-if(typeof L==="undefined")return;
+
+if(
+typeof L==="undefined"
+){
+return;
+}
 
 map=
-L.map("customerMap")
-.setView([52.6309,1.2974],10);
+L.map(
+"customerMap"
+)
+.setView(
+[
+52.6309,
+1.2974
+],
+10
+);
 
 L.tileLayer(
+
 "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-{maxZoom:19}
+
+{
+maxZoom:19
+}
+
 )
-.addTo(map);
+.addTo(
+map
+);
 }
 
 async function renderMap(){
 
 initialiseMap();
 
-if(!map)return;
+if(!map){
+return;
+}
 
-mapMarkers.forEach(m=>map.removeLayer(m));
+mapMarkers
+.forEach(
+m=>
+map.removeLayer(m)
+);
+
 mapMarkers=[];
 
 let bounds=[];
 
-for(let c of activeCustomers().filter(c=>c.postcode)){
+for(
+let c
+of
+activeCustomers()
+.filter(
+c=>c.postcode
+)
+){
 
-let coords=await postcodeCoordinates(c.postcode);
+let coords=
+await postcodeCoordinates(
+c.postcode
+);
 
-if(!coords)continue;
+if(!coords){
+continue;
+}
 
 let marker=
-L.marker([coords.lat,coords.lng]).addTo(map);
+L.marker(
+[
+coords.lat,
+coords.lng
+]
+)
+.addTo(
+map
+);
 
 marker.bindPopup(
-"<strong>"+
+
+"<strong>"
++
 safe(c.name)
 +
-"</strong><br>"+
+"</strong><br>"
++
 safe(c.address)
 +
-"<br>"+
+"<br>"
++
 safe(c.postcode)
+
 );
 
-mapMarkers.push(marker);
-bounds.push([coords.lat,coords.lng]);
+mapMarkers.push(
+marker
+);
+
+bounds.push(
+[
+coords.lat,
+coords.lng
+]
+);
+
 }
 
-if(bounds.length){
+if(
+bounds.length
+){
 
 map.fitBounds(
+
 bounds,
+
 {
-padding:[30,30],
+padding:[
+30,
+30
+],
 maxZoom:15
 }
+
 );
+
 }
 
 mapStatus.innerText=
@@ -3647,45 +5328,68 @@ bounds.length
 +
 " customer location"
 +
-(bounds.length===1 ? "" : "s")
+(
+bounds.length===1
+?
+""
+:
+"s"
+)
 +
 " shown.";
 }
 
 function openCustomerMap(id){
 
-let c=customers.find(x=>x.id===id);
+let c=
+customers.find(
+x=>x.id===id
+);
 
 if(!c)return;
 
 let query=
-[c.address,c.postcode]
+[
+c.address,
+c.postcode
+]
 .filter(Boolean)
 .join(" ");
 
 window.location.href=
+
 "https://www.google.com/maps/search/?api=1&query="
 +
-encodeURIComponent(query);
+encodeURIComponent(
+query
+);
 }
 
 /* DATA MIGRATION */
 
 customers.forEach(c=>{
 
-if(typeof c.archived==="undefined"){
+if(
+typeof c.archived==="undefined"
+){
 c.archived=false;
 }
 
-if(typeof c.roundArea==="undefined"){
+if(
+typeof c.roundArea==="undefined"
+){
 c.roundArea="";
 }
 
-if(typeof c.preferredDay==="undefined"){
+if(
+typeof c.preferredDay==="undefined"
+){
 c.preferredDay="";
 }
 
-if(typeof c.createdDate==="undefined"){
+if(
+typeof c.createdDate==="undefined"
+){
 c.createdDate="";
 }
 
@@ -3693,27 +5397,48 @@ c.createdDate="";
 
 invoices.forEach(inv=>{
 
-if(!inv.invoiceNumber){
-inv.invoiceNumber=getNextInvoiceNumber();
+if(
+!inv.invoiceNumber
+){
+inv.invoiceNumber=
+getNextInvoiceNumber();
 }
 
-if(!inv.dueDate && inv.date){
-inv.dueDate=addDays(inv.date,7);
+if(
+!inv.dueDate
+&&
+inv.date
+){
+
+inv.dueDate=
+addDays(
+inv.date,
+7
+);
+
 }
 
-if(typeof inv.paidDate==="undefined"){
+if(
+typeof inv.paidDate==="undefined"
+){
 inv.paidDate="";
 }
 
-if(typeof inv.paymentMethod==="undefined"){
+if(
+typeof inv.paymentMethod==="undefined"
+){
 inv.paymentMethod="";
 }
 
-if(typeof inv.lastReminderDate==="undefined"){
+if(
+typeof inv.lastReminderDate==="undefined"
+){
 inv.lastReminderDate="";
 }
 
-if(typeof inv.reminderCount==="undefined"){
+if(
+typeof inv.reminderCount==="undefined"
+){
 inv.reminderCount=0;
 }
 
@@ -3721,19 +5446,30 @@ inv.reminderCount=0;
 
 expenses.forEach(exp=>{
 
-if(!Array.isArray(exp.receipts)){
+if(
+!Array.isArray(
+exp.receipts
+)
+){
 exp.receipts=[];
 }
 
-if(typeof exp.total==="undefined"){
+if(
+typeof exp.total==="undefined"
+){
 exp.total=0;
 }
 
-if(typeof exp.vat==="undefined"){
+if(
+typeof exp.vat==="undefined"
+){
 exp.vat=0;
 }
 
-if(typeof exp.net==="undefined"){
+if(
+typeof exp.net==="undefined"
+){
+
 exp.net=
 Math.max(
 0,
@@ -3741,15 +5477,18 @@ Number(exp.total || 0)
 -
 Number(exp.vat || 0)
 );
+
 }
 
 });
 
 /* START */
 
-plannerDate.value=today();
+plannerDate.value=
+today();
 
 refreshRoundAreas();
+
 saveData();
 
 renderCustomers();
@@ -3762,7 +5501,10 @@ updateDashboard();
 updateEarnings();
 updateSecurityStatus();
 
-setTimeout(initialisePinSecurity,150);
+setTimeout(
+initialisePinSecurity,
+150
+);
 
 </script>
 
