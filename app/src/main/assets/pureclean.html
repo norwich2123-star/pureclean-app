@@ -708,6 +708,7 @@ oninput="pinConfirmInput.value=pinConfirmInput.value.replace(/\D/g,'').slice(0,4
 
 <section id="dashboard" class="screen active">
 <h2>Dashboard</h2>
+
 <div class="grid">
 <div class="card stat"><div class="label">ACTIVE CUSTOMERS</div><div class="value" id="dashCustomers">0</div></div>
 <div class="card stat"><div class="label">UNPAID</div><div class="value orange" id="dashUnpaid">£0.00</div></div>
@@ -757,6 +758,7 @@ Backs up your customers, invoices, expenses and all saved receipt photos togethe
 
 <section id="customers" class="screen">
 <h2>Customers</h2>
+
 <input id="customerSearch" placeholder="Search customer..." oninput="renderCustomers()">
 
 <div class="filterbar">
@@ -769,10 +771,19 @@ Backs up your customers, invoices, expenses and all saved receipt photos togethe
 <div id="customerForm" class="formBox card">
 <h3 id="customerFormTitle" style="color:#9bd600;margin:0">Add Customer</h3>
 <input type="hidden" id="customerId">
-<label>Name</label><input id="customerName">
-<label>Address</label><input id="customerAddress">
-<label>Postcode</label><input id="customerPostcode">
-<label>Round Area</label><input id="customerRoundArea" list="roundAreaSuggestions">
+
+<label>Name</label>
+<input id="customerName">
+
+<label>Address</label>
+<input id="customerAddress">
+
+<label>Postcode</label>
+<input id="customerPostcode">
+
+<label>Round Area</label>
+<input id="customerRoundArea" list="roundAreaSuggestions">
+
 <datalist id="roundAreaSuggestions"></datalist>
 
 <label>Preferred Cleaning Day</label>
@@ -787,11 +798,19 @@ Backs up your customers, invoices, expenses and all saved receipt photos togethe
 <option value="0">Sunday</option>
 </select>
 
-<label>Phone</label><input id="customerPhone" type="tel">
-<label>Email</label><input id="customerEmail" type="email">
+<label>Phone</label>
+<input id="customerPhone" type="tel">
+
+<label>Email</label>
+<input id="customerEmail" type="email">
 
 <div class="two">
-<div><label>Price £</label><input id="customerPrice" type="number" step="0.01"></div>
+
+<div>
+<label>Price £</label>
+<input id="customerPrice" type="number" step="0.01">
+</div>
+
 <div>
 <label>Frequency</label>
 <select id="customerFrequency">
@@ -804,31 +823,43 @@ Backs up your customers, invoices, expenses and all saved receipt photos togethe
 <option value="12">12 Weekly</option>
 </select>
 </div>
+
 </div>
 
-<label>Next Clean</label><input type="date" id="customerNextClean">
-<label>Services</label><input id="customerServices">
-<label>Access Notes</label><textarea id="customerNotes"></textarea>
+<label>Next Clean</label>
+<input type="date" id="customerNextClean">
+
+<label>Services</label>
+<input id="customerServices">
+
+<label>Access Notes</label>
+<textarea id="customerNotes"></textarea>
 
 <button class="action" onclick="saveCustomer()">Save Customer</button>
 <button class="action secondary" onclick="closeCustomerForm()">Cancel</button>
+
 </div>
 
 <div id="customerList" class="customer-list"></div>
 </section>
 
 <section id="planner" class="screen">
+
 <h2>Daily Planner</h2>
 
 <div class="planner-date-card">
+
 <div class="planner-date-nav">
 <button class="planner-arrow" onclick="changePlannerDay(-1)">←</button>
 <button class="planner-today" onclick="plannerToday()">Today</button>
 <button class="planner-arrow" onclick="changePlannerDay(1)">→</button>
 </div>
+
 <div id="plannerDateTitle" class="planner-date-title"></div>
 <div id="plannerDateSubtitle" class="planner-date-subtitle"></div>
+
 <input id="plannerDate" type="date" style="display:none">
+
 </div>
 
 <button class="action tomorrowbtn" onclick="startTomorrowTextQueue()">📱 Text Tomorrow's Customers</button>
@@ -839,31 +870,62 @@ Backs up your customers, invoices, expenses and all saved receipt photos togethe
 </select>
 
 <div class="planner-summary">
-<div class="mini-stat"><div class="label">JOBS</div><div id="plannerJobCount" class="num">0</div></div>
-<div class="mini-stat"><div class="label">ROUND VALUE</div><div id="plannerRoundTotal" class="num green">£0.00</div></div>
+
+<div class="mini-stat">
+<div class="label">JOBS</div>
+<div id="plannerJobCount" class="num">0</div>
+</div>
+
+<div class="mini-stat">
+<div class="label">ROUND VALUE</div>
+<div id="plannerRoundTotal" class="num green">£0.00</div>
+</div>
+
 </div>
 
 <div id="plannerJobs" class="job-list"></div>
+
 </section>
 
 <section id="invoices" class="screen">
+
 <h2>Invoices</h2>
+
 <button class="action owesbtn" onclick="openOwesPage()">£ Money Owed</button>
 <button class="action" onclick="openInvoiceForm()">+ New Invoice</button>
 
 <div id="invoiceForm" class="formBox card">
+
 <h3 style="color:#9bd600;margin:0">Create Invoice</h3>
-<label>Customer</label><select id="invoiceCustomer"></select>
-<label>Amount £</label><input id="invoiceAmount" type="number" step="0.01">
-<label>Description</label><textarea id="invoiceDescription"></textarea>
+
+<label>Customer</label>
+<select id="invoiceCustomer"></select>
+
+<label>Amount £</label>
+<input id="invoiceAmount" type="number" step="0.01">
+
+<label>Description</label>
+<textarea id="invoiceDescription"></textarea>
+
 <button class="action" onclick="saveInvoice()">Create Invoice</button>
 <button class="action secondary" onclick="closeInvoiceForm()">Cancel</button>
+
 </div>
 
 <div class="card">
+
 <div class="invoice-summary">
-<div class="mini-stat"><div class="label">OUTSTANDING</div><div class="num orange" id="invoiceOutstanding">£0.00</div></div>
-<div class="mini-stat"><div class="label">OVERDUE</div><div class="num red" id="invoiceOverdueTotal">£0.00</div></div>
+
+<div class="mini-stat">
+<div class="label">OUTSTANDING</div>
+<div class="num orange" id="invoiceOutstanding">£0.00</div>
+</div>
+
+<div class="mini-stat">
+<div class="label">OVERDUE</div>
+<div class="num red" id="invoiceOverdueTotal">£0.00</div>
+</div>
+
 </div>
 
 <input id="invoiceSearch" placeholder="Search invoices..." oninput="renderInvoices()">
@@ -874,7 +936,10 @@ Backs up your customers, invoices, expenses and all saved receipt photos togethe
 <button class="action small secondary" data-filter="overdue" onclick="setInvoiceFilter('overdue',this)">Overdue</button>
 <button class="action small secondary" data-filter="paid" onclick="setInvoiceFilter('paid',this)">Paid</button>
 </div>
+
 </div>
+
+<button class="action exportbtn" onclick="exportInvoicesCsv()">Accountant Invoice CSV</button>
 <div id="invoiceList" class="invoice-list"></div>
 </section>
 
@@ -1721,7 +1786,6 @@ customerNextClean.value=c.nextClean || "";
 customerServices.value=c.services || "";
 customerNotes.value=c.notes || "";
 
-/* FIX - MOVE SCREEN STRAIGHT TO EDIT FORM */
 setTimeout(()=>{
 
 customerForm.scrollIntoView({
@@ -2800,6 +2864,20 @@ x.id===invoiceCustomer.value
 
 if(!c)return;
 
+let amount=
+Number(
+invoiceAmount.value || 0
+);
+
+if(amount<=0){
+
+alert(
+"Enter the invoice amount."
+);
+
+return;
+}
+
 let date=
 today();
 
@@ -2818,9 +2896,7 @@ customerName:
 c.name,
 
 amount:
-Number(
-invoiceAmount.value || 0
-),
+amount,
 
 description:
 invoiceDescription.value.trim(),
@@ -2856,6 +2932,8 @@ saveData();
 closeInvoiceForm();
 
 renderInvoices();
+
+renderOwes();
 }
 
 function setInvoiceFilter(
@@ -3072,11 +3150,83 @@ Email Customer
 
 </button>
 
+<button
+class="action small danger"
+onclick="deleteInvoice('${inv.id}')">
+
+Delete Invoice
+
+</button>
+
 </div>
 
 `;
 
 }).join("");
+}
+
+function deleteInvoice(id){
+
+let inv=
+invoices.find(
+x=>x.id===id
+);
+
+if(!inv){
+return;
+}
+
+let message=
+"Permanently delete Invoice #"
++
+invoiceNumber(inv)
++
+" for "
++
+(inv.customerName || "this customer")
++
+"?";
+
+if(inv.paid){
+
+message+=
+"\n\nThis invoice is marked PAID. Deleting it will also remove £"
++
+Number(inv.amount || 0).toFixed(2)
++
+" from your income/profit figures.";
+
+}else{
+
+message+=
+"\n\nThis will remove £"
++
+Number(inv.amount || 0).toFixed(2)
++
+" from the amount owed.";
+
+}
+
+if(!confirm(message)){
+return;
+}
+
+invoices=
+invoices.filter(
+x=>x.id!==id
+);
+
+saveData();
+
+renderInvoices();
+renderOwes();
+renderCustomers();
+updateDashboard();
+updateEarnings();
+
+alert(
+"Invoice deleted."
+);
 }
 
 function markPaid(id){
@@ -3131,6 +3281,8 @@ choice==="1"
 saveData();
 
 renderInvoices();
+renderOwes();
+renderCustomers();
 }
 
 function undoPaid(id){
@@ -3149,6 +3301,8 @@ inv.paymentMethod="";
 saveData();
 
 renderInvoices();
+renderOwes();
+renderCustomers();
 }
 
 function emailInvoice(id){
@@ -3210,6 +3364,11 @@ x=>x.id===inv.customerId
 );
 
 if(!c || !c.email){
+
+alert(
+"Customer has no email address saved."
+);
+
 return;
 }
 
@@ -3905,8 +4064,6 @@ expenses.push(exp);
 
 }
 
-/* SAVE BEFORE REMOVING OLD RECEIPTS */
-
 saveData();
 
 removedExpenseReceipts
@@ -3940,11 +4097,6 @@ alert(
 }
 
 function cancelExpenseForm(){
-
-/*
-ONLY NEW UNSAVED PHOTOS ARE DELETED.
-OLD SAVED RECEIPTS STAY SAFE.
-*/
 
 newExpenseReceipts
 .forEach(name=>{
