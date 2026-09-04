@@ -1889,6 +1889,87 @@ function customerInvoices(id){
 return invoices.filter(i=>i.customerId===id);
 }
 
+/* NEW CUSTOMER JOB HISTORY */
+
+function showCustomerHistory(id){
+
+let c=customers.find(x=>x.id===id);
+
+if(!c){
+alert("Customer could not be found.");
+return;
+}
+
+let history=
+customerInvoices(id)
+.slice()
+.sort((a,b)=>
+String(b.date || "")
+.localeCompare(String(a.date || ""))
+);
+
+if(!history.length){
+
+alert(
+c.name+
+"\n\nNo previous jobs saved yet."
+);
+
+return;
+}
+
+let text=
+c.name+
+"\n\nJOB HISTORY\n\n";
+
+history.forEach(inv=>{
+
+let status=
+inv.paid
+?
+"PAID"
+:
+"UNPAID";
+
+let service=
+inv.description
+||
+c.services
+||
+"Window Cleaning";
+
+text+=
+(inv.date ? formatDate(inv.date) : "No date")
++
+"\n"
++
+service
++
+"\n£"
++
+Number(inv.amount || 0).toFixed(2)
++
+" • "
++
+status;
+
+if(inv.paid && inv.paymentMethod){
+
+text+=
+" • "
++
+inv.paymentMethod;
+
+}
+
+text+="\n\n";
+
+});
+
+alert(text);
+
+}
+
 function renderCustomers(){
 
 if(!document.getElementById("customerList")){
@@ -2033,6 +2114,12 @@ Text
 class="action small"
 onclick="editCustomer('${c.id}')">
 Edit
+</button>
+
+<button
+class="action small historybtn"
+onclick="showCustomerHistory('${c.id}')">
+History
 </button>
 
 ${!c.archived
@@ -2290,7 +2377,8 @@ ${c.postcode
 ?
 "<br>"+safe(c.postcode)
 :
-""}
+""
+}
 
 </div>
 
@@ -2639,8 +2727,7 @@ if(!tomorrowTextQueue.length){
 let jobsTomorrow=
 activeCustomers()
 .filter(
-c=>
-c.nextClean===tomorrowDate()
+c=>c.nextClean===tomorrowDate()
 );
 
 if(jobsTomorrow.length){
@@ -2771,8 +2858,7 @@ tomorrowTextIndex=0;
 }
 
 /* INVOICES */
-
-function getNextInvoiceNumber(){
+  function getNextInvoiceNumber(){
 
 let next=
 Number(
@@ -2858,8 +2944,7 @@ function saveInvoice(){
 
 let c=
 customers.find(
-x=>
-x.id===invoiceCustomer.value
+x=>x.id===invoiceCustomer.value
 );
 
 if(!c)return;
@@ -3537,8 +3622,9 @@ html.length
 html.join("")
 :
 '<div class="item empty">Nobody owes money.</div>';
-  }
-  /* EXPENSES */
+}
+
+/* EXPENSES */
 
 function deleteExpenseReceiptFile(name){
 
