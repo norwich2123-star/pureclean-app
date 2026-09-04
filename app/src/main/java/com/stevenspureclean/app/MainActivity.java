@@ -19,6 +19,7 @@ import android.view.Window;
 import android.view.WindowInsets;
 import android.view.View;
 
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import android.webkit.JavascriptInterface;
@@ -168,7 +169,9 @@ public class MainActivity extends Activity {
                             WebView view,
                             String url) {
 
-                        return openExternalLink(url);
+                        return openExternalLink(
+                                url
+                        );
                     }
 
                     @Override
@@ -199,7 +202,9 @@ public class MainActivity extends Activity {
                             String url) {
 
                         WebResourceResponse receipt =
-                                receiptResponse(url);
+                                receiptResponse(
+                                        url
+                                );
 
                         if (receipt != null) {
                             return receipt;
@@ -218,13 +223,18 @@ public class MainActivity extends Activity {
         );
     }
 
-    private boolean openExternalLink(String url) {
+    private boolean openExternalLink(
+            String url) {
 
         if (url == null) {
             return false;
         }
 
-        if (url.startsWith("appreceipt:")) {
+        if (
+                url.startsWith(
+                        "appreceipt:"
+                )
+        ) {
             return false;
         }
 
@@ -248,7 +258,9 @@ public class MainActivity extends Activity {
                                 Uri.parse(url)
                         );
 
-                startActivity(intent);
+                startActivity(
+                        intent
+                );
 
             } catch (Exception e) {
 
@@ -349,7 +361,9 @@ public class MainActivity extends Activity {
                 String json) {
 
             runOnUiThread(
-                    () -> startBackup(json)
+                    () -> startBackup(
+                            json
+                    )
             );
         }
 
@@ -366,7 +380,9 @@ public class MainActivity extends Activity {
                 String json) {
 
             runOnUiThread(
-                    () -> startFullBackup(json)
+                    () -> startFullBackup(
+                            json
+                    )
             );
         }
 
@@ -440,7 +456,7 @@ public class MainActivity extends Activity {
                 String fileName) {
 
             runOnUiThread(
-                    () -> diagnoseAndOpenReceipt(
+                    () -> showReceiptInApp(
                             fileName
                     )
             );
@@ -606,8 +622,12 @@ public class MainActivity extends Activity {
                         "_"
                 );
 
-        if (clean.trim().isEmpty()) {
-            clean = "expense";
+        if (
+                clean.trim().isEmpty()
+        ) {
+
+            clean =
+                    "expense";
         }
 
         return clean;
@@ -639,26 +659,36 @@ public class MainActivity extends Activity {
                         "appreceipt://receipt/"
                 )
         ) {
+
             return null;
         }
 
         try {
 
             Uri uri =
-                    Uri.parse(url);
+                    Uri.parse(
+                            url
+                    );
 
             String name =
                     uri.getLastPathSegment();
 
-            if (name == null) {
+            if (
+                    name == null
+            ) {
+
                 return null;
             }
 
             name =
-                    Uri.decode(name);
+                    Uri.decode(
+                            name
+                    );
 
             File file =
-                    receiptFile(name);
+                    receiptFile(
+                            name
+                    );
 
             if (
                     !file.exists()
@@ -684,6 +714,123 @@ public class MainActivity extends Activity {
 
             return null;
         }
+    }
+
+    /*
+     * =========================================================
+     * BUILT-IN RECEIPT VIEWER
+     * =========================================================
+     */
+
+    private void showReceiptInApp(
+            String fileName) {
+
+        File file =
+                receiptFile(
+                        fileName
+                );
+
+        if (
+                !file.exists()
+                        ||
+                !file.isFile()
+                        ||
+                file.length() <= 0
+        ) {
+
+            Toast.makeText(
+                    this,
+                    "Receipt photo could not be found.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
+        Bitmap bitmap =
+                BitmapFactory.decodeFile(
+                        file.getAbsolutePath()
+                );
+
+        if (
+                bitmap == null
+        ) {
+
+            Toast.makeText(
+                    this,
+                    "Receipt photo could not be displayed.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
+        ImageView imageView =
+                new ImageView(
+                        this
+                );
+
+        int padding =
+                (int) (
+                        16
+                                *
+                        getResources()
+                                .getDisplayMetrics()
+                                .density
+                );
+
+        imageView.setPadding(
+                padding,
+                padding,
+                padding,
+                padding
+        );
+
+        imageView.setAdjustViewBounds(
+                true
+        );
+
+        imageView.setScaleType(
+                ImageView.ScaleType.FIT_CENTER
+        );
+
+        imageView.setImageBitmap(
+                bitmap
+        );
+
+        AlertDialog dialog =
+                new AlertDialog.Builder(
+                        this
+                )
+                        .setTitle(
+                                "Receipt Photo"
+                        )
+                        .setView(
+                                imageView
+                        )
+                        .setPositiveButton(
+                                "Close",
+                                null
+                        )
+                        .create();
+
+        dialog.setOnDismissListener(
+                d -> {
+
+                    imageView.setImageDrawable(
+                            null
+                    );
+
+                    if (
+                            !bitmap.isRecycled()
+                    ) {
+
+                        bitmap.recycle();
+                    }
+                }
+        );
+
+        dialog.show();
     }
 
     /*
@@ -770,13 +917,18 @@ public class MainActivity extends Activity {
                                     0
                             );
 
-            for (ResolveInfo resolveInfo : cameraApps) {
+            for (
+                    ResolveInfo resolveInfo
+                    :
+                    cameraApps
+            ) {
 
                 if (
                         resolveInfo == null
                                 ||
                         resolveInfo.activityInfo == null
                 ) {
+
                     continue;
                 }
 
@@ -811,7 +963,8 @@ public class MainActivity extends Activity {
                     pendingCameraFile.delete();
                 }
 
-                pendingCameraFile = null;
+                pendingCameraFile =
+                        null;
 
                 Toast.makeText(
                         this,
@@ -838,7 +991,8 @@ public class MainActivity extends Activity {
                 pendingCameraFile.delete();
             }
 
-            pendingCameraFile = null;
+            pendingCameraFile =
+                    null;
 
             Toast.makeText(
                     this,
@@ -847,7 +1001,8 @@ public class MainActivity extends Activity {
             ).show();
         }
     }
-        private void startExpensePhotoPicker(
+
+    private void startExpensePhotoPicker(
             String expenseId) {
 
         pendingExpenseId =
@@ -910,7 +1065,9 @@ public class MainActivity extends Activity {
                                     sourceUri
                             );
 
-            if (input == null) {
+            if (
+                    input == null
+            ) {
 
                 Toast.makeText(
                         this,
@@ -1029,7 +1186,8 @@ public class MainActivity extends Activity {
             BitmapFactory.Options bounds =
                     new BitmapFactory.Options();
 
-            bounds.inJustDecodeBounds = true;
+            bounds.inJustDecodeBounds =
+                    true;
 
             BitmapFactory.decodeFile(
                     source.getAbsolutePath(),
@@ -1045,8 +1203,11 @@ public class MainActivity extends Activity {
                 return false;
             }
 
-            int maxDecodeSize = 2200;
-            int sample = 1;
+            int maxDecodeSize =
+                    2200;
+
+            int sample =
+                    1;
 
             while (
                     bounds.outWidth / sample
@@ -1064,7 +1225,8 @@ public class MainActivity extends Activity {
             BitmapFactory.Options options =
                     new BitmapFactory.Options();
 
-            options.inSampleSize = sample;
+            options.inSampleSize =
+                    sample;
 
             bitmap =
                     BitmapFactory.decodeFile(
@@ -1072,11 +1234,15 @@ public class MainActivity extends Activity {
                             options
                     );
 
-            if (bitmap == null) {
+            if (
+                    bitmap == null
+            ) {
+
                 return false;
             }
 
-            int rotation = 0;
+            int rotation =
+                    0;
 
             try {
 
@@ -1097,7 +1263,8 @@ public class MainActivity extends Activity {
                         ExifInterface.ORIENTATION_ROTATE_90
                 ) {
 
-                    rotation = 90;
+                    rotation =
+                            90;
 
                 } else if (
                         orientation
@@ -1105,7 +1272,8 @@ public class MainActivity extends Activity {
                         ExifInterface.ORIENTATION_ROTATE_180
                 ) {
 
-                    rotation = 180;
+                    rotation =
+                            180;
 
                 } else if (
                         orientation
@@ -1113,15 +1281,19 @@ public class MainActivity extends Activity {
                         ExifInterface.ORIENTATION_ROTATE_270
                 ) {
 
-                    rotation = 270;
+                    rotation =
+                            270;
                 }
 
             } catch (Exception ignored) {
             }
 
-            rotated = bitmap;
+            rotated =
+                    bitmap;
 
-            if (rotation != 0) {
+            if (
+                    rotation != 0
+            ) {
 
                 Matrix matrix =
                         new Matrix();
@@ -1148,7 +1320,8 @@ public class MainActivity extends Activity {
             int height =
                     rotated.getHeight();
 
-            int maxSide = 1600;
+            int maxSide =
+                    1600;
 
             if (
                     width > maxSide
@@ -1188,7 +1361,8 @@ public class MainActivity extends Activity {
 
             } else {
 
-                scaled = rotated;
+                scaled =
+                        rotated;
             }
 
             FileOutputStream output =
@@ -1300,7 +1474,10 @@ public class MainActivity extends Activity {
         } catch (Exception ignored) {
         }
 
-        if (destination.exists()) {
+        if (
+                destination.exists()
+        ) {
+
             destination.delete();
         }
 
@@ -1342,268 +1519,6 @@ public class MainActivity extends Activity {
                 javascript,
                 null
         );
-    }
-
-    /*
-     * =========================================================
-     * RECEIPT DIAGNOSTIC
-     * =========================================================
-     */
-
-    private void diagnoseAndOpenReceipt(
-            String fileName) {
-
-        File file =
-                receiptFile(
-                        fileName
-                );
-
-        if (
-                !file.exists()
-                        ||
-                !file.isFile()
-        ) {
-
-            new AlertDialog.Builder(
-                    this
-            )
-                    .setTitle(
-                            "Receipt Check"
-                    )
-                    .setMessage(
-                            "Receipt file is missing.\n\n"
-                                    +
-                                    "File: "
-                                    +
-                                    file.getName()
-                    )
-                    .setPositiveButton(
-                            "OK",
-                            null
-                    )
-                    .show();
-
-            return;
-        }
-
-        long sizeBytes =
-                file.length();
-
-        if (sizeBytes <= 0) {
-
-            new AlertDialog.Builder(
-                    this
-            )
-                    .setTitle(
-                            "Receipt Check"
-                    )
-                    .setMessage(
-                            "Receipt file exists but is empty.\n\n"
-                                    +
-                                    "File: "
-                                    +
-                                    file.getName()
-                                    +
-                                    "\nSize: 0 bytes"
-                    )
-                    .setPositiveButton(
-                            "OK",
-                            null
-                    )
-                    .show();
-
-            return;
-        }
-
-        BitmapFactory.Options options =
-                new BitmapFactory.Options();
-
-        options.inJustDecodeBounds = true;
-
-        BitmapFactory.decodeFile(
-                file.getAbsolutePath(),
-                options
-        );
-
-        boolean validImage =
-                options.outWidth > 0
-                        &&
-                options.outHeight > 0;
-
-        long sizeKb =
-                Math.max(
-                        1,
-                        sizeBytes / 1024
-                );
-
-        String details =
-                "File exists: YES"
-                        +
-                        "\nSize: "
-                        +
-                        sizeKb
-                        +
-                        " KB"
-                        +
-                        "\nImage decode: "
-                        +
-                        (
-                                validImage
-                                        ?
-                                "VALID"
-                                        :
-                                "FAILED"
-                        );
-
-        if (validImage) {
-
-            details +=
-                    "\nDimensions: "
-                            +
-                            options.outWidth
-                            +
-                            " × "
-                            +
-                            options.outHeight;
-
-        }
-
-        if (!validImage) {
-
-            new AlertDialog.Builder(
-                    this
-            )
-                    .setTitle(
-                            "Receipt Check"
-                    )
-                    .setMessage(
-                            details
-                                    +
-                                    "\n\nThe saved file is not a valid image."
-                    )
-                    .setPositiveButton(
-                            "OK",
-                            null
-                    )
-                    .show();
-
-            return;
-        }
-
-        new AlertDialog.Builder(
-                this
-        )
-                .setTitle(
-                        "Receipt Check"
-                )
-                .setMessage(
-                        details
-                                +
-                                "\n\nThe receipt file looks healthy."
-                )
-                .setNegativeButton(
-                        "Close",
-                        null
-                )
-                .setPositiveButton(
-                        "Open Photo",
-                        (dialog, which) -> {
-
-                            openReceiptPhoto(
-                                    fileName
-                            );
-                        }
-                )
-                .show();
-    }
-
-    private void openReceiptPhoto(
-            String fileName) {
-
-        File file =
-                receiptFile(
-                        fileName
-                );
-
-        if (
-                !file.exists()
-                        ||
-                !file.isFile()
-        ) {
-
-            Toast.makeText(
-                    this,
-                    "Receipt photo could not be found.",
-                    Toast.LENGTH_LONG
-            ).show();
-
-            return;
-        }
-
-        try {
-
-            Uri uri =
-                    FileProvider.getUriForFile(
-                            this,
-                            getPackageName()
-                                    +
-                                    ".fileprovider",
-                            file
-                    );
-
-            Intent intent =
-                    new Intent(
-                            Intent.ACTION_VIEW
-                    );
-
-            intent.setDataAndType(
-                    uri,
-                    "image/jpeg"
-            );
-
-            intent.setClipData(
-                    ClipData.newRawUri(
-                            "Expense Receipt",
-                            uri
-                    )
-            );
-
-            intent.addFlags(
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-            );
-
-            if (
-                    intent.resolveActivity(
-                            getPackageManager()
-                    )
-                            ==
-                    null
-            ) {
-
-                Toast.makeText(
-                        this,
-                        "No photo viewer is available.",
-                        Toast.LENGTH_LONG
-                ).show();
-
-                return;
-            }
-
-            startActivity(
-                    Intent.createChooser(
-                            intent,
-                            "Open Receipt"
-                    )
-            );
-
-        } catch (Exception e) {
-
-            Toast.makeText(
-                    this,
-                    "Could not open receipt photo.",
-                    Toast.LENGTH_LONG
-            ).show();
-        }
     }
 
     /*
@@ -1748,7 +1663,8 @@ public class MainActivity extends Activity {
                             "Save Backup",
                             (dialog, which) -> {
 
-                                backupJson = json;
+                                backupJson =
+                                        json;
 
                                 openFullBackupSaveScreen();
                             }
@@ -1844,7 +1760,7 @@ public class MainActivity extends Activity {
                     Toast.LENGTH_LONG
             ).show();
         }
-    }
+                }
         private void saveFullBackup(
             Uri uri) {
 
@@ -1907,6 +1823,7 @@ public class MainActivity extends Activity {
                                     ||
                             !receipt.isFile()
                     ) {
+
                         continue;
                     }
 
@@ -2130,8 +2047,7 @@ public class MainActivity extends Activity {
                                     .getName();
 
                     if (
-                            safeName
-                                    .trim()
+                            safeName.trim()
                                     .isEmpty()
                     ) {
 
@@ -2180,7 +2096,8 @@ public class MainActivity extends Activity {
             if (
                     restoredJson == null
                             ||
-                    restoredJson.trim().isEmpty()
+                    restoredJson.trim()
+                            .isEmpty()
             ) {
 
                 deleteFolder(
@@ -2410,8 +2327,7 @@ public class MainActivity extends Activity {
                     receiptFolder();
 
             File[] existing =
-                    liveReceipts
-                            .listFiles();
+                    liveReceipts.listFiles();
 
             if (existing != null) {
 
@@ -2429,8 +2345,7 @@ public class MainActivity extends Activity {
             }
 
             File[] restoredFiles =
-                    restoreFolder
-                            .listFiles();
+                    restoreFolder.listFiles();
 
             if (restoredFiles != null) {
 
@@ -3324,61 +3239,11 @@ public class MainActivity extends Activity {
             output.flush();
             output.close();
 
-            JSONObject saved =
-                    new JSONObject(
-                            backupJson
-                    );
-
-            JSONArray customers =
-                    saved.optJSONArray(
-                            "customers"
-                    );
-
-            JSONArray invoices =
-                    saved.optJSONArray(
-                            "invoices"
-                    );
-
-            JSONArray expenses =
-                    saved.optJSONArray(
-                            "expenses"
-                    );
-
             backupJson = "";
 
             Toast.makeText(
                     this,
-                    "Backup saved: "
-                            +
-                            (
-                                    customers == null
-                                            ?
-                                    0
-                                            :
-                                    customers.length()
-                            )
-                            +
-                            " customers, "
-                            +
-                            (
-                                    invoices == null
-                                            ?
-                                    0
-                                            :
-                                    invoices.length()
-                            )
-                            +
-                            " invoices, "
-                            +
-                            (
-                                    expenses == null
-                                            ?
-                                    0
-                                            :
-                                    expenses.length()
-                            )
-                            +
-                            " expenses.",
+                    "Business backup saved successfully.",
                     Toast.LENGTH_LONG
             ).show();
 
@@ -3482,43 +3347,15 @@ public class MainActivity extends Activity {
                             +
                             customers.length()
                             +
-                            " customer"
-                            +
-                            (
-                                    customers.length() == 1
-                                            ?
-                                    ""
-                                            :
-                                    "s"
-                            )
-                            +
-                            "\n"
+                            " customers\n"
                             +
                             invoices.length()
                             +
-                            " invoice"
-                            +
-                            (
-                                    invoices.length() == 1
-                                            ?
-                                    ""
-                                            :
-                                    "s"
-                            )
-                            +
-                            "\n"
+                            " invoices\n"
                             +
                             expenses.length()
                             +
-                            " expense"
-                            +
-                            (
-                                    expenses.length() == 1
-                                            ?
-                                    ""
-                                            :
-                                    "s"
-                            )
+                            " expenses"
                             +
                             "\n\nThis will replace the current app data.\n\nContinue?";
 
@@ -3555,19 +3392,7 @@ public class MainActivity extends Activity {
 
                                 Toast.makeText(
                                         this,
-                                        "Backup restored: "
-                                                +
-                                                customers.length()
-                                                +
-                                                " customers, "
-                                                +
-                                                invoices.length()
-                                                +
-                                                " invoices, "
-                                                +
-                                                expenses.length()
-                                                +
-                                                " expenses.",
+                                        "Backup restored.",
                                         Toast.LENGTH_LONG
                                 ).show();
                             }
@@ -3851,7 +3676,8 @@ public class MainActivity extends Activity {
             ).show();
         }
     }
-        private void reminderEmail(
+
+    private void reminderEmail(
             String email,
             String customerName,
             String invoiceNumber,
@@ -3861,7 +3687,12 @@ public class MainActivity extends Activity {
             String description,
             boolean overdue) {
 
-        if (!validEmail(email)) {
+        if (
+                !validEmail(
+                        email
+                )
+        ) {
+
             return;
         }
 
@@ -3915,11 +3746,15 @@ public class MainActivity extends Activity {
                                         +
                                         "?subject="
                                         +
-                                        Uri.encode(subject)
+                                        Uri.encode(
+                                                subject
+                                        )
                                         +
                                         "&body="
                                         +
-                                        Uri.encode(message)
+                                        Uri.encode(
+                                                message
+                                        )
                         )
                 );
 
@@ -4184,7 +4019,9 @@ public class MainActivity extends Activity {
         );
 
         canvas.drawText(
-                "#" + invoiceNumber,
+                "#"
+                        +
+                        invoiceNumber,
                 35,
                 198,
                 paint
@@ -4409,7 +4246,9 @@ public class MainActivity extends Activity {
         );
 
         canvas.drawText(
-                "£" + amount,
+                "£"
+                        +
+                        amount,
                 345,
                 540,
                 paint
@@ -4571,4 +4410,4 @@ public class MainActivity extends Activity {
 
         return file;
     }
-}
+                }
