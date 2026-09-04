@@ -440,7 +440,7 @@ public class MainActivity extends Activity {
                 String fileName) {
 
             runOnUiThread(
-                    () -> openReceiptPhoto(
+                    () -> diagnoseAndOpenReceipt(
                             fileName
                     )
             );
@@ -969,6 +969,21 @@ public class MainActivity extends Activity {
                 );
             }
 
+            if (
+                    !destination.exists()
+                            ||
+                    destination.length() <= 0
+            ) {
+
+                Toast.makeText(
+                        this,
+                        "Receipt file was not saved correctly.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
             notifyExpenseReceiptSaved(
                     pendingExpenseId,
                     destination.getName()
@@ -1191,7 +1206,11 @@ public class MainActivity extends Activity {
             output.flush();
             output.close();
 
-            return success;
+            return success
+                    &&
+                    destination.exists()
+                    &&
+                    destination.length() > 0;
 
         } catch (Exception e) {
 
@@ -1325,6 +1344,179 @@ public class MainActivity extends Activity {
         );
     }
 
+    /*
+     * =========================================================
+     * RECEIPT DIAGNOSTIC
+     * =========================================================
+     */
+
+    private void diagnoseAndOpenReceipt(
+            String fileName) {
+
+        File file =
+                receiptFile(
+                        fileName
+                );
+
+        if (
+                !file.exists()
+                        ||
+                !file.isFile()
+        ) {
+
+            new AlertDialog.Builder(
+                    this
+            )
+                    .setTitle(
+                            "Receipt Check"
+                    )
+                    .setMessage(
+                            "Receipt file is missing.\n\n"
+                                    +
+                                    "File: "
+                                    +
+                                    file.getName()
+                    )
+                    .setPositiveButton(
+                            "OK",
+                            null
+                    )
+                    .show();
+
+            return;
+        }
+
+        long sizeBytes =
+                file.length();
+
+        if (sizeBytes <= 0) {
+
+            new AlertDialog.Builder(
+                    this
+            )
+                    .setTitle(
+                            "Receipt Check"
+                    )
+                    .setMessage(
+                            "Receipt file exists but is empty.\n\n"
+                                    +
+                                    "File: "
+                                    +
+                                    file.getName()
+                                    +
+                                    "\nSize: 0 bytes"
+                    )
+                    .setPositiveButton(
+                            "OK",
+                            null
+                    )
+                    .show();
+
+            return;
+        }
+
+        BitmapFactory.Options options =
+                new BitmapFactory.Options();
+
+        options.inJustDecodeBounds = true;
+
+        BitmapFactory.decodeFile(
+                file.getAbsolutePath(),
+                options
+        );
+
+        boolean validImage =
+                options.outWidth > 0
+                        &&
+                options.outHeight > 0;
+
+        long sizeKb =
+                Math.max(
+                        1,
+                        sizeBytes / 1024
+                );
+
+        String details =
+                "File exists: YES"
+                        +
+                        "\nSize: "
+                        +
+                        sizeKb
+                        +
+                        " KB"
+                        +
+                        "\nImage decode: "
+                        +
+                        (
+                                validImage
+                                        ?
+                                "VALID"
+                                        :
+                                "FAILED"
+                        );
+
+        if (validImage) {
+
+            details +=
+                    "\nDimensions: "
+                            +
+                            options.outWidth
+                            +
+                            " × "
+                            +
+                            options.outHeight;
+
+        }
+
+        if (!validImage) {
+
+            new AlertDialog.Builder(
+                    this
+            )
+                    .setTitle(
+                            "Receipt Check"
+                    )
+                    .setMessage(
+                            details
+                                    +
+                                    "\n\nThe saved file is not a valid image."
+                    )
+                    .setPositiveButton(
+                            "OK",
+                            null
+                    )
+                    .show();
+
+            return;
+        }
+
+        new AlertDialog.Builder(
+                this
+        )
+                .setTitle(
+                        "Receipt Check"
+                )
+                .setMessage(
+                        details
+                                +
+                                "\n\nThe receipt file looks healthy."
+                )
+                .setNegativeButton(
+                        "Close",
+                        null
+                )
+                .setPositiveButton(
+                        "Open Photo",
+                        (dialog, which) -> {
+
+                            openReceiptPhoto(
+                                    fileName
+                            );
+                        }
+                )
+                .show();
+    }
+
     private void openReceiptPhoto(
             String fileName) {
 
@@ -1333,7 +1525,11 @@ public class MainActivity extends Activity {
                         fileName
                 );
 
-        if (!file.exists()) {
+        if (
+                !file.exists()
+                        ||
+                !file.isFile()
+        ) {
 
             Toast.makeText(
                     this,
@@ -1365,11 +1561,40 @@ public class MainActivity extends Activity {
                     "image/jpeg"
             );
 
+            intent.setClipData(
+                    ClipData.newRawUri(
+                            "Expense Receipt",
+                            uri
+                    )
+            );
+
             intent.addFlags(
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
             );
 
-            startActivity(intent);
+            if (
+                    intent.resolveActivity(
+                            getPackageManager()
+                    )
+                            ==
+                    null
+            ) {
+
+                Toast.makeText(
+                        this,
+                        "No photo viewer is available.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+            startActivity(
+                    Intent.createChooser(
+                            intent,
+                            "Open Receipt"
+                    )
+            );
 
         } catch (Exception e) {
 
@@ -1620,8 +1845,7 @@ public class MainActivity extends Activity {
             ).show();
         }
     }
-
-    private void saveFullBackup(
+        private void saveFullBackup(
             Uri uri) {
 
         try {
@@ -1683,7 +1907,6 @@ public class MainActivity extends Activity {
                                     ||
                             !receipt.isFile()
                     ) {
-
                         continue;
                     }
 
@@ -1730,26 +1953,41 @@ public class MainActivity extends Activity {
                             backupJson
                     );
 
+            JSONArray customers =
+                    saved.optJSONArray(
+                            "customers"
+                    );
+
+            JSONArray invoices =
+                    saved.optJSONArray(
+                            "invoices"
+                    );
+
+            JSONArray expenses =
+                    saved.optJSONArray(
+                            "expenses"
+                    );
+
             int customerCount =
-                    saved
-                            .optJSONArray(
-                                    "customers"
-                            )
-                            .length();
+                    customers == null
+                            ?
+                            0
+                            :
+                            customers.length();
 
             int invoiceCount =
-                    saved
-                            .optJSONArray(
-                                    "invoices"
-                            )
-                            .length();
+                    invoices == null
+                            ?
+                            0
+                            :
+                            invoices.length();
 
             int expenseCount =
-                    saved
-                            .optJSONArray(
-                                    "expenses"
-                            )
-                            .length();
+                    expenses == null
+                            ?
+                            0
+                            :
+                            expenses.length();
 
             backupJson = "";
 
@@ -2274,6 +2512,7 @@ public class MainActivity extends Activity {
      * EXPENSE ACCOUNTANT ZIP
      * =========================================================
      */
+
     private void shareExpensePack(
             String fileName,
             String csvText,
@@ -2431,7 +2670,6 @@ public class MainActivity extends Activity {
                 }
 
                 input.close();
-
                 zip.closeEntry();
             }
 
@@ -3405,13 +3643,9 @@ public class MainActivity extends Activity {
         File[] files =
                 folder.listFiles();
 
-        if (
-                files != null
-        ) {
+        if (files != null) {
 
-            for (
-                    File file : files
-            ) {
+            for (File file : files) {
 
                 if (
                         file.isDirectory()
@@ -3616,7 +3850,7 @@ public class MainActivity extends Activity {
                     Toast.LENGTH_LONG
             ).show();
         }
-}
+    }
         private void reminderEmail(
             String email,
             String customerName,
@@ -4337,4 +4571,4 @@ public class MainActivity extends Activity {
 
         return file;
     }
-            }
+}
