@@ -672,7 +672,7 @@ nav{grid-template-columns:repeat(4,1fr)}
 
 <div id="pinLock" class="pin-lock">
 <div class="pin-box">
-<img src="be7cd7dc-5c0e-4f4a-9951-2ff84802c5a1.jpg" class="pin-logo">
+<img src="logo.jpg" class="pin-logo">
 <h2 id="pinTitle">Enter PIN</h2>
 <p id="pinMessage" class="muted">Enter your 4-digit PIN to open the app.</p>
 <input id="pinInput" class="pin-input" type="password" inputmode="numeric" maxlength="4"
@@ -687,7 +687,7 @@ oninput="pinConfirmInput.value=pinConfirmInput.value.replace(/\D/g,'').slice(0,4
 </div>
 
 <header>
-<img src="be7cd7dc-5c0e-4f4a-9951-2ff84802c5a1.jpg" class="logo">
+<img src="logo.jpg" class="logo">
 <div class="brand">
 <h1>Steven's Pure Clean Exteriors</h1>
 <p>Pure Results • Clean Exteriors</p>
@@ -1623,6 +1623,7 @@ return addDays(nominal,difference);
 }
 
 /* CUSTOMERS */
+  /* CUSTOMERS */
 
 function setCustomerFilter(filter,button){
 
@@ -2588,7 +2589,8 @@ saveData();
 
 renderPlanner();
 }
-  /* TOMORROW TEXT */
+
+/* TOMORROW TEXT */
 
 function tomorrowDate(){
 
@@ -2637,7 +2639,8 @@ if(!tomorrowTextQueue.length){
 let jobsTomorrow=
 activeCustomers()
 .filter(
-c=>c.nextClean===tomorrowDate()
+c=>
+c.nextClean===tomorrowDate()
 );
 
 if(jobsTomorrow.length){
@@ -2855,7 +2858,8 @@ function saveInvoice(){
 
 let c=
 customers.find(
-x=>x.id===invoiceCustomer.value
+x=>
+x.id===invoiceCustomer.value
 );
 
 if(!c)return;
@@ -3533,9 +3537,8 @@ html.length
 html.join("")
 :
 '<div class="item empty">Nobody owes money.</div>';
-}
-
-/* EXPENSES */
+  }
+  /* EXPENSES */
 
 function deleteExpenseReceiptFile(name){
 
@@ -3743,4 +3746,1919 @@ return;
 }
 
 if(
-typeof Android!=="
+typeof Android!=="undefined"
+&&
+Android.chooseExpenseReceipt
+){
+
+Android.chooseExpenseReceipt(
+expenseId.value
+);
+
+}
+}
+
+function expenseReceiptSaved(
+expenseIdFromAndroid,
+fileName
+){
+
+if(!fileName){
+return;
+}
+
+if(
+!expenseForm.classList.contains("show")
+||
+expenseId.value!==expenseIdFromAndroid
+){
+
+deleteExpenseReceiptFile(
+fileName
+);
+
+return;
+}
+
+if(
+!draftExpenseReceipts.includes(
+fileName
+)
+){
+
+draftExpenseReceipts.push(
+fileName
+);
+
+}
+
+if(
+!originalExpenseReceipts.includes(
+fileName
+)
+&&
+!newExpenseReceipts.includes(
+fileName
+)
+){
+
+newExpenseReceipts.push(
+fileName
+);
+
+}
+
+removedExpenseReceipts=
+removedExpenseReceipts
+.filter(
+name=>name!==fileName
+);
+
+renderExpenseReceiptPreviews();
+}
+
+function receiptUrl(fileName){
+
+if(
+typeof Android!=="undefined"
+&&
+Android.getExpenseReceiptUrl
+){
+
+return Android.getExpenseReceiptUrl(
+fileName
+);
+
+}
+
+return "";
+}
+
+function renderExpenseReceiptPreviews(){
+
+if(
+!draftExpenseReceipts.length
+){
+
+expenseReceiptPreviews.innerHTML=
+'<div class="muted">No receipt photos saved yet.</div>';
+
+return;
+}
+
+expenseReceiptPreviews.innerHTML=
+draftExpenseReceipts
+.map(
+(name,index)=>{
+
+let url=
+receiptUrl(name);
+
+return`
+
+<div class="receipt-preview">
+
+${url
+?
+`<img src="${safe(url)}">`
+:
+`<div class="muted">Receipt photo</div>`
+}
+
+<button
+class="action receiptbtn"
+onclick="openExpenseReceipt('${safe(name)}')">
+
+View
+
+</button>
+
+<button
+class="action danger"
+onclick="removeDraftReceipt(${index})">
+
+Delete
+
+</button>
+
+</div>
+
+`;
+
+}
+)
+.join("");
+}
+
+function openExpenseReceipt(name){
+
+if(
+typeof Android!=="undefined"
+&&
+Android.openExpenseReceipt
+){
+
+Android.openExpenseReceipt(
+name
+);
+
+}
+}
+
+function removeDraftReceipt(index){
+
+let name=
+draftExpenseReceipts[index];
+
+if(!name)return;
+
+if(
+!confirm(
+"Remove this receipt photo from the expense?"
+)
+){
+return;
+}
+
+draftExpenseReceipts.splice(
+index,
+1
+);
+
+if(
+newExpenseReceipts.includes(
+name
+)
+){
+
+deleteExpenseReceiptFile(
+name
+);
+
+newExpenseReceipts=
+newExpenseReceipts
+.filter(
+x=>x!==name
+);
+
+}else if(
+originalExpenseReceipts.includes(
+name
+)
+){
+
+if(
+!removedExpenseReceipts.includes(
+name
+)
+){
+
+removedExpenseReceipts.push(
+name
+);
+
+}
+
+}
+
+renderExpenseReceiptPreviews();
+}
+
+function saveExpense(){
+
+let total=
+Number(
+expenseTotal.value || 0
+);
+
+if(
+!expenseDate.value
+){
+
+alert(
+"Choose the expense date."
+);
+
+return;
+}
+
+if(
+!expenseSupplier.value.trim()
+){
+
+alert(
+"Enter the supplier or shop."
+);
+
+return;
+}
+
+if(
+total<=0
+){
+
+alert(
+"Enter the total cost of the expense."
+);
+
+return;
+}
+
+calculateExpenseNet();
+
+let exp={
+
+id:
+expenseId.value
+||
+"exp_"+Date.now(),
+
+date:
+expenseDate.value,
+
+supplier:
+expenseSupplier.value.trim(),
+
+category:
+expenseCategory.value,
+
+description:
+expenseDescription.value.trim(),
+
+total:
+total,
+
+vat:
+Number(
+expenseVat.value || 0
+),
+
+net:
+Number(
+expenseNet.value || 0
+),
+
+paymentMethod:
+expensePaymentMethod.value,
+
+notes:
+expenseNotes.value.trim(),
+
+receipts:
+[...draftExpenseReceipts]
+
+};
+
+let index=
+expenses.findIndex(
+x=>x.id===exp.id
+);
+
+if(index>=0){
+
+expenses[index]=exp;
+
+}else{
+
+expenses.push(exp);
+
+}
+
+saveData();
+
+removedExpenseReceipts
+.forEach(name=>{
+
+if(
+!draftExpenseReceipts.includes(
+name
+)
+){
+
+deleteExpenseReceiptFile(
+name
+);
+
+}
+
+});
+
+expenseForm.classList.remove(
+"show"
+);
+
+clearExpenseReceiptTracking();
+
+renderExpenses();
+
+alert(
+"Expense saved."
+);
+}
+
+function cancelExpenseForm(){
+
+newExpenseReceipts
+.forEach(name=>{
+
+deleteExpenseReceiptFile(
+name
+);
+
+});
+
+expenseForm.classList.remove(
+"show"
+);
+
+clearExpenseReceiptTracking();
+
+renderExpenses();
+}
+
+function deleteExpense(id){
+
+let exp=
+expenses.find(
+x=>x.id===id
+);
+
+if(!exp)return;
+
+if(
+!confirm(
+"Delete this expense?"
+)
+){
+return;
+}
+
+(exp.receipts || [])
+.forEach(name=>{
+
+deleteExpenseReceiptFile(
+name
+);
+
+});
+
+expenses=
+expenses.filter(
+x=>x.id!==id
+);
+
+saveData();
+
+renderExpenses();
+}
+
+function renderExpenseTotals(){
+
+if(
+!document.getElementById(
+"expenseMonthTotal"
+)
+){
+return;
+}
+
+let now=
+new Date();
+
+let currentMonth=
+now.getFullYear()
++
+"-"
++
+String(
+now.getMonth()+1
+)
+.padStart(
+2,
+"0"
+);
+
+let currentYear=
+String(
+now.getFullYear()
+);
+
+let monthExpenses=
+expenses.filter(
+e=>
+monthKey(e.date)
+===
+currentMonth
+);
+
+let yearExpenses=
+expenses.filter(
+e=>
+String(
+e.date || ""
+)
+.startsWith(
+currentYear
+)
+);
+
+let monthTotal=
+monthExpenses
+.reduce(
+(s,e)=>
+s+Number(e.total || 0),
+0
+);
+
+let yearTotal=
+yearExpenses
+.reduce(
+(s,e)=>
+s+Number(e.total || 0),
+0
+);
+
+let yearVat=
+yearExpenses
+.reduce(
+(s,e)=>
+s+Number(e.vat || 0),
+0
+);
+
+let receiptCount=
+expenses.reduce(
+(s,e)=>
+s+
+(
+Array.isArray(e.receipts)
+?
+e.receipts.length
+:
+0
+),
+0
+);
+
+expenseMonthTotal.innerText=
+"£"+
+monthTotal.toFixed(2);
+
+expenseYearTotal.innerText=
+"£"+
+yearTotal.toFixed(2);
+
+expenseYearVat.innerText=
+"£"+
+yearVat.toFixed(2);
+
+expenseReceiptCount.innerText=
+receiptCount;
+
+renderExpenseCategoryTotals();
+}
+
+function renderExpenseCategoryTotals(){
+
+let totals={};
+
+expenses.forEach(exp=>{
+
+let category=
+exp.category || "Other";
+
+totals[category]=
+(totals[category] || 0)
++
+Number(exp.total || 0);
+
+});
+
+let entries=
+Object.entries(totals)
+.sort(
+(a,b)=>
+b[1]-a[1]
+);
+
+expenseCategorySummary.innerHTML=
+entries.length
+?
+"<strong style='color:#9bd600'>All-Time Category Totals</strong><br>"
++
+entries
+.map(
+x=>
+safe(x[0])
++
+" — £"
++
+Number(x[1]).toFixed(2)
+)
+.join("<br>")
+:
+"No expenses recorded yet.";
+}
+
+function renderExpenses(){
+
+renderExpenseTotals();
+
+let search=
+(expenseSearch.value || "")
+.toLowerCase();
+
+let list=
+expenses
+.filter(exp=>{
+
+let text=
+[
+exp.supplier,
+exp.category,
+exp.description,
+exp.paymentMethod,
+exp.notes
+]
+.join(" ")
+.toLowerCase();
+
+return text.includes(
+search
+);
+
+})
+.sort(
+(a,b)=>
+String(b.date || "")
+.localeCompare(
+String(a.date || "")
+)
+);
+
+if(!list.length){
+
+expenseList.innerHTML=
+'<div class="item empty">No expenses recorded yet.</div>';
+
+return;
+}
+
+expenseList.innerHTML=
+list.map(exp=>{
+
+let receipts=
+Array.isArray(
+exp.receipts
+)
+?
+exp.receipts
+:
+[];
+
+let receiptButtons=
+receipts
+.map(
+(name,index)=>`
+
+<button
+class="action small receiptbtn"
+onclick="openExpenseReceipt('${safe(name)}')">
+
+📷 Receipt ${index+1}
+
+</button>
+
+`
+)
+.join("");
+
+return`
+
+<div class="item">
+
+<div class="row">
+
+<div>
+
+<div class="customer-name">
+${safe(exp.supplier || "Expense")}
+</div>
+
+<div class="muted">
+${formatDate(exp.date)}
+</div>
+
+</div>
+
+<div class="expense-cost">
+£${Number(exp.total || 0).toFixed(2)}
+</div>
+
+</div>
+
+<div style="margin-top:8px">
+
+<span class="badge categoryBadge">
+${safe(exp.category || "Other")}
+</span>
+
+</div>
+
+<div class="muted" style="margin-top:9px">
+${safe(exp.description || "")}
+</div>
+
+<div class="expense-breakdown">
+
+Net:
+£${Number(exp.net || 0).toFixed(2)}
+
+<br>
+
+VAT:
+£${Number(exp.vat || 0).toFixed(2)}
+
+<br>
+
+<strong>
+Total:
+£${Number(exp.total || 0).toFixed(2)}
+</strong>
+
+</div>
+
+${receiptButtons}
+
+<button
+class="action small"
+onclick="editExpense('${exp.id}')">
+
+Edit
+
+</button>
+
+<button
+class="action small danger"
+onclick="deleteExpense('${exp.id}')">
+
+Delete
+
+</button>
+
+</div>
+
+`;
+
+})
+.join("");
+}
+
+/* EXPENSE EXPORT */
+
+function updateExpenseExportDates(){
+
+expenseExportDates.style.display=
+expenseExportRange.value==="custom"
+?
+"grid"
+:
+"none";
+}
+
+function getUkTaxYearRange(){
+
+let now=
+new Date();
+
+let year=
+now.getFullYear();
+
+let start=
+new Date(
+year,
+3,
+6
+);
+
+let startYear=
+now>=start
+?
+year
+:
+year-1;
+
+return{
+
+from:
+startYear+"-04-06",
+
+to:
+(startYear+1)+"-04-05"
+
+};
+}
+
+function csvCell(value){
+
+return(
+'"'
++
+String(value ?? "")
+.replace(
+/"/g,
+'""'
+)
++
+'"'
+);
+}
+
+function getExpenseExportRange(){
+
+let range=
+expenseExportRange.value
+||
+"all";
+
+if(range==="all"){
+
+return{
+from:"",
+to:""
+};
+
+}
+
+if(range==="month"){
+
+let now=
+new Date();
+
+let year=
+now.getFullYear();
+
+let month=
+now.getMonth();
+
+let first=
+new Date(
+year,
+month,
+1
+);
+
+let last=
+new Date(
+year,
+month+1,
+0
+);
+
+return{
+
+from:
+localDateString(first),
+
+to:
+localDateString(last)
+
+};
+
+}
+
+if(range==="taxyear"){
+
+return getUkTaxYearRange();
+}
+
+if(range==="custom"){
+
+let from=
+expenseExportFrom.value;
+
+let to=
+expenseExportTo.value;
+
+if(
+!from
+||
+!to
+){
+
+alert(
+"Choose both From and To dates."
+);
+
+return null;
+}
+
+if(
+from>to
+){
+
+alert(
+"The From date must be before the To date."
+);
+
+return null;
+}
+
+return{
+from:from,
+to:to
+};
+
+}
+
+return{
+from:"",
+to:""
+};
+}
+
+function exportExpenseAccountantPack(){
+
+let range=
+getExpenseExportRange();
+
+if(!range){
+return;
+}
+
+let category=
+expenseExportCategory.value
+||
+"all";
+
+let rows=
+expenses.filter(exp=>{
+
+let date=
+exp.date || "";
+
+if(
+range.from
+&&
+date<range.from
+){
+return false;
+}
+
+if(
+range.to
+&&
+date>range.to
+){
+return false;
+}
+
+if(
+category!=="all"
+&&
+exp.category!==category
+){
+return false;
+}
+
+return true;
+});
+
+if(!rows.length){
+
+alert(
+"No expenses match the selected export filters."
+);
+
+return;
+}
+
+let csv=[];
+
+csv.push(
+[
+"Date",
+"Supplier",
+"Category",
+"Description",
+"Net",
+"VAT",
+"Total Cost",
+"Payment Method",
+"Notes",
+"Receipt Files"
+]
+.map(csvCell)
+.join(",")
+);
+
+let receipts=[];
+
+rows.forEach(exp=>{
+
+let files=
+Array.isArray(exp.receipts)
+?
+exp.receipts
+:
+[];
+
+receipts.push(
+...files
+);
+
+csv.push(
+[
+formatDate(exp.date),
+exp.supplier || "",
+exp.category || "",
+exp.description || "",
+Number(exp.net || 0).toFixed(2),
+Number(exp.vat || 0).toFixed(2),
+Number(exp.total || 0).toFixed(2),
+exp.paymentMethod || "",
+exp.notes || "",
+files.join(" | ")
+]
+.map(csvCell)
+.join(",")
+);
+
+});
+
+if(
+typeof Android!=="undefined"
+&&
+Android.shareExpenseAccountantPack
+){
+
+Android.shareExpenseAccountantPack(
+
+"PureClean-Expenses-"
++
+today()
++
+".zip",
+
+"\uFEFF"
++
+csv.join("\r\n"),
+
+JSON.stringify(
+[
+...new Set(
+receipts
+)
+]
+)
+
+);
+
+}
+}
+
+/* INVOICE CSV */
+
+function exportInvoicesCsv(){
+
+if(!invoices.length){
+
+alert(
+"No invoices to export."
+);
+
+return;
+}
+
+let csv=[
+[
+"Invoice Number",
+"Customer",
+"Invoice Date",
+"Due Date",
+"Description",
+"Amount",
+"Status",
+"Payment Method",
+"Paid Date"
+]
+.map(csvCell)
+.join(",")
+];
+
+invoices.forEach(inv=>{
+
+csv.push(
+[
+invoiceNumber(inv),
+inv.customerName || "",
+formatDate(inv.date),
+formatDate(invoiceDueDate(inv)),
+inv.description || "",
+Number(inv.amount || 0).toFixed(2),
+invoiceStatus(inv).toUpperCase(),
+inv.paymentMethod || "",
+inv.paidDate
+?
+formatDate(inv.paidDate)
+:
+""
+]
+.map(csvCell)
+.join(",")
+);
+
+});
+
+if(
+typeof Android!=="undefined"
+&&
+Android.shareCsv
+){
+
+Android.shareCsv(
+
+"PureClean-Accountant-"
++
+today()
++
+".csv",
+
+"\uFEFF"
++
+csv.join("\r\n")
+
+);
+
+}
+}
+
+/* DASHBOARD */
+
+function updateDashboard(){
+
+if(
+!document.getElementById(
+"dashCustomers"
+)
+){
+return;
+}
+
+let active=
+activeCustomers();
+
+dashCustomers.innerText=
+active.length;
+
+let unpaid=
+invoices
+.filter(
+i=>!i.paid
+)
+.reduce(
+(s,i)=>
+s+Number(i.amount || 0),
+0
+);
+
+dashUnpaid.innerText=
+"£"+
+unpaid.toFixed(2);
+
+let now=
+new Date();
+
+let month=
+now.getFullYear()
++
+"-"
++
+String(
+now.getMonth()+1
+)
+.padStart(
+2,
+"0"
+);
+
+let paidMonth=
+invoices
+.filter(
+i=>
+i.paid
+&&
+monthKey(
+i.paidDate || i.date
+)
+===
+month
+)
+.reduce(
+(s,i)=>
+s+Number(i.amount || 0),
+0
+);
+
+dashPaid.innerText=
+"£"+
+paidMonth.toFixed(2);
+
+let expenseMonth=
+expenses
+.filter(
+e=>
+monthKey(e.date)
+===
+month
+)
+.reduce(
+(s,e)=>
+s+Number(e.total || 0),
+0
+);
+
+dashExpenses.innerText=
+"£"+
+expenseMonth.toFixed(2);
+
+let todays=
+active.filter(
+c=>
+c.nextClean===today()
+);
+
+todayJobs.innerHTML=
+todays.length
+?
+todays
+.map(
+c=>
+safe(c.name)
++
+" — £"
++
+Number(c.price || 0).toFixed(2)
+)
+.join("<br>")
+:
+"No jobs due today";
+
+let tomorrowJobs=
+active.filter(
+c=>
+c.nextClean===tomorrowDate()
+);
+
+let tomorrowValue=
+tomorrowJobs
+.reduce(
+(s,c)=>
+s+Number(c.price || 0),
+0
+);
+
+tomorrowSummary.innerHTML=
+tomorrowJobs.length
+?
+tomorrowJobs.length
++
+" job"
++
+(
+tomorrowJobs.length===1
+?
+""
+:
+"s"
+)
++
+" • £"
++
+tomorrowValue.toFixed(2)
+:
+"No jobs due tomorrow";
+
+let unpaidInvoices=
+invoices.filter(
+i=>!i.paid
+);
+
+dashInvoices.innerHTML=
+unpaidInvoices.length
+?
+unpaidInvoices
+.slice(-4)
+.reverse()
+.map(
+i=>
+safe(i.customerName)
++
+" — £"
++
+Number(i.amount || 0).toFixed(2)
+)
+.join("<br>")
+:
+"No unpaid invoices";
+}
+
+/* PROFIT */
+
+function setProfitColour(
+element,
+value
+){
+
+if(!element){
+return;
+}
+
+element.classList.remove(
+"profit-positive",
+"profit-negative"
+);
+
+if(value<0){
+
+element.classList.add(
+"profit-negative"
+);
+
+}else{
+
+element.classList.add(
+"profit-positive"
+);
+
+}
+}
+
+function updateEarnings(){
+
+if(
+!document.getElementById(
+"earnPaidMonth"
+)
+){
+return;
+}
+
+let now=
+new Date();
+
+let month=
+now.getFullYear()
++
+"-"
++
+String(
+now.getMonth()+1
+)
+.padStart(
+2,
+"0"
+);
+
+let year=
+String(
+now.getFullYear()
+);
+
+let paidMonth=
+invoices
+.filter(
+i=>
+i.paid
+&&
+monthKey(
+i.paidDate || i.date
+)
+===
+month
+)
+.reduce(
+(s,i)=>
+s+Number(i.amount || 0),
+0
+);
+
+let paidYear=
+invoices
+.filter(
+i=>
+i.paid
+&&
+String(
+i.paidDate || i.date
+)
+.startsWith(
+year
+)
+)
+.reduce(
+(s,i)=>
+s+Number(i.amount || 0),
+0
+);
+
+let expenseMonth=
+expenses
+.filter(
+e=>
+monthKey(e.date)
+===
+month
+)
+.reduce(
+(s,e)=>
+s+Number(e.total || 0),
+0
+);
+
+let expenseYear=
+expenses
+.filter(
+e=>
+String(
+e.date || ""
+)
+.startsWith(
+year
+)
+)
+.reduce(
+(s,e)=>
+s+Number(e.total || 0),
+0
+);
+
+let monthProfit=
+paidMonth-expenseMonth;
+
+let yearProfit=
+paidYear-expenseYear;
+
+let tax=
+getUkTaxYearRange();
+
+let taxIncome=
+invoices
+.filter(i=>{
+
+if(!i.paid){
+return false;
+}
+
+let paymentDate=
+i.paidDate
+||
+i.date
+||
+"";
+
+return(
+paymentDate>=tax.from
+&&
+paymentDate<=tax.to
+);
+
+})
+.reduce(
+(s,i)=>
+s+Number(i.amount || 0),
+0
+);
+
+let taxExpenses=
+expenses
+.filter(
+e=>
+e.date
+&&
+e.date>=tax.from
+&&
+e.date<=tax.to
+)
+.reduce(
+(s,e)=>
+s+Number(e.total || 0),
+0
+);
+
+let taxProfit=
+taxIncome-taxExpenses;
+
+let outstanding=
+invoices
+.filter(
+i=>!i.paid
+)
+.reduce(
+(s,i)=>
+s+Number(i.amount || 0),
+0
+);
+
+let end=
+addDays(
+today(),
+7
+);
+
+let next7=
+activeCustomers()
+.filter(
+c=>
+c.nextClean
+&&
+c.nextClean>=today()
+&&
+c.nextClean<=end
+)
+.reduce(
+(s,c)=>
+s+Number(c.price || 0),
+0
+);
+
+earnPaidMonth.innerText=
+"£"+
+paidMonth.toFixed(2);
+
+earnExpensesMonth.innerText=
+"£"+
+expenseMonth.toFixed(2);
+
+earnProfitMonth.innerText=
+"£"+
+monthProfit.toFixed(2);
+
+setProfitColour(
+earnProfitMonth,
+monthProfit
+);
+
+earnPaidYear.innerText=
+"£"+
+paidYear.toFixed(2);
+
+earnExpensesYear.innerText=
+"£"+
+expenseYear.toFixed(2);
+
+earnProfitYear.innerText=
+"£"+
+yearProfit.toFixed(2);
+
+setProfitColour(
+earnProfitYear,
+yearProfit
+);
+
+earnTaxIncome.innerText=
+"£"+
+taxIncome.toFixed(2);
+
+earnTaxExpenses.innerText=
+"£"+
+taxExpenses.toFixed(2);
+
+earnTaxProfit.innerText=
+"£"+
+taxProfit.toFixed(2);
+
+setProfitColour(
+earnTaxProfit,
+taxProfit
+);
+
+taxYearDates.innerText=
+"UK tax year: "
++
+formatDate(tax.from)
++
+" to "
++
+formatDate(tax.to);
+
+earnOutstanding.innerText=
+"£"+
+outstanding.toFixed(2);
+
+earnNext7.innerText=
+"£"+
+next7.toFixed(2);
+}
+
+/* MAP */
+
+async function postcodeCoordinates(
+postcode
+){
+
+try{
+
+let cleaned=
+String(
+postcode || ""
+)
+.replace(
+/\s+/g,
+""
+);
+
+let response=
+await fetch(
+
+"https://api.postcodes.io/postcodes/"
++
+encodeURIComponent(
+cleaned
+)
+
+);
+
+let data=
+await response.json();
+
+if(
+data.status===200
+){
+
+return{
+
+lat:
+data.result.latitude,
+
+lng:
+data.result.longitude
+
+};
+
+}
+
+}catch(e){}
+
+return null;
+}
+
+function initialiseMap(){
+
+if(map)return;
+
+if(
+typeof L==="undefined"
+){
+return;
+}
+
+map=
+L.map(
+"customerMap"
+)
+.setView(
+[
+52.6309,
+1.2974
+],
+10
+);
+
+L.tileLayer(
+
+"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+
+{
+maxZoom:19
+}
+
+)
+.addTo(
+map
+);
+}
+
+async function renderMap(){
+
+initialiseMap();
+
+if(!map){
+return;
+}
+
+mapMarkers
+.forEach(
+m=>
+map.removeLayer(m)
+);
+
+mapMarkers=[];
+
+let bounds=[];
+
+for(
+let c
+of
+activeCustomers()
+.filter(
+c=>c.postcode
+)
+){
+
+let coords=
+await postcodeCoordinates(
+c.postcode
+);
+
+if(!coords){
+continue;
+}
+
+let marker=
+L.marker(
+[
+coords.lat,
+coords.lng
+]
+)
+.addTo(
+map
+);
+
+marker.bindPopup(
+
+"<strong>"
++
+safe(c.name)
++
+"</strong><br>"
++
+safe(c.address)
++
+"<br>"
++
+safe(c.postcode)
+
+);
+
+mapMarkers.push(
+marker
+);
+
+bounds.push(
+[
+coords.lat,
+coords.lng
+]
+);
+
+}
+
+if(
+bounds.length
+){
+
+map.fitBounds(
+
+bounds,
+
+{
+padding:[
+30,
+30
+],
+maxZoom:15
+}
+
+);
+
+}
+
+mapStatus.innerText=
+bounds.length
++
+" customer location"
++
+(
+bounds.length===1
+?
+""
+:
+"s"
+)
++
+" shown.";
+}
+
+function openCustomerMap(id){
+
+let c=
+customers.find(
+x=>x.id===id
+);
+
+if(!c)return;
+
+let query=
+[
+c.address,
+c.postcode
+]
+.filter(Boolean)
+.join(" ");
+
+window.location.href=
+
+"https://www.google.com/maps/search/?api=1&query="
++
+encodeURIComponent(
+query
+);
+}
+
+/* DATA MIGRATION */
+
+customers.forEach(c=>{
+
+if(
+typeof c.archived==="undefined"
+){
+c.archived=false;
+}
+
+if(
+typeof c.roundArea==="undefined"
+){
+c.roundArea="";
+}
+
+if(
+typeof c.preferredDay==="undefined"
+){
+c.preferredDay="";
+}
+
+if(
+typeof c.createdDate==="undefined"
+){
+c.createdDate="";
+}
+
+});
+
+invoices.forEach(inv=>{
+
+if(
+!inv.invoiceNumber
+){
+inv.invoiceNumber=
+getNextInvoiceNumber();
+}
+
+if(
+!inv.dueDate
+&&
+inv.date
+){
+
+inv.dueDate=
+addDays(
+inv.date,
+7
+);
+
+}
+
+if(
+typeof inv.paidDate==="undefined"
+){
+inv.paidDate="";
+}
+
+if(
+typeof inv.paymentMethod==="undefined"
+){
+inv.paymentMethod="";
+}
+
+if(
+typeof inv.lastReminderDate==="undefined"
+){
+inv.lastReminderDate="";
+}
+
+if(
+typeof inv.reminderCount==="undefined"
+){
+inv.reminderCount=0;
+}
+
+});
+
+expenses.forEach(exp=>{
+
+if(
+!Array.isArray(
+exp.receipts
+)
+){
+exp.receipts=[];
+}
+
+if(
+typeof exp.total==="undefined"
+){
+exp.total=0;
+}
+
+if(
+typeof exp.vat==="undefined"
+){
+exp.vat=0;
+}
+
+if(
+typeof exp.net==="undefined"
+){
+
+exp.net=
+Math.max(
+0,
+Number(exp.total || 0)
+-
+Number(exp.vat || 0)
+);
+
+}
+
+});
+
+/* START */
+
+plannerDate.value=
+today();
+
+refreshRoundAreas();
+
+saveData();
+
+renderCustomers();
+renderPlanner();
+renderInvoices();
+renderExpenses();
+renderOwes();
+
+updateDashboard();
+updateEarnings();
+updateSecurityStatus();
+
+setTimeout(
+initialisePinSecurity,
+150
+);
+
+</script>
+
+</body>
+</html>
