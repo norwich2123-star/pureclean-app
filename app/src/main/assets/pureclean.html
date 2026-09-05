@@ -471,6 +471,77 @@ color:#999;
 margin-top:4px;
 }
 
+/* NEXT 7 DAYS */
+
+.next7-card{
+margin-top:16px;
+border-color:#42561d;
+}
+
+.next7-title{
+margin:0;
+color:var(--lime);
+font-size:18px;
+}
+
+.next7-list{
+display:grid;
+gap:8px;
+margin-top:12px;
+}
+
+.next7-day{
+width:100%;
+border:1px solid #343434;
+background:#0c0c0c;
+color:#fff;
+border-radius:12px;
+padding:12px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:10px;
+text-align:left;
+}
+
+.next7-day:active{
+transform:scale(.99);
+}
+
+.next7-day.today-day{
+border-color:var(--lime);
+background:#151b09;
+}
+
+.next7-day-name{
+font-weight:bold;
+color:var(--lime2);
+font-size:14px;
+}
+
+.next7-day-date{
+color:#999;
+font-size:11px;
+margin-top:4px;
+}
+
+.next7-day-total{
+text-align:right;
+white-space:nowrap;
+}
+
+.next7-job-count{
+font-size:12px;
+color:#bbb;
+}
+
+.next7-value{
+font-weight:bold;
+color:var(--green);
+font-size:16px;
+margin-top:3px;
+}
+
 .expense-form-title{
 color:var(--lime);
 margin:0;
@@ -881,6 +952,14 @@ Backs up your customers, invoices, expenses and all saved receipt photos togethe
 <div id="plannerRoundTotal" class="num green">£0.00</div>
 </div>
 
+</div>
+
+<div class="card next7-card">
+<h3 class="next7-title">📅 Next 7 Days</h3>
+<div class="muted" style="margin-top:5px">
+Tap any day to open it in your Daily Planner.
+</div>
+<div id="next7DaysList" class="next7-list"></div>
 </div>
 
 <div id="plannerJobs" class="job-list"></div>
@@ -1623,7 +1702,6 @@ return addDays(nominal,difference);
 }
 
 /* CUSTOMERS */
-  /* CUSTOMERS */
 
 function setCustomerFilter(filter,button){
 
@@ -1889,7 +1967,7 @@ function customerInvoices(id){
 return invoices.filter(i=>i.customerId===id);
 }
 
-/* NEW CUSTOMER JOB HISTORY */
+/* CUSTOMER JOB HISTORY */
 
 function showCustomerHistory(id){
 
@@ -2182,6 +2260,123 @@ amount
 renderPlanner();
 }
 
+/* NEXT 7 DAYS */
+
+function openPlannerDate(date){
+
+plannerDate.value=date;
+
+renderPlanner();
+
+window.scrollTo({
+top:0,
+behavior:"smooth"
+});
+
+}
+
+function renderNext7Days(){
+
+let holder=
+document.getElementById("next7DaysList");
+
+if(!holder){
+return;
+}
+
+let active=
+activeCustomers();
+
+let html=[];
+
+for(let i=0;i<7;i++){
+
+let date=
+addDays(
+today(),
+i
+);
+
+let jobs=
+active.filter(
+c=>c.nextClean===date
+);
+
+let total=
+jobs.reduce(
+(s,c)=>
+s+Number(c.price || 0),
+0
+);
+
+let d=
+new Date(
+date+"T12:00:00"
+);
+
+let dayName=
+i===0
+?
+"Today"
+:
+d.toLocaleDateString(
+"en-GB",
+{
+weekday:"long"
+}
+);
+
+let dateText=
+d.toLocaleDateString(
+"en-GB",
+{
+day:"numeric",
+month:"short"
+}
+);
+
+html.push(`
+
+<button
+class="next7-day ${i===0 ? "today-day" : ""}"
+onclick="openPlannerDate('${date}')">
+
+<div>
+
+<div class="next7-day-name">
+${safe(dayName)}
+</div>
+
+<div class="next7-day-date">
+${safe(dateText)}
+</div>
+
+</div>
+
+<div class="next7-day-total">
+
+<div class="next7-job-count">
+${jobs.length}
+job${jobs.length===1 ? "" : "s"}
+</div>
+
+<div class="next7-value">
+£${total.toFixed(2)}
+</div>
+
+</div>
+
+</button>
+
+`);
+
+}
+
+holder.innerHTML=
+html.join("");
+
+}
+
 function updatePlannerDateHeader(){
 
 let date=
@@ -2301,6 +2496,8 @@ refreshRoundAreas();
 if(!plannerDate.value){
 plannerDate.value=today();
 }
+
+renderNext7Days();
 
 updatePlannerDateHeader();
 
@@ -5010,8 +5207,7 @@ expenseMonth.toFixed(2);
 
 let todays=
 active.filter(
-c=>
-c.nextClean===today()
+c=>c.nextClean===today()
 );
 
 todayJobs.innerHTML=
@@ -5032,8 +5228,7 @@ Number(c.price || 0).toFixed(2)
 
 let tomorrowJobs=
 active.filter(
-c=>
-c.nextClean===tomorrowDate()
+c=>c.nextClean===tomorrowDate()
 );
 
 let tomorrowValue=
@@ -5289,7 +5484,7 @@ s+Number(i.amount || 0),
 let end=
 addDays(
 today(),
-7
+6
 );
 
 let next7=
