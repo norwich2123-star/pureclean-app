@@ -331,6 +331,39 @@ public class MainActivity extends Activity {
             );
         }
 
+        /*
+         * =====================================================
+         * QUOTE EMAIL
+         * =====================================================
+         */
+
+        @JavascriptInterface
+        public void emailQuoteWithAddress(
+                String email,
+                String customerName,
+                String customerAddress,
+                String customerPostcode,
+                String quoteNumber,
+                String quoteDate,
+                String amount,
+                String description,
+                String notes) {
+
+            runOnUiThread(
+                    () -> emailQuote(
+                            email,
+                            customerName,
+                            customerAddress,
+                            customerPostcode,
+                            quoteNumber,
+                            quoteDate,
+                            amount,
+                            description,
+                            notes
+                    )
+            );
+        }
+
         @JavascriptInterface
         public void sendReminder(
                 String email,
@@ -838,7 +871,6 @@ public class MainActivity extends Activity {
      * CAMERA
      * =========================================================
      */
-
     private void startExpenseCamera(
             String expenseId) {
 
@@ -1567,6 +1599,11 @@ public class MainActivity extends Activity {
                             "expenses"
                     );
 
+            JSONArray quotes =
+                    backup.optJSONArray(
+                            "quotes"
+                    );
+
             if (
                     customers == null
                             ||
@@ -1583,6 +1620,13 @@ public class MainActivity extends Activity {
 
                 return;
             }
+
+            int quoteCount =
+                    quotes == null
+                            ?
+                            0
+                            :
+                            quotes.length();
 
             int receiptCount =
                     countReceiptPhotos();
@@ -1610,6 +1654,20 @@ public class MainActivity extends Activity {
                             +
                             (
                                     invoices.length() == 1
+                                            ?
+                                    ""
+                                            :
+                                    "s"
+                            )
+                            +
+                            "\n"
+                            +
+                            quoteCount
+                            +
+                            " quote"
+                            +
+                            (
+                                    quoteCount == 1
                                             ?
                                     ""
                                             :
@@ -1760,8 +1818,9 @@ public class MainActivity extends Activity {
                     Toast.LENGTH_LONG
             ).show();
         }
-            }
-        private void saveFullBackup(
+    }
+
+    private void saveFullBackup(
             Uri uri) {
 
         try {
@@ -1853,6 +1912,7 @@ public class MainActivity extends Activity {
                     }
 
                     input.close();
+
                     zip.closeEntry();
 
                     receiptCount++;
@@ -1877,6 +1937,11 @@ public class MainActivity extends Activity {
                             "invoices"
                     );
 
+            JSONArray quotes =
+                    saved.optJSONArray(
+                            "quotes"
+                    );
+
             JSONArray expenses =
                     saved.optJSONArray(
                             "expenses"
@@ -1895,6 +1960,13 @@ public class MainActivity extends Activity {
                             0
                             :
                             invoices.length();
+
+            int quoteCount =
+                    quotes == null
+                            ?
+                            0
+                            :
+                            quotes.length();
 
             int expenseCount =
                     expenses == null
@@ -1916,6 +1988,10 @@ public class MainActivity extends Activity {
                             invoiceCount
                             +
                             " invoices, "
+                            +
+                            quoteCount
+                            +
+                            " quotes, "
                             +
                             expenseCount
                             +
@@ -1955,6 +2031,7 @@ public class MainActivity extends Activity {
         restoreFolder.mkdirs();
 
         String restoredJson = null;
+
         int receiptCount = 0;
 
         try {
@@ -1965,7 +2042,9 @@ public class MainActivity extends Activity {
                                     uri
                             );
 
-            if (rawInput == null) {
+            if (
+                    rawInput == null
+            ) {
 
                 deleteFolder(
                         restoreFolder
@@ -1995,7 +2074,9 @@ public class MainActivity extends Activity {
 
                 if (
                         "business.json"
-                                .equals(name)
+                                .equals(
+                                        name
+                                )
                 ) {
 
                     StringBuilder jsonText =
@@ -2049,6 +2130,7 @@ public class MainActivity extends Activity {
                     ) {
 
                         zip.closeEntry();
+
                         continue;
                     }
 
@@ -2088,6 +2170,7 @@ public class MainActivity extends Activity {
             }
 
             zip.close();
+
             rawInput.close();
 
             if (
@@ -2129,6 +2212,11 @@ public class MainActivity extends Activity {
                             "expenses"
                     );
 
+            JSONArray quotes =
+                    backup.optJSONArray(
+                            "quotes"
+                    );
+
             if (
                     customers == null
                             ||
@@ -2159,6 +2247,13 @@ public class MainActivity extends Activity {
             final File finalRestoreFolder =
                     restoreFolder;
 
+            int quoteCount =
+                    quotes == null
+                            ?
+                            0
+                            :
+                            quotes.length();
+
             String message =
                     "This backup contains:\n\n"
                             +
@@ -2169,6 +2264,10 @@ public class MainActivity extends Activity {
                             invoices.length()
                             +
                             " invoices\n"
+                            +
+                            quoteCount
+                            +
+                            " quotes\n"
                             +
                             expenses.length()
                             +
@@ -2255,6 +2354,11 @@ public class MainActivity extends Activity {
                             "invoices"
                     );
 
+            JSONArray quotes =
+                    backup.optJSONArray(
+                            "quotes"
+                    );
+
             JSONArray expenses =
                     backup.optJSONArray(
                             "expenses"
@@ -2287,9 +2391,15 @@ public class MainActivity extends Activity {
             File[] existing =
                     liveReceipts.listFiles();
 
-            if (existing != null) {
+            if (
+                    existing != null
+            ) {
 
-                for (File file : existing) {
+                for (
+                        File file
+                        :
+                        existing
+                ) {
 
                     if (
                             file != null
@@ -2305,9 +2415,15 @@ public class MainActivity extends Activity {
             File[] restoredFiles =
                     restoreFolder.listFiles();
 
-            if (restoredFiles != null) {
+            if (
+                    restoredFiles != null
+            ) {
 
-                for (File file : restoredFiles) {
+                for (
+                        File file
+                        :
+                        restoredFiles
+                ) {
 
                     if (
                             file != null
@@ -2344,6 +2460,13 @@ public class MainActivity extends Activity {
                     null
             );
 
+            int quoteCount =
+                    quotes == null
+                            ?
+                            0
+                            :
+                            quotes.length();
+
             Toast.makeText(
                     this,
                     "Restore complete: "
@@ -2355,6 +2478,10 @@ public class MainActivity extends Activity {
                             invoices.length()
                             +
                             " invoices, "
+                            +
+                            quoteCount
+                            +
+                            " quotes, "
                             +
                             expenses.length()
                             +
@@ -2424,10 +2551,13 @@ public class MainActivity extends Activity {
             if (
                     !safeFileName
                             .toLowerCase()
-                            .endsWith(".zip")
+                            .endsWith(
+                                    ".zip"
+                            )
             ) {
 
-                safeFileName += ".zip";
+                safeFileName +=
+                        ".zip";
             }
 
             File folder =
@@ -2436,7 +2566,10 @@ public class MainActivity extends Activity {
                             "expense_exports"
                     );
 
-            if (!folder.exists()) {
+            if (
+                    !folder.exists()
+            ) {
+
                 folder.mkdirs();
             }
 
@@ -2511,6 +2644,7 @@ public class MainActivity extends Activity {
                                 ||
                         !receipt.isFile()
                 ) {
+
                     continue;
                 }
 
@@ -2543,6 +2677,7 @@ public class MainActivity extends Activity {
                 }
 
                 input.close();
+
                 zip.closeEntry();
             }
 
@@ -2766,10 +2901,13 @@ public class MainActivity extends Activity {
             if (
                     !safeFileName
                             .toLowerCase()
-                            .endsWith(".csv")
+                            .endsWith(
+                                    ".csv"
+                            )
             ) {
 
-                safeFileName += ".csv";
+                safeFileName +=
+                        ".csv";
             }
 
             File folder =
@@ -2778,7 +2916,10 @@ public class MainActivity extends Activity {
                             "exports"
                     );
 
-            if (!folder.exists()) {
+            if (
+                    !folder.exists()
+            ) {
+
                 folder.mkdirs();
             }
 
@@ -2800,6 +2941,7 @@ public class MainActivity extends Activity {
             );
 
             output.flush();
+
             output.close();
 
             Uri csvUri =
@@ -2971,8 +3113,11 @@ public class MainActivity extends Activity {
                 pendingCameraFile.delete();
             }
 
-            pendingCameraFile = null;
-            pendingExpenseId = "";
+            pendingCameraFile =
+                    null;
+
+            pendingExpenseId =
+                    "";
 
             return;
         }
@@ -2998,7 +3143,8 @@ public class MainActivity extends Activity {
                 );
             }
 
-            pendingExpenseId = "";
+            pendingExpenseId =
+                    "";
 
             return;
         }
@@ -3070,7 +3216,10 @@ public class MainActivity extends Activity {
                                     uri
                             );
 
-            if (output == null) {
+            if (
+                    output == null
+            ) {
+
                 return;
             }
 
@@ -3082,7 +3231,8 @@ public class MainActivity extends Activity {
 
             output.close();
 
-            backupJson = "";
+            backupJson =
+                    "";
 
         } catch (Exception ignored) {
         }
@@ -3180,7 +3330,9 @@ public class MainActivity extends Activity {
         }
 
         output.flush();
+
         input.close();
+
         output.close();
     }
 
@@ -3192,15 +3344,22 @@ public class MainActivity extends Activity {
                         ||
                 !folder.exists()
         ) {
+
             return;
         }
 
         File[] files =
                 folder.listFiles();
 
-        if (files != null) {
+        if (
+                files != null
+        ) {
 
-            for (File file : files) {
+            for (
+                    File file
+                    :
+                    files
+            ) {
 
                 if (
                         file.isDirectory()
@@ -3222,7 +3381,7 @@ public class MainActivity extends Activity {
 
     /*
      * =========================================================
-     * EMAIL / INVOICES
+     * EMAIL / INVOICES / QUOTES
      * =========================================================
      */
 
@@ -3239,6 +3398,949 @@ public class MainActivity extends Activity {
                         )
                         .matches();
     }
+
+    /*
+     * =========================================================
+     * QUOTE PDF + EMAIL
+     * =========================================================
+     */
+
+    private void emailQuote(
+            String email,
+            String customerName,
+            String customerAddress,
+            String customerPostcode,
+            String quoteNumber,
+            String quoteDate,
+            String amount,
+            String description,
+            String notes) {
+
+        if (
+                !validEmail(
+                        email
+                )
+        ) {
+
+            Toast.makeText(
+                    this,
+                    "The quote email address is not valid.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
+        try {
+
+            File pdf =
+                    createQuotePdf(
+                            customerName,
+                            customerAddress,
+                            customerPostcode,
+                            quoteNumber,
+                            quoteDate,
+                            amount,
+                            description,
+                            notes
+                    );
+
+            Uri pdfUri =
+                    FileProvider.getUriForFile(
+                            this,
+                            getPackageName()
+                                    +
+                                    ".fileprovider",
+                            pdf
+                    );
+
+            Intent intent =
+                    new Intent(
+                            Intent.ACTION_SEND
+                    );
+
+            intent.setType(
+                    "application/pdf"
+            );
+
+            intent.putExtra(
+                    Intent.EXTRA_EMAIL,
+                    new String[]{
+                            email.trim()
+                    }
+            );
+
+            intent.putExtra(
+                    Intent.EXTRA_SUBJECT,
+                    "Quote Q"
+                            +
+                            quoteNumber
+                            +
+                            " - Steven's Pure Clean Exteriors"
+            );
+
+            intent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    "Hi "
+                            +
+                            customerName
+                            +
+                            ",\n\nPlease find attached Quote Q"
+                            +
+                            quoteNumber
+                            +
+                            " from Steven's Pure Clean Exteriors."
+                            +
+                            "\n\nQuote total: £"
+                            +
+                            amount
+                            +
+                            "\n\nIf you would like to go ahead, please get in touch."
+                            +
+                            "\n\nMany thanks,\nSteven"
+                            +
+                            "\nSteven's Pure Clean Exteriors"
+            );
+
+            intent.putExtra(
+                    Intent.EXTRA_STREAM,
+                    pdfUri
+            );
+
+            intent.setClipData(
+                    ClipData.newRawUri(
+                            "Quote PDF",
+                            pdfUri
+                    )
+            );
+
+            intent.addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+            );
+
+            try {
+
+                intent.setPackage(
+                        "com.google.android.gm"
+                );
+
+                startActivity(
+                        intent
+                );
+
+            } catch (Exception e) {
+
+                intent.setPackage(
+                        null
+                );
+
+                startActivity(
+                        Intent.createChooser(
+                                intent,
+                                "Email Quote"
+                        )
+                );
+            }
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not create quote email.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    private File createQuotePdf(
+            String customerName,
+            String customerAddress,
+            String customerPostcode,
+            String quoteNumber,
+            String quoteDate,
+            String amount,
+            String description,
+            String notes)
+            throws Exception {
+
+        File folder =
+                new File(
+                        getCacheDir(),
+                        "quotes"
+                );
+
+        if (
+                !folder.exists()
+        ) {
+
+            folder.mkdirs();
+        }
+
+        File file =
+                new File(
+                        folder,
+                        "PureClean-Quote-Q"
+                                +
+                                quoteNumber
+                                +
+                                ".pdf"
+                );
+
+        PdfDocument document =
+                new PdfDocument();
+
+        PdfDocument.PageInfo pageInfo =
+                new PdfDocument.PageInfo.Builder(
+                        595,
+                        842,
+                        1
+                ).create();
+
+        PdfDocument.Page page =
+                document.startPage(
+                        pageInfo
+                );
+
+        Canvas canvas =
+                page.getCanvas();
+
+        Paint paint =
+                new Paint(
+                        Paint.ANTI_ALIAS_FLAG
+                );
+
+        int black =
+                Color.rgb(
+                        12,
+                        12,
+                        12
+                );
+
+        int lime =
+                Color.rgb(
+                        155,
+                        214,
+                        0
+                );
+
+        int dark =
+                Color.rgb(
+                        28,
+                        28,
+                        28
+                );
+
+        int grey =
+                Color.rgb(
+                        100,
+                        100,
+                        100
+                );
+
+        int light =
+                Color.rgb(
+                        245,
+                        245,
+                        245
+                );
+
+        int border =
+                Color.rgb(
+                        220,
+                        220,
+                        220
+                );
+
+        canvas.drawColor(
+                Color.WHITE
+        );
+
+        /*
+         * HEADER
+         */
+
+        paint.setColor(
+                black
+        );
+
+        canvas.drawRect(
+                0,
+                0,
+                595,
+                155,
+                paint
+        );
+
+        paint.setColor(
+                lime
+        );
+
+        canvas.drawRect(
+                0,
+                151,
+                595,
+                155,
+                paint
+        );
+
+        /*
+         * LOGO
+         */
+
+        try {
+
+            InputStream input =
+                    getAssets()
+                            .open(
+                                    "logo.jpg"
+                            );
+
+            Bitmap logo =
+                    BitmapFactory.decodeStream(
+                            input
+                    );
+
+            if (
+                    logo != null
+            ) {
+
+                RectF logoRect =
+                        new RectF(
+                                28,
+                                22,
+                                123,
+                                117
+                        );
+
+                canvas.drawBitmap(
+                        logo,
+                        null,
+                        logoRect,
+                        paint
+                );
+
+                logo.recycle();
+            }
+
+            input.close();
+
+        } catch (Exception ignored) {
+        }
+
+        paint.setFakeBoldText(
+                true
+        );
+
+        paint.setColor(
+                lime
+        );
+
+        paint.setTextSize(
+                22
+        );
+
+        canvas.drawText(
+                "Steven's Pure Clean Exteriors",
+                145,
+                55,
+                paint
+        );
+
+        paint.setFakeBoldText(
+                false
+        );
+
+        paint.setColor(
+                Color.WHITE
+        );
+
+        paint.setTextSize(
+                12
+        );
+
+        canvas.drawText(
+                "Pure Results • Clean Exteriors",
+                145,
+                80,
+                paint
+        );
+
+        paint.setFakeBoldText(
+                true
+        );
+
+        paint.setTextSize(
+                31
+        );
+
+        paint.setTextAlign(
+                Paint.Align.RIGHT
+        );
+
+        canvas.drawText(
+                "QUOTE",
+                558,
+                113,
+                paint
+        );
+
+        paint.setTextAlign(
+                Paint.Align.LEFT
+        );
+
+        /*
+         * QUOTE INFO
+         */
+
+        float infoTop =
+                185;
+
+        paint.setColor(
+                dark
+        );
+
+        paint.setFakeBoldText(
+                true
+        );
+
+        paint.setTextSize(
+                11
+        );
+
+        canvas.drawText(
+                "QUOTE NUMBER",
+                45,
+                infoTop,
+                paint
+        );
+
+        canvas.drawText(
+                "QUOTE DATE",
+                225,
+                infoTop,
+                paint
+        );
+
+        canvas.drawText(
+                "VALID FOR",
+                410,
+                infoTop,
+                paint
+        );
+
+        paint.setFakeBoldText(
+                false
+        );
+
+        paint.setColor(
+                grey
+        );
+
+        paint.setTextSize(
+                13
+        );
+
+        canvas.drawText(
+                "Q"
+                        +
+                        quoteNumber,
+                45,
+                infoTop + 25,
+                paint
+        );
+
+        canvas.drawText(
+                quoteDate == null
+                        ?
+                        ""
+                        :
+                        quoteDate,
+                225,
+                infoTop + 25,
+                paint
+        );
+
+        canvas.drawText(
+                "30 days",
+                410,
+                infoTop + 25,
+                paint
+        );
+
+        paint.setColor(
+                border
+        );
+
+        canvas.drawRect(
+                35,
+                232,
+                560,
+                234,
+                paint
+        );
+
+        /*
+         * QUOTE FOR
+         */
+
+        paint.setColor(
+                dark
+        );
+
+        paint.setFakeBoldText(
+                true
+        );
+
+        paint.setTextSize(
+                15
+        );
+
+        canvas.drawText(
+                "QUOTE FOR",
+                45,
+                270,
+                paint
+        );
+
+        paint.setFakeBoldText(
+                false
+        );
+
+        paint.setTextSize(
+                16
+        );
+
+        canvas.drawText(
+                customerName == null
+                        ?
+                        ""
+                        :
+                        customerName,
+                45,
+                298,
+                paint
+        );
+
+        paint.setColor(
+                grey
+        );
+
+        paint.setTextSize(
+                12
+        );
+
+        if (
+                customerAddress != null
+                        &&
+                !customerAddress.trim().isEmpty()
+        ) {
+
+            canvas.drawText(
+                    customerAddress.trim(),
+                    45,
+                    320,
+                    paint
+            );
+        }
+
+        if (
+                customerPostcode != null
+                        &&
+                !customerPostcode.trim().isEmpty()
+        ) {
+
+            canvas.drawText(
+                    customerPostcode.trim(),
+                    45,
+                    340,
+                    paint
+            );
+        }
+
+        /*
+         * SERVICE BOX
+         */
+
+        paint.setColor(
+                light
+        );
+
+        RectF serviceBox =
+                new RectF(
+                        35,
+                        370,
+                        560,
+                        565
+                );
+
+        canvas.drawRoundRect(
+                serviceBox,
+                14,
+                14,
+                paint
+        );
+
+        paint.setColor(
+                dark
+        );
+
+        paint.setFakeBoldText(
+                true
+        );
+
+        paint.setTextSize(
+                13
+        );
+
+        canvas.drawText(
+                "SERVICE",
+                55,
+                400,
+                paint
+        );
+
+        paint.setTextAlign(
+                Paint.Align.RIGHT
+        );
+
+        canvas.drawText(
+                "PRICE",
+                535,
+                400,
+                paint
+        );
+
+        paint.setTextAlign(
+                Paint.Align.LEFT
+        );
+
+        paint.setFakeBoldText(
+                false
+        );
+
+        String cleanDescription =
+                description == null
+                        ?
+                        ""
+                        :
+                        description.trim();
+
+        String[] lines =
+                cleanDescription.isEmpty()
+                        ?
+                        new String[]{
+                                "Exterior cleaning service"
+                        }
+                        :
+                        cleanDescription.split(
+                                "\\n"
+                        );
+
+        float lineY =
+                432;
+
+        for (
+                String line
+                :
+                lines
+        ) {
+
+            if (
+                    line == null
+                            ||
+                    line.trim().isEmpty()
+            ) {
+
+                continue;
+            }
+
+            String service =
+                    line.trim();
+
+            String price =
+                    "";
+
+            int split =
+                    service.lastIndexOf(
+                            " - £"
+                    );
+
+            if (
+                    split >= 0
+            ) {
+
+                price =
+                        service
+                                .substring(
+                                        split + 3
+                                )
+                                .trim();
+
+                service =
+                        service
+                                .substring(
+                                        0,
+                                        split
+                                )
+                                .trim();
+            }
+
+            paint.setColor(
+                    dark
+            );
+
+            paint.setTextSize(
+                    13
+            );
+
+            canvas.drawText(
+                    service,
+                    55,
+                    lineY,
+                    paint
+            );
+
+            if (
+                    !price.isEmpty()
+            ) {
+
+                paint.setTextAlign(
+                        Paint.Align.RIGHT
+                );
+
+                canvas.drawText(
+                        "£"
+                                +
+                                price,
+                        535,
+                        lineY,
+                        paint
+                );
+
+                paint.setTextAlign(
+                        Paint.Align.LEFT
+                );
+            }
+
+            lineY +=
+                    27;
+
+            if (
+                    lineY > 530
+            ) {
+
+                break;
+            }
+        }
+
+        /*
+         * QUOTE TOTAL
+         */
+
+        paint.setColor(
+                black
+        );
+
+        RectF amountBox =
+                new RectF(
+                        315,
+                        590,
+                        560,
+                        680
+                );
+
+        canvas.drawRoundRect(
+                amountBox,
+                14,
+                14,
+                paint
+        );
+
+        paint.setColor(
+                Color.WHITE
+        );
+
+        paint.setFakeBoldText(
+                true
+        );
+
+        paint.setTextSize(
+                12
+        );
+
+        canvas.drawText(
+                "QUOTE TOTAL",
+                338,
+                620,
+                paint
+        );
+
+        paint.setColor(
+                lime
+        );
+
+        paint.setTextSize(
+                31
+        );
+
+        canvas.drawText(
+                "£"
+                        +
+                        amount,
+                338,
+                660,
+                paint
+        );
+
+        /*
+         * NOTES
+         */
+
+        paint.setColor(
+                dark
+        );
+
+        paint.setFakeBoldText(
+                true
+        );
+
+        paint.setTextSize(
+                14
+        );
+
+        canvas.drawText(
+                "NOTES",
+                45,
+                710,
+                paint
+        );
+
+        paint.setFakeBoldText(
+                false
+        );
+
+        paint.setColor(
+                grey
+        );
+
+        paint.setTextSize(
+                11
+        );
+
+        String cleanNotes =
+                notes == null
+                        ?
+                        ""
+                        :
+                        notes.trim();
+
+        if (
+                cleanNotes.isEmpty()
+        ) {
+
+            cleanNotes =
+                    "Please get in touch if you would like to proceed with this quotation.";
+        }
+
+        if (
+                cleanNotes.length() > 95
+        ) {
+
+            cleanNotes =
+                    cleanNotes.substring(
+                            0,
+                            95
+                    )
+                            +
+                            "...";
+        }
+
+        canvas.drawText(
+                cleanNotes,
+                45,
+                735,
+                paint
+        );
+
+        /*
+         * FOOTER
+         */
+
+        paint.setColor(
+                border
+        );
+
+        canvas.drawRect(
+                35,
+                792,
+                560,
+                794,
+                paint
+        );
+
+        paint.setColor(
+                grey
+        );
+
+        paint.setTextSize(
+                11
+        );
+
+        paint.setTextAlign(
+                Paint.Align.LEFT
+        );
+
+        canvas.drawText(
+                "Thank you for the opportunity to provide this quotation.",
+                35,
+                818,
+                paint
+        );
+
+        paint.setTextAlign(
+                Paint.Align.RIGHT
+        );
+
+        paint.setFakeBoldText(
+                true
+        );
+
+        canvas.drawText(
+                "Steven's Pure Clean Exteriors",
+                560,
+                818,
+                paint
+        );
+
+        paint.setTextAlign(
+                Paint.Align.LEFT
+        );
+
+        document.finishPage(
+                page
+        );
+
+        FileOutputStream output =
+                new FileOutputStream(
+                        file
+                );
+
+        document.writeTo(
+                output
+        );
+
+        output.close();
+
+        document.close();
+
+        return file;
+    }
+
+    /*
+     * =========================================================
+     * INVOICE EMAIL
+     * =========================================================
+     */
 
     private void emailInvoice(
             String email,
@@ -3461,7 +4563,7 @@ public class MainActivity extends Activity {
 
     /*
      * =========================================================
-     * NEW POLISHED PDF INVOICE
+     * POLISHED PDF INVOICE
      * =========================================================
      */
 
@@ -3482,7 +4584,10 @@ public class MainActivity extends Activity {
                         "invoices"
                 );
 
-        if (!folder.exists()) {
+        if (
+                !folder.exists()
+        ) {
+
             folder.mkdirs();
         }
 
@@ -3610,7 +4715,9 @@ public class MainActivity extends Activity {
                             input
                     );
 
-            if (logo != null) {
+            if (
+                    logo != null
+            ) {
 
                 RectF logoRect =
                         new RectF(
@@ -3626,6 +4733,8 @@ public class MainActivity extends Activity {
                         logoRect,
                         paint
                 );
+
+                logo.recycle();
             }
 
             input.close();
@@ -3924,6 +5033,19 @@ public class MainActivity extends Activity {
                     "Exterior cleaning service";
         }
 
+        if (
+                cleanDescription.length() > 55
+        ) {
+
+            cleanDescription =
+                    cleanDescription.substring(
+                            0,
+                            55
+                    )
+                            +
+                            "...";
+        }
+
         canvas.drawText(
                 cleanDescription,
                 55,
@@ -4201,8 +5323,9 @@ public class MainActivity extends Activity {
         );
 
         output.close();
+
         document.close();
 
         return file;
     }
-                    }
+                }
