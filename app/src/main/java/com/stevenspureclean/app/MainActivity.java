@@ -949,25 +949,18 @@ public class MainActivity extends Activity {
                                     0
                             );
 
-            for (
-                    ResolveInfo resolveInfo
-                    :
-                    cameraApps
-            ) {
+            for (ResolveInfo resolveInfo : cameraApps) {
 
                 if (
                         resolveInfo == null
                                 ||
                         resolveInfo.activityInfo == null
                 ) {
-
                     continue;
                 }
 
                 String packageName =
-                        resolveInfo
-                                .activityInfo
-                                .packageName;
+                        resolveInfo.activityInfo.packageName;
 
                 grantUriPermission(
                         packageName,
@@ -981,9 +974,7 @@ public class MainActivity extends Activity {
             if (
                     intent.resolveActivity(
                             getPackageManager()
-                    )
-                            ==
-                    null
+                    ) == null
             ) {
 
                 if (
@@ -991,12 +982,10 @@ public class MainActivity extends Activity {
                                 &&
                         pendingCameraFile.exists()
                 ) {
-
                     pendingCameraFile.delete();
                 }
 
-                pendingCameraFile =
-                        null;
+                pendingCameraFile = null;
 
                 Toast.makeText(
                         this,
@@ -1019,12 +1008,10 @@ public class MainActivity extends Activity {
                             &&
                     pendingCameraFile.exists()
             ) {
-
                 pendingCameraFile.delete();
             }
 
-            pendingCameraFile =
-                    null;
+            pendingCameraFile = null;
 
             Toast.makeText(
                     this,
@@ -1097,9 +1084,7 @@ public class MainActivity extends Activity {
                                     sourceUri
                             );
 
-            if (
-                    input == null
-            ) {
+            if (input == null) {
 
                 Toast.makeText(
                         this,
@@ -1121,9 +1106,7 @@ public class MainActivity extends Activity {
             int length;
 
             while (
-                    (length = input.read(buffer))
-                            >
-                    0
+                    (length = input.read(buffer)) > 0
             ) {
 
                 tempOutput.write(
@@ -1199,7 +1182,6 @@ public class MainActivity extends Activity {
                             &&
                     tempFile.exists()
             ) {
-
                 tempFile.delete();
             }
         }
@@ -1218,8 +1200,7 @@ public class MainActivity extends Activity {
             BitmapFactory.Options bounds =
                     new BitmapFactory.Options();
 
-            bounds.inJustDecodeBounds =
-                    true;
+            bounds.inJustDecodeBounds = true;
 
             BitmapFactory.decodeFile(
                     source.getAbsolutePath(),
@@ -1231,34 +1212,25 @@ public class MainActivity extends Activity {
                             ||
                     bounds.outHeight <= 0
             ) {
-
                 return false;
             }
 
-            int maxDecodeSize =
-                    2200;
+            int maxDecodeSize = 2200;
 
-            int sample =
-                    1;
+            int sample = 1;
 
             while (
-                    bounds.outWidth / sample
-                            >
-                    maxDecodeSize
+                    bounds.outWidth / sample > maxDecodeSize
                             ||
-                    bounds.outHeight / sample
-                            >
-                    maxDecodeSize
+                    bounds.outHeight / sample > maxDecodeSize
             ) {
-
                 sample *= 2;
             }
 
             BitmapFactory.Options options =
                     new BitmapFactory.Options();
 
-            options.inSampleSize =
-                    sample;
+            options.inSampleSize = sample;
 
             bitmap =
                     BitmapFactory.decodeFile(
@@ -1266,15 +1238,11 @@ public class MainActivity extends Activity {
                             options
                     );
 
-            if (
-                    bitmap == null
-            ) {
-
+            if (bitmap == null) {
                 return false;
             }
 
-            int rotation =
-                    0;
+            int rotation = 0;
 
             try {
 
@@ -1294,38 +1262,29 @@ public class MainActivity extends Activity {
                                 ==
                         ExifInterface.ORIENTATION_ROTATE_90
                 ) {
-
-                    rotation =
-                            90;
+                    rotation = 90;
 
                 } else if (
                         orientation
                                 ==
                         ExifInterface.ORIENTATION_ROTATE_180
                 ) {
-
-                    rotation =
-                            180;
+                    rotation = 180;
 
                 } else if (
                         orientation
                                 ==
                         ExifInterface.ORIENTATION_ROTATE_270
                 ) {
-
-                    rotation =
-                            270;
+                    rotation = 270;
                 }
 
             } catch (Exception ignored) {
             }
 
-            rotated =
-                    bitmap;
+            rotated = bitmap;
 
-            if (
-                    rotation != 0
-            ) {
+            if (rotation != 0) {
 
                 Matrix matrix =
                         new Matrix();
@@ -1352,8 +1311,7 @@ public class MainActivity extends Activity {
             int height =
                     rotated.getHeight();
 
-            int maxSide =
-                    1600;
+            int maxSide = 1600;
 
             if (
                     width > maxSide
@@ -1393,8 +1351,7 @@ public class MainActivity extends Activity {
 
             } else {
 
-                scaled =
-                        rotated;
+                scaled = rotated;
             }
 
             FileOutputStream output =
@@ -1431,7 +1388,6 @@ public class MainActivity extends Activity {
                             &&
                     !scaled.isRecycled()
             ) {
-
                 scaled.recycle();
             }
 
@@ -1442,7 +1398,6 @@ public class MainActivity extends Activity {
                             &&
                     !rotated.isRecycled()
             ) {
-
                 rotated.recycle();
             }
 
@@ -1451,7 +1406,6 @@ public class MainActivity extends Activity {
                             &&
                     !bitmap.isRecycled()
             ) {
-
                 bitmap.recycle();
             }
         }
@@ -1466,7 +1420,6 @@ public class MainActivity extends Activity {
                         ||
                 pendingCameraFile.length() <= 0
         ) {
-
             return null;
         }
 
@@ -1499,17 +1452,13 @@ public class MainActivity extends Activity {
                             &&
                     destination.length() > 0
             ) {
-
                 return destination;
             }
 
         } catch (Exception ignored) {
         }
 
-        if (
-                destination.exists()
-        ) {
-
+        if (destination.exists()) {
             destination.delete();
         }
 
@@ -1594,14 +1543,14 @@ public class MainActivity extends Activity {
                             "invoices"
                     );
 
-            JSONArray expenses =
-                    backup.optJSONArray(
-                            "expenses"
-                    );
-
             JSONArray quotes =
                     backup.optJSONArray(
                             "quotes"
+                    );
+
+            JSONArray expenses =
+                    backup.optJSONArray(
+                            "expenses"
                     );
 
             if (
@@ -1636,71 +1585,23 @@ public class MainActivity extends Activity {
                             +
                             customers.length()
                             +
-                            " customer"
-                            +
-                            (
-                                    customers.length() == 1
-                                            ?
-                                    ""
-                                            :
-                                    "s"
-                            )
-                            +
-                            "\n"
+                            " customers\n"
                             +
                             invoices.length()
                             +
-                            " invoice"
-                            +
-                            (
-                                    invoices.length() == 1
-                                            ?
-                                    ""
-                                            :
-                                    "s"
-                            )
-                            +
-                            "\n"
+                            " invoices\n"
                             +
                             quoteCount
                             +
-                            " quote"
-                            +
-                            (
-                                    quoteCount == 1
-                                            ?
-                                    ""
-                                            :
-                                    "s"
-                            )
-                            +
-                            "\n"
+                            " quotes\n"
                             +
                             expenses.length()
                             +
-                            " expense"
-                            +
-                            (
-                                    expenses.length() == 1
-                                            ?
-                                    ""
-                                            :
-                                    "s"
-                            )
-                            +
-                            "\n"
+                            " expenses\n"
                             +
                             receiptCount
                             +
-                            " receipt photo"
-                            +
-                            (
-                                    receiptCount == 1
-                                            ?
-                                    ""
-                                            :
-                                    "s"
-                            )
+                            " receipt photos"
                             +
                             "\n\nSave this backup now?";
 
@@ -1721,8 +1622,7 @@ public class MainActivity extends Activity {
                             "Save Backup",
                             (dialog, which) -> {
 
-                                backupJson =
-                                        json;
+                                backupJson = json;
 
                                 openFullBackupSaveScreen();
                             }
@@ -1832,13 +1732,6 @@ public class MainActivity extends Activity {
                             );
 
             if (rawOutput == null) {
-
-                Toast.makeText(
-                        this,
-                        "Could not create backup file.",
-                        Toast.LENGTH_LONG
-                ).show();
-
                 return;
             }
 
@@ -1865,8 +1758,6 @@ public class MainActivity extends Activity {
                     receiptFolder()
                             .listFiles();
 
-            int receiptCount = 0;
-
             if (receipts != null) {
 
                 byte[] buffer =
@@ -1879,7 +1770,6 @@ public class MainActivity extends Activity {
                                     ||
                             !receipt.isFile()
                     ) {
-
                         continue;
                     }
 
@@ -1899,9 +1789,7 @@ public class MainActivity extends Activity {
                     int length;
 
                     while (
-                            (length = input.read(buffer))
-                                    >
-                            0
+                            (length = input.read(buffer)) > 0
                     ) {
 
                         zip.write(
@@ -1914,92 +1802,17 @@ public class MainActivity extends Activity {
                     input.close();
 
                     zip.closeEntry();
-
-                    receiptCount++;
                 }
             }
 
             zip.finish();
             zip.close();
 
-            JSONObject saved =
-                    new JSONObject(
-                            backupJson
-                    );
-
-            JSONArray customers =
-                    saved.optJSONArray(
-                            "customers"
-                    );
-
-            JSONArray invoices =
-                    saved.optJSONArray(
-                            "invoices"
-                    );
-
-            JSONArray quotes =
-                    saved.optJSONArray(
-                            "quotes"
-                    );
-
-            JSONArray expenses =
-                    saved.optJSONArray(
-                            "expenses"
-                    );
-
-            int customerCount =
-                    customers == null
-                            ?
-                            0
-                            :
-                            customers.length();
-
-            int invoiceCount =
-                    invoices == null
-                            ?
-                            0
-                            :
-                            invoices.length();
-
-            int quoteCount =
-                    quotes == null
-                            ?
-                            0
-                            :
-                            quotes.length();
-
-            int expenseCount =
-                    expenses == null
-                            ?
-                            0
-                            :
-                            expenses.length();
-
             backupJson = "";
 
             Toast.makeText(
                     this,
-                    "Backup saved: "
-                            +
-                            customerCount
-                            +
-                            " customers, "
-                            +
-                            invoiceCount
-                            +
-                            " invoices, "
-                            +
-                            quoteCount
-                            +
-                            " quotes, "
-                            +
-                            expenseCount
-                            +
-                            " expenses, "
-                            +
-                            receiptCount
-                            +
-                            " receipt photos.",
+                    "Full backup saved.",
                     Toast.LENGTH_LONG
             ).show();
 
@@ -2032,8 +1845,6 @@ public class MainActivity extends Activity {
 
         String restoredJson = null;
 
-        int receiptCount = 0;
-
         try {
 
             InputStream rawInput =
@@ -2042,14 +1853,7 @@ public class MainActivity extends Activity {
                                     uri
                             );
 
-            if (
-                    rawInput == null
-            ) {
-
-                deleteFolder(
-                        restoreFolder
-                );
-
+            if (rawInput == null) {
                 return;
             }
 
@@ -2064,19 +1868,16 @@ public class MainActivity extends Activity {
                     new byte[8192];
 
             while (
-                    (entry = zip.getNextEntry())
-                            !=
-                    null
+                    (entry = zip.getNextEntry()) != null
             ) {
 
                 String name =
                         entry.getName();
 
                 if (
-                        "business.json"
-                                .equals(
-                                        name
-                                )
+                        "business.json".equals(
+                                name
+                        )
                 ) {
 
                     StringBuilder jsonText =
@@ -2088,9 +1889,7 @@ public class MainActivity extends Activity {
                     int length;
 
                     while (
-                            (length = zip.read(textBuffer))
-                                    >
-                            0
+                            (length = zip.read(textBuffer)) > 0
                     ) {
 
                         jsonText.append(
@@ -2104,9 +1903,7 @@ public class MainActivity extends Activity {
                     }
 
                     restoredJson =
-                            jsonText
-                                    .toString()
-                                    .trim();
+                            jsonText.toString();
 
                 } else if (
                         name != null
@@ -2121,18 +1918,7 @@ public class MainActivity extends Activity {
                     String safeName =
                             new File(
                                     name
-                            )
-                                    .getName();
-
-                    if (
-                            safeName.trim()
-                                    .isEmpty()
-                    ) {
-
-                        zip.closeEntry();
-
-                        continue;
-                    }
+                            ).getName();
 
                     File receipt =
                             new File(
@@ -2148,9 +1934,7 @@ public class MainActivity extends Activity {
                     int length;
 
                     while (
-                            (length = zip.read(buffer))
-                                    >
-                            0
+                            (length = zip.read(buffer)) > 0
                     ) {
 
                         output.write(
@@ -2160,17 +1944,13 @@ public class MainActivity extends Activity {
                         );
                     }
 
-                    output.flush();
                     output.close();
-
-                    receiptCount++;
                 }
 
                 zip.closeEntry();
             }
 
             zip.close();
-
             rawInput.close();
 
             if (
@@ -2178,10 +1958,6 @@ public class MainActivity extends Activity {
                             ||
                     restoredJson.trim().isEmpty()
             ) {
-
-                deleteFolder(
-                        restoreFolder
-                );
 
                 Toast.makeText(
                         this,
@@ -2192,92 +1968,8 @@ public class MainActivity extends Activity {
                 return;
             }
 
-            JSONObject backup =
-                    new JSONObject(
-                            restoredJson
-                    );
-
-            JSONArray customers =
-                    backup.optJSONArray(
-                            "customers"
-                    );
-
-            JSONArray invoices =
-                    backup.optJSONArray(
-                            "invoices"
-                    );
-
-            JSONArray expenses =
-                    backup.optJSONArray(
-                            "expenses"
-                    );
-
-            JSONArray quotes =
-                    backup.optJSONArray(
-                            "quotes"
-                    );
-
-            if (
-                    customers == null
-                            ||
-                    invoices == null
-                            ||
-                    expenses == null
-            ) {
-
-                deleteFolder(
-                        restoreFolder
-                );
-
-                Toast.makeText(
-                        this,
-                        "This backup is incomplete and will not be restored.",
-                        Toast.LENGTH_LONG
-                ).show();
-
-                return;
-            }
-
-            final String finalRestoredJson =
+            final String finalJson =
                     restoredJson;
-
-            final int finalReceiptCount =
-                    receiptCount;
-
-            final File finalRestoreFolder =
-                    restoreFolder;
-
-            int quoteCount =
-                    quotes == null
-                            ?
-                            0
-                            :
-                            quotes.length();
-
-            String message =
-                    "This backup contains:\n\n"
-                            +
-                            customers.length()
-                            +
-                            " customers\n"
-                            +
-                            invoices.length()
-                            +
-                            " invoices\n"
-                            +
-                            quoteCount
-                            +
-                            " quotes\n"
-                            +
-                            expenses.length()
-                            +
-                            " expenses\n"
-                            +
-                            finalReceiptCount
-                            +
-                            " receipt photos"
-                            +
-                            "\n\nThis will replace the current app data.\n\nContinue?";
 
             new AlertDialog.Builder(
                     this
@@ -2286,43 +1978,26 @@ public class MainActivity extends Activity {
                             "Restore Backup"
                     )
                     .setMessage(
-                            message
+                            "This will replace your current app data.\n\nContinue?"
                     )
                     .setNegativeButton(
                             "Cancel",
-                            (dialog, which) -> {
-
-                                deleteFolder(
-                                        finalRestoreFolder
-                                );
-                            }
+                            null
                     )
                     .setPositiveButton(
                             "Restore",
                             (dialog, which) -> {
 
                                 performFullRestore(
-                                        finalRestoredJson,
-                                        finalRestoreFolder,
-                                        finalReceiptCount
-                                );
-                            }
-                    )
-                    .setOnCancelListener(
-                            dialog -> {
-
-                                deleteFolder(
-                                        finalRestoreFolder
+                                        finalJson,
+                                        restoreFolder,
+                                        0
                                 );
                             }
                     )
                     .show();
 
         } catch (Exception e) {
-
-            deleteFolder(
-                    restoreFolder
-            );
 
             Toast.makeText(
                     this,
@@ -2339,74 +2014,17 @@ public class MainActivity extends Activity {
 
         try {
 
-            JSONObject backup =
-                    new JSONObject(
-                            restoredJson
-                    );
-
-            JSONArray customers =
-                    backup.optJSONArray(
-                            "customers"
-                    );
-
-            JSONArray invoices =
-                    backup.optJSONArray(
-                            "invoices"
-                    );
-
-            JSONArray quotes =
-                    backup.optJSONArray(
-                            "quotes"
-                    );
-
-            JSONArray expenses =
-                    backup.optJSONArray(
-                            "expenses"
-                    );
-
-            if (
-                    customers == null
-                            ||
-                    invoices == null
-                            ||
-                    expenses == null
-            ) {
-
-                deleteFolder(
-                        restoreFolder
-                );
-
-                Toast.makeText(
-                        this,
-                        "Restore stopped because the backup is incomplete.",
-                        Toast.LENGTH_LONG
-                ).show();
-
-                return;
-            }
-
             File liveReceipts =
                     receiptFolder();
 
-            File[] existing =
+            File[] oldFiles =
                     liveReceipts.listFiles();
 
-            if (
-                    existing != null
-            ) {
+            if (oldFiles != null) {
 
-                for (
-                        File file
-                        :
-                        existing
-                ) {
+                for (File file : oldFiles) {
 
-                    if (
-                            file != null
-                                    &&
-                            file.isFile()
-                    ) {
-
+                    if (file.isFile()) {
                         file.delete();
                     }
                 }
@@ -2415,21 +2033,11 @@ public class MainActivity extends Activity {
             File[] restoredFiles =
                     restoreFolder.listFiles();
 
-            if (
-                    restoredFiles != null
-            ) {
+            if (restoredFiles != null) {
 
-                for (
-                        File file
-                        :
-                        restoredFiles
-                ) {
+                for (File file : restoredFiles) {
 
-                    if (
-                            file != null
-                                    &&
-                            file.isFile()
-                    ) {
+                    if (file.isFile()) {
 
                         copyFile(
                                 file,
@@ -2460,44 +2068,13 @@ public class MainActivity extends Activity {
                     null
             );
 
-            int quoteCount =
-                    quotes == null
-                            ?
-                            0
-                            :
-                            quotes.length();
-
             Toast.makeText(
                     this,
-                    "Restore complete: "
-                            +
-                            customers.length()
-                            +
-                            " customers, "
-                            +
-                            invoices.length()
-                            +
-                            " invoices, "
-                            +
-                            quoteCount
-                            +
-                            " quotes, "
-                            +
-                            expenses.length()
-                            +
-                            " expenses, "
-                            +
-                            receiptCount
-                            +
-                            " receipt photos.",
+                    "Restore complete.",
                     Toast.LENGTH_LONG
             ).show();
 
         } catch (Exception e) {
-
-            deleteFolder(
-                    restoreFolder
-            );
 
             Toast.makeText(
                     this,
@@ -2523,13 +2100,6 @@ public class MainActivity extends Activity {
                         ||
                 csvText.trim().isEmpty()
         ) {
-
-            Toast.makeText(
-                    this,
-                    "There is no expense data to export.",
-                    Toast.LENGTH_LONG
-            ).show();
-
             return;
         }
 
@@ -2548,28 +2118,13 @@ public class MainActivity extends Activity {
                         "PureClean-Expenses.zip";
             }
 
-            if (
-                    !safeFileName
-                            .toLowerCase()
-                            .endsWith(
-                                    ".zip"
-                            )
-            ) {
-
-                safeFileName +=
-                        ".zip";
-            }
-
             File folder =
                     new File(
                             getCacheDir(),
                             "expense_exports"
                     );
 
-            if (
-                    !folder.exists()
-            ) {
-
+            if (!folder.exists()) {
                 folder.mkdirs();
             }
 
@@ -2600,24 +2155,14 @@ public class MainActivity extends Activity {
 
             zip.closeEntry();
 
-            JSONArray receiptNames;
-
-            try {
-
-                receiptNames =
-                        new JSONArray(
-                                receiptNamesJson == null
-                                        ?
-                                        "[]"
-                                        :
-                                        receiptNamesJson
-                        );
-
-            } catch (Exception e) {
-
-                receiptNames =
-                        new JSONArray();
-            }
+            JSONArray receiptNames =
+                    new JSONArray(
+                            receiptNamesJson == null
+                                    ?
+                                    "[]"
+                                    :
+                                    receiptNamesJson
+                    );
 
             byte[] buffer =
                     new byte[8192];
@@ -2628,23 +2173,15 @@ public class MainActivity extends Activity {
                     i++
             ) {
 
-                String name =
-                        receiptNames.optString(
-                                i,
-                                ""
-                        );
-
                 File receipt =
                         receiptFile(
-                                name
+                                receiptNames.optString(
+                                        i,
+                                        ""
+                                )
                         );
 
-                if (
-                        !receipt.exists()
-                                ||
-                        !receipt.isFile()
-                ) {
-
+                if (!receipt.exists()) {
                     continue;
                 }
 
@@ -2664,9 +2201,7 @@ public class MainActivity extends Activity {
                 int length;
 
                 while (
-                        (length = input.read(buffer))
-                                >
-                        0
+                        (length = input.read(buffer)) > 0
                 ) {
 
                     zip.write(
@@ -2707,23 +2242,6 @@ public class MainActivity extends Activity {
                     zipUri
             );
 
-            shareIntent.putExtra(
-                    Intent.EXTRA_SUBJECT,
-                    "Pure Clean Expenses"
-            );
-
-            shareIntent.putExtra(
-                    Intent.EXTRA_TEXT,
-                    "Expense export and receipt photos attached."
-            );
-
-            shareIntent.setClipData(
-                    ClipData.newRawUri(
-                            "Expense Export",
-                            zipUri
-                    )
-            );
-
             shareIntent.addFlags(
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
             );
@@ -2745,12 +2263,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    /*
-     * =========================================================
-     * PHONE / TEXT
-     * =========================================================
-     */
-
     private void openDialler(
             String phone) {
 
@@ -2759,43 +2271,22 @@ public class MainActivity extends Activity {
                         ||
                 phone.trim().isEmpty()
         ) {
-
-            Toast.makeText(
-                    this,
-                    "No phone number saved.",
-                    Toast.LENGTH_LONG
-            ).show();
-
             return;
         }
 
-        try {
+        Intent intent =
+                new Intent(
+                        Intent.ACTION_DIAL,
+                        Uri.parse(
+                                "tel:"
+                                        +
+                                        phone.trim()
+                        )
+                );
 
-            Intent intent =
-                    new Intent(
-                            Intent.ACTION_DIAL
-                    );
-
-            intent.setData(
-                    Uri.parse(
-                            "tel:"
-                                    +
-                                    phone.trim()
-                    )
-            );
-
-            startActivity(
-                    intent
-            );
-
-        } catch (Exception e) {
-
-            Toast.makeText(
-                    this,
-                    "Could not open phone.",
-                    Toast.LENGTH_LONG
-            ).show();
-        }
+        startActivity(
+                intent
+        );
     }
 
     private void openTextMessage(
@@ -2807,108 +2298,44 @@ public class MainActivity extends Activity {
                         ||
                 phone.trim().isEmpty()
         ) {
-
-            Toast.makeText(
-                    this,
-                    "No phone number saved.",
-                    Toast.LENGTH_LONG
-            ).show();
-
             return;
         }
 
-        try {
-
-            Intent intent =
-                    new Intent(
-                            Intent.ACTION_SENDTO
-                    );
-
-            intent.setData(
-                    Uri.parse(
-                            "smsto:"
-                                    +
-                                    phone.trim()
-                    )
-            );
-
-            if (
-                    message != null
-                            &&
-                    !message.trim().isEmpty()
-            ) {
-
-                intent.putExtra(
-                        "sms_body",
-                        message
+        Intent intent =
+                new Intent(
+                        Intent.ACTION_SENDTO
                 );
-            }
 
-            startActivity(
-                    intent
+        intent.setData(
+                Uri.parse(
+                        "smsto:"
+                                +
+                                phone.trim()
+                )
+        );
+
+        if (
+                message != null
+                        &&
+                !message.trim().isEmpty()
+        ) {
+
+            intent.putExtra(
+                    "sms_body",
+                    message
             );
-
-        } catch (Exception e) {
-
-            Toast.makeText(
-                    this,
-                    "Could not open messages.",
-                    Toast.LENGTH_LONG
-            ).show();
         }
-    }
 
-    /*
-     * =========================================================
-     * CSV
-     * =========================================================
-     */
+        startActivity(
+                intent
+        );
+    }
 
     private void shareCsvFile(
             String fileName,
             String csvText) {
 
-        if (
-                csvText == null
-                        ||
-                csvText.trim().isEmpty()
-        ) {
-
-            Toast.makeText(
-                    this,
-                    "There is no CSV data to share.",
-                    Toast.LENGTH_LONG
-            ).show();
-
-            return;
-        }
-
         try {
-
-            String safeFileName =
-                    fileName;
-
-            if (
-                    safeFileName == null
-                            ||
-                    safeFileName.trim().isEmpty()
-            ) {
-
-                safeFileName =
-                        "PureClean-Accountant.csv";
-            }
-
-            if (
-                    !safeFileName
-                            .toLowerCase()
-                            .endsWith(
-                                    ".csv"
-                            )
-            ) {
-
-                safeFileName +=
-                        ".csv";
-            }
 
             File folder =
                     new File(
@@ -2916,17 +2343,14 @@ public class MainActivity extends Activity {
                             "exports"
                     );
 
-            if (
-                    !folder.exists()
-            ) {
-
+            if (!folder.exists()) {
                 folder.mkdirs();
             }
 
             File csvFile =
                     new File(
                             folder,
-                            safeFileName
+                            fileName
                     );
 
             FileOutputStream output =
@@ -2940,11 +2364,9 @@ public class MainActivity extends Activity {
                     )
             );
 
-            output.flush();
-
             output.close();
 
-            Uri csvUri =
+            Uri uri =
                     FileProvider.getUriForFile(
                             this,
                             getPackageName()
@@ -2953,28 +2375,28 @@ public class MainActivity extends Activity {
                             csvFile
                     );
 
-            Intent shareIntent =
+            Intent share =
                     new Intent(
                             Intent.ACTION_SEND
                     );
 
-            shareIntent.setType(
+            share.setType(
                     "text/csv"
             );
 
-            shareIntent.putExtra(
+            share.putExtra(
                     Intent.EXTRA_STREAM,
-                    csvUri
+                    uri
             );
 
-            shareIntent.addFlags(
+            share.addFlags(
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
             );
 
             startActivity(
                     Intent.createChooser(
-                            shareIntent,
-                            "Share Accountant CSV"
+                            share,
+                            "Share CSV"
                     )
             );
 
@@ -2982,40 +2404,16 @@ public class MainActivity extends Activity {
 
             Toast.makeText(
                     this,
-                    "Could not create accountant CSV.",
+                    "Could not create CSV.",
                     Toast.LENGTH_LONG
             ).show();
         }
     }
 
-    /*
-     * =========================================================
-     * JSON BACKUP
-     * =========================================================
-     */
-
     private void startBackup(
             String json) {
 
-        if (
-                json == null
-                        ||
-                json.trim().isEmpty()
-        ) {
-
-            return;
-        }
-
-        backupJson =
-                json;
-
-        String stamp =
-                new SimpleDateFormat(
-                        "yyyy-MM-dd-HHmmss",
-                        Locale.UK
-                ).format(
-                        new Date()
-                );
+        backupJson = json;
 
         Intent intent =
                 new Intent(
@@ -3032,11 +2430,7 @@ public class MainActivity extends Activity {
 
         intent.putExtra(
                 Intent.EXTRA_TITLE,
-                "PureClean-Backup-"
-                        +
-                        stamp
-                        +
-                        ".json"
+                "PureClean-Backup.json"
         );
 
         startActivityForResult(
@@ -3079,15 +2473,11 @@ public class MainActivity extends Activity {
         );
 
         if (
-                requestCode
-                        ==
-                TAKE_EXPENSE_PHOTO
+                requestCode == TAKE_EXPENSE_PHOTO
         ) {
 
             if (
-                    resultCode
-                            ==
-                    RESULT_OK
+                    resultCode == RESULT_OK
             ) {
 
                 File savedReceipt =
@@ -3104,34 +2494,18 @@ public class MainActivity extends Activity {
                 }
             }
 
-            if (
-                    pendingCameraFile != null
-                            &&
-                    pendingCameraFile.exists()
-            ) {
-
-                pendingCameraFile.delete();
-            }
-
-            pendingCameraFile =
-                    null;
-
-            pendingExpenseId =
-                    "";
+            pendingCameraFile = null;
+            pendingExpenseId = "";
 
             return;
         }
 
         if (
-                requestCode
-                        ==
-                CHOOSE_EXPENSE_PHOTO
+                requestCode == CHOOSE_EXPENSE_PHOTO
         ) {
 
             if (
-                    resultCode
-                            ==
-                    RESULT_OK
+                    resultCode == RESULT_OK
                             &&
                     data != null
                             &&
@@ -3143,8 +2517,7 @@ public class MainActivity extends Activity {
                 );
             }
 
-            pendingExpenseId =
-                    "";
+            pendingExpenseId = "";
 
             return;
         }
@@ -3156,7 +2529,6 @@ public class MainActivity extends Activity {
                         ||
                 data.getData() == null
         ) {
-
             return;
         }
 
@@ -3164,9 +2536,7 @@ public class MainActivity extends Activity {
                 data.getData();
 
         if (
-                requestCode
-                        ==
-                SAVE_BACKUP
+                requestCode == SAVE_BACKUP
         ) {
 
             saveBackup(
@@ -3174,9 +2544,7 @@ public class MainActivity extends Activity {
             );
 
         } else if (
-                requestCode
-                        ==
-                RESTORE_BACKUP
+                requestCode == RESTORE_BACKUP
         ) {
 
             loadBackup(
@@ -3184,9 +2552,7 @@ public class MainActivity extends Activity {
             );
 
         } else if (
-                requestCode
-                        ==
-                SAVE_FULL_BACKUP
+                requestCode == SAVE_FULL_BACKUP
         ) {
 
             saveFullBackup(
@@ -3194,9 +2560,7 @@ public class MainActivity extends Activity {
             );
 
         } else if (
-                requestCode
-                        ==
-                RESTORE_FULL_BACKUP
+                requestCode == RESTORE_FULL_BACKUP
         ) {
 
             restoreFullBackup(
@@ -3216,13 +2580,6 @@ public class MainActivity extends Activity {
                                     uri
                             );
 
-            if (
-                    output == null
-            ) {
-
-                return;
-            }
-
             output.write(
                     backupJson.getBytes(
                             "UTF-8"
@@ -3230,9 +2587,6 @@ public class MainActivity extends Activity {
             );
 
             output.close();
-
-            backupJson =
-                    "";
 
         } catch (Exception ignored) {
         }
@@ -3263,9 +2617,7 @@ public class MainActivity extends Activity {
             String line;
 
             while (
-                    (line = reader.readLine())
-                            !=
-                    null
+                    (line = reader.readLine()) != null
             ) {
 
                 text.append(
@@ -3275,20 +2627,14 @@ public class MainActivity extends Activity {
 
             reader.close();
 
-            String json =
-                    text.toString();
-
-            String javascript =
+            webView.evaluateJavascript(
                     "restoreBusinessBackup("
                             +
                             JSONObject.quote(
-                                    json
+                                    text.toString()
                             )
                             +
-                            ");";
-
-            webView.evaluateJavascript(
-                    javascript,
+                            ");",
                     null
             );
 
@@ -3317,9 +2663,7 @@ public class MainActivity extends Activity {
         int length;
 
         while (
-                (length = input.read(buffer))
-                        >
-                0
+                (length = input.read(buffer)) > 0
         ) {
 
             output.write(
@@ -3329,10 +2673,7 @@ public class MainActivity extends Activity {
             );
         }
 
-        output.flush();
-
         input.close();
-
         output.close();
     }
 
@@ -3344,33 +2685,19 @@ public class MainActivity extends Activity {
                         ||
                 !folder.exists()
         ) {
-
             return;
         }
 
         File[] files =
                 folder.listFiles();
 
-        if (
-                files != null
-        ) {
+        if (files != null) {
 
-            for (
-                    File file
-                    :
-                    files
-            ) {
+            for (File file : files) {
 
-                if (
-                        file.isDirectory()
-                ) {
-
-                    deleteFolder(
-                            file
-                    );
-
+                if (file.isDirectory()) {
+                    deleteFolder(file);
                 } else {
-
                     file.delete();
                 }
             }
@@ -3378,12 +2705,6 @@ public class MainActivity extends Activity {
 
         folder.delete();
     }
-
-    /*
-     * =========================================================
-     * EMAIL / INVOICES / QUOTES
-     * =========================================================
-     */
 
     private boolean validEmail(
             String email) {
@@ -3401,7 +2722,7 @@ public class MainActivity extends Activity {
 
     /*
      * =========================================================
-     * QUOTE PDF + EMAIL
+     * QUOTE EMAIL
      * =========================================================
      */
 
@@ -3416,18 +2737,7 @@ public class MainActivity extends Activity {
             String description,
             String notes) {
 
-        if (
-                !validEmail(
-                        email
-                )
-        ) {
-
-            Toast.makeText(
-                    this,
-                    "The quote email address is not valid.",
-                    Toast.LENGTH_LONG
-            ).show();
-
+        if (!validEmail(email)) {
             return;
         }
 
@@ -3485,21 +2795,13 @@ public class MainActivity extends Activity {
                             +
                             customerName
                             +
-                            ",\n\nPlease find attached Quote Q"
-                            +
-                            quoteNumber
-                            +
-                            " from Steven's Pure Clean Exteriors."
+                            ",\n\nPlease find attached your quotation from Steven's Pure Clean Exteriors."
                             +
                             "\n\nQuote total: £"
                             +
                             amount
                             +
-                            "\n\nIf you would like to go ahead, please get in touch."
-                            +
                             "\n\nMany thanks,\nSteven"
-                            +
-                            "\nSteven's Pure Clean Exteriors"
             );
 
             intent.putExtra(
@@ -3569,10 +2871,7 @@ public class MainActivity extends Activity {
                         "quotes"
                 );
 
-        if (
-                !folder.exists()
-        ) {
-
+        if (!folder.exists()) {
             folder.mkdirs();
         }
 
@@ -3644,20 +2943,9 @@ public class MainActivity extends Activity {
                         245
                 );
 
-        int border =
-                Color.rgb(
-                        220,
-                        220,
-                        220
-                );
-
         canvas.drawColor(
                 Color.WHITE
         );
-
-        /*
-         * HEADER
-         */
 
         paint.setColor(
                 black
@@ -3683,10 +2971,6 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        /*
-         * LOGO
-         */
-
         try {
 
             InputStream input =
@@ -3700,9 +2984,7 @@ public class MainActivity extends Activity {
                             input
                     );
 
-            if (
-                    logo != null
-            ) {
+            if (logo != null) {
 
                 RectF logoRect =
                         new RectF(
@@ -3746,12 +3028,12 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(
-                false
-        );
-
         paint.setColor(
                 Color.WHITE
+        );
+
+        paint.setFakeBoldText(
+                false
         );
 
         paint.setTextSize(
@@ -3788,19 +3070,8 @@ public class MainActivity extends Activity {
                 Paint.Align.LEFT
         );
 
-        /*
-         * QUOTE INFO
-         */
-
-        float infoTop =
-                185;
-
         paint.setColor(
                 dark
-        );
-
-        paint.setFakeBoldText(
-                true
         );
 
         paint.setTextSize(
@@ -3810,21 +3081,21 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "QUOTE NUMBER",
                 45,
-                infoTop,
+                185,
                 paint
         );
 
         canvas.drawText(
                 "QUOTE DATE",
                 225,
-                infoTop,
+                185,
                 paint
         );
 
         canvas.drawText(
                 "VALID FOR",
                 410,
-                infoTop,
+                185,
                 paint
         );
 
@@ -3845,43 +3116,23 @@ public class MainActivity extends Activity {
                         +
                         quoteNumber,
                 45,
-                infoTop + 25,
+                210,
                 paint
         );
 
         canvas.drawText(
-                quoteDate == null
-                        ?
-                        ""
-                        :
-                        quoteDate,
+                quoteDate,
                 225,
-                infoTop + 25,
+                210,
                 paint
         );
 
         canvas.drawText(
                 "30 days",
                 410,
-                infoTop + 25,
+                210,
                 paint
         );
-
-        paint.setColor(
-                border
-        );
-
-        canvas.drawRect(
-                35,
-                232,
-                560,
-                234,
-                paint
-        );
-
-        /*
-         * QUOTE FOR
-         */
 
         paint.setColor(
                 dark
@@ -3911,11 +3162,7 @@ public class MainActivity extends Activity {
         );
 
         canvas.drawText(
-                customerName == null
-                        ?
-                        ""
-                        :
-                        customerName,
+                customerName,
                 45,
                 298,
                 paint
@@ -3929,37 +3176,19 @@ public class MainActivity extends Activity {
                 12
         );
 
-        if (
-                customerAddress != null
-                        &&
-                !customerAddress.trim().isEmpty()
-        ) {
+        canvas.drawText(
+                customerAddress,
+                45,
+                320,
+                paint
+        );
 
-            canvas.drawText(
-                    customerAddress.trim(),
-                    45,
-                    320,
-                    paint
-            );
-        }
-
-        if (
-                customerPostcode != null
-                        &&
-                !customerPostcode.trim().isEmpty()
-        ) {
-
-            canvas.drawText(
-                    customerPostcode.trim(),
-                    45,
-                    340,
-                    paint
-            );
-        }
-
-        /*
-         * SERVICE BOX
-         */
+        canvas.drawText(
+                customerPostcode,
+                45,
+                340,
+                paint
+        );
 
         paint.setColor(
                 light
@@ -4018,71 +3247,49 @@ public class MainActivity extends Activity {
                 false
         );
 
-        String cleanDescription =
+        String[] lines =
                 description == null
                         ?
-                        ""
+                        new String[0]
                         :
-                        description.trim();
-
-        String[] lines =
-                cleanDescription.isEmpty()
-                        ?
-                        new String[]{
-                                "Exterior cleaning service"
-                        }
-                        :
-                        cleanDescription.split(
+                        description.split(
                                 "\\n"
                         );
 
-        float lineY =
-                432;
+        float lineY = 432;
 
-        for (
-                String line
-                :
-                lines
-        ) {
+        for (String line : lines) {
 
             if (
                     line == null
                             ||
                     line.trim().isEmpty()
             ) {
-
                 continue;
             }
 
             String service =
                     line.trim();
 
-            String price =
-                    "";
+            String price = "";
 
             int split =
                     service.lastIndexOf(
                             " - £"
                     );
 
-            if (
-                    split >= 0
-            ) {
+            if (split >= 0) {
 
                 price =
-                        service
-                                .substring(
-                                        split + 3
-                                )
-                                .trim();
+                        service.substring(
+                                split + 3
+                        ).trim();
 
                 service =
-                        service
-                                .substring(
-                                        0,
-                                        split
-                                )
-                                .trim();
+                        service.substring(
+                                0,
+                                split
+                        ).trim();
             }
 
             paint.setColor(
@@ -4100,18 +3307,22 @@ public class MainActivity extends Activity {
                     paint
             );
 
-            if (
-                    !price.isEmpty()
-            ) {
+            if (!price.isEmpty()) {
 
                 paint.setTextAlign(
                         Paint.Align.RIGHT
                 );
 
+                /*
+                 * DOUBLE £ FIX
+                 */
+
                 canvas.drawText(
-                        "£"
-                                +
-                                price,
+                        price.startsWith("£")
+                                ?
+                                price
+                                :
+                                "£" + price,
                         535,
                         lineY,
                         paint
@@ -4122,26 +3333,14 @@ public class MainActivity extends Activity {
                 );
             }
 
-            lineY +=
-                    27;
-
-            if (
-                    lineY > 530
-            ) {
-
-                break;
-            }
+            lineY += 27;
         }
-
-        /*
-         * QUOTE TOTAL
-         */
 
         paint.setColor(
                 black
         );
 
-        RectF amountBox =
+        RectF totalBox =
                 new RectF(
                         315,
                         590,
@@ -4150,7 +3349,7 @@ public class MainActivity extends Activity {
                 );
 
         canvas.drawRoundRect(
-                amountBox,
+                totalBox,
                 14,
                 14,
                 paint
@@ -4192,16 +3391,8 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        /*
-         * NOTES
-         */
-
         paint.setColor(
                 dark
-        );
-
-        paint.setFakeBoldText(
-                true
         );
 
         paint.setTextSize(
@@ -4234,9 +3425,7 @@ public class MainActivity extends Activity {
                         :
                         notes.trim();
 
-        if (
-                cleanNotes.isEmpty()
-        ) {
+        if (cleanNotes.isEmpty()) {
 
             cleanNotes =
                     "Please get in touch if you would like to proceed with this quotation.";
@@ -4262,32 +3451,12 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        /*
-         * FOOTER
-         */
-
-        paint.setColor(
-                border
-        );
-
-        canvas.drawRect(
-                35,
-                792,
-                560,
-                794,
-                paint
-        );
-
         paint.setColor(
                 grey
         );
 
         paint.setTextSize(
                 11
-        );
-
-        paint.setTextAlign(
-                Paint.Align.LEFT
         );
 
         canvas.drawText(
@@ -4353,12 +3522,7 @@ public class MainActivity extends Activity {
             String amount,
             String description) {
 
-        if (
-                !validEmail(
-                        email
-                )
-        ) {
-
+        if (!validEmail(email)) {
             return;
         }
 
@@ -4447,11 +3611,11 @@ public class MainActivity extends Activity {
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
             );
 
-            try {
+            intent.setPackage(
+                    "com.google.android.gm"
+            );
 
-                intent.setPackage(
-                        "com.google.android.gm"
-                );
+            try {
 
                 startActivity(
                         intent
@@ -4491,12 +3655,7 @@ public class MainActivity extends Activity {
             String description,
             boolean overdue) {
 
-        if (
-                !validEmail(
-                        email
-                )
-        ) {
-
+        if (!validEmail(email)) {
             return;
         }
 
@@ -4516,9 +3675,7 @@ public class MainActivity extends Activity {
                         +
                         customerName
                         +
-                        ",\n\n"
-                        +
-                        "This is a friendly reminder regarding invoice #"
+                        ",\n\nThis is a friendly reminder regarding invoice #"
                         +
                         invoiceNumber
                         +
@@ -4530,9 +3687,7 @@ public class MainActivity extends Activity {
                         +
                         dueDate
                         +
-                        "\n\nThank you,\n"
-                        +
-                        "Steven's Pure Clean Exteriors";
+                        "\n\nThank you,\nSteven's Pure Clean Exteriors";
 
         Intent intent =
                 new Intent(
@@ -4584,10 +3739,7 @@ public class MainActivity extends Activity {
                         "invoices"
                 );
 
-        if (
-                !folder.exists()
-        ) {
-
+        if (!folder.exists()) {
             folder.mkdirs();
         }
 
@@ -4659,20 +3811,9 @@ public class MainActivity extends Activity {
                         245
                 );
 
-        int border =
-                Color.rgb(
-                        220,
-                        220,
-                        220
-                );
-
         canvas.drawColor(
                 Color.WHITE
         );
-
-        /*
-         * HEADER
-         */
 
         paint.setColor(
                 black
@@ -4698,10 +3839,6 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        /*
-         * LOGO
-         */
-
         try {
 
             InputStream input =
@@ -4715,9 +3852,7 @@ public class MainActivity extends Activity {
                             input
                     );
 
-            if (
-                    logo != null
-            ) {
+            if (logo != null) {
 
                 RectF logoRect =
                         new RectF(
@@ -4761,12 +3896,12 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setFakeBoldText(
-                false
-        );
-
         paint.setColor(
                 Color.WHITE
+        );
+
+        paint.setFakeBoldText(
+                false
         );
 
         paint.setTextSize(
@@ -4803,19 +3938,8 @@ public class MainActivity extends Activity {
                 Paint.Align.LEFT
         );
 
-        /*
-         * INVOICE INFO
-         */
-
-        float infoTop =
-                185;
-
         paint.setColor(
                 dark
-        );
-
-        paint.setFakeBoldText(
-                true
         );
 
         paint.setTextSize(
@@ -4825,21 +3949,21 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "INVOICE NUMBER",
                 45,
-                infoTop,
+                185,
                 paint
         );
 
         canvas.drawText(
                 "INVOICE DATE",
                 225,
-                infoTop,
+                185,
                 paint
         );
 
         canvas.drawText(
                 "DUE DATE",
                 410,
-                infoTop,
+                185,
                 paint
         );
 
@@ -4860,39 +3984,23 @@ public class MainActivity extends Activity {
                         +
                         invoiceNumber,
                 45,
-                infoTop + 25,
+                210,
                 paint
         );
 
         canvas.drawText(
                 invoiceDate,
                 225,
-                infoTop + 25,
+                210,
                 paint
         );
 
         canvas.drawText(
                 dueDate,
                 410,
-                infoTop + 25,
+                210,
                 paint
         );
-
-        paint.setColor(
-                border
-        );
-
-        canvas.drawRect(
-                35,
-                232,
-                560,
-                234,
-                paint
-        );
-
-        /*
-         * BILL TO
-         */
 
         paint.setColor(
                 dark
@@ -4922,11 +4030,7 @@ public class MainActivity extends Activity {
         );
 
         canvas.drawText(
-                customerName == null
-                        ?
-                        ""
-                        :
-                        customerName,
+                customerName,
                 45,
                 298,
                 paint
@@ -4940,37 +4044,19 @@ public class MainActivity extends Activity {
                 12
         );
 
-        if (
-                customerAddress != null
-                        &&
-                !customerAddress.trim().isEmpty()
-        ) {
+        canvas.drawText(
+                customerAddress,
+                45,
+                320,
+                paint
+        );
 
-            canvas.drawText(
-                    customerAddress.trim(),
-                    45,
-                    320,
-                    paint
-            );
-        }
-
-        if (
-                customerPostcode != null
-                        &&
-                !customerPostcode.trim().isEmpty()
-        ) {
-
-            canvas.drawText(
-                    customerPostcode.trim(),
-                    45,
-                    340,
-                    paint
-            );
-        }
-
-        /*
-         * DESCRIPTION BOX
-         */
+        canvas.drawText(
+                customerPostcode,
+                45,
+                340,
+                paint
+        );
 
         paint.setColor(
                 light
@@ -5018,44 +4104,16 @@ public class MainActivity extends Activity {
                 15
         );
 
-        String cleanDescription =
+        canvas.drawText(
                 description == null
                         ?
                         ""
                         :
-                        description.trim();
-
-        if (
-                cleanDescription.isEmpty()
-        ) {
-
-            cleanDescription =
-                    "Exterior cleaning service";
-        }
-
-        if (
-                cleanDescription.length() > 55
-        ) {
-
-            cleanDescription =
-                    cleanDescription.substring(
-                            0,
-                            55
-                    )
-                            +
-                            "...";
-        }
-
-        canvas.drawText(
-                cleanDescription,
+                        description,
                 55,
                 435,
                 paint
         );
-
-        /*
-         * AMOUNT DUE
-         */
 
         paint.setColor(
                 black
@@ -5112,10 +4170,6 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        /*
-         * PAYMENT DETAILS
-         */
-
         paint.setColor(
                 dark
         );
@@ -5150,137 +4204,12 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        /*
-         * BANK BOX
-         */
-
-        paint.setColor(
-                Color.rgb(
-                        250,
-                        250,
-                        250
-                )
-        );
-
-        RectF bankBox =
-                new RectF(
-                        35,
-                        670,
-                        560,
-                        770
-                );
-
-        canvas.drawRoundRect(
-                bankBox,
-                14,
-                14,
-                paint
-        );
-
-        paint.setStyle(
-                Paint.Style.STROKE
-        );
-
-        paint.setStrokeWidth(
-                1.5f
-        );
-
-        paint.setColor(
-                lime
-        );
-
-        canvas.drawRoundRect(
-                bankBox,
-                14,
-                14,
-                paint
-        );
-
-        paint.setStyle(
-                Paint.Style.FILL
-        );
-
-        paint.setColor(
-                dark
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setTextSize(
-                14
-        );
-
-        canvas.drawText(
-                "BANK TRANSFER",
-                55,
-                700,
-                paint
-        );
-
-        paint.setFakeBoldText(
-                false
-        );
-
-        paint.setTextSize(
-                13
-        );
-
-        canvas.drawText(
-                "Account name: Steven B Attew",
-                55,
-                727,
-                paint
-        );
-
-        canvas.drawText(
-                "Bank: Monzo",
-                55,
-                752,
-                paint
-        );
-
-        canvas.drawText(
-                "Sort code: 04-00-06",
-                330,
-                727,
-                paint
-        );
-
-        canvas.drawText(
-                "Account number: 34121651",
-                330,
-                752,
-                paint
-        );
-
-        /*
-         * FOOTER
-         */
-
-        paint.setColor(
-                border
-        );
-
-        canvas.drawRect(
-                35,
-                792,
-                560,
-                794,
-                paint
-        );
-
         paint.setColor(
                 grey
         );
 
         paint.setTextSize(
                 11
-        );
-
-        paint.setTextAlign(
-                Paint.Align.LEFT
         );
 
         canvas.drawText(
@@ -5328,4 +4257,4 @@ public class MainActivity extends Activity {
 
         return file;
     }
-                }
+            }
