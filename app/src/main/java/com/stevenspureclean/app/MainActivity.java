@@ -798,7 +798,7 @@ public class MainActivity extends Activity {
         );
 
         imageView.setImageBitmap(
-                bitmap
+                            bitmap
         );
 
         AlertDialog dialog =
@@ -824,9 +824,7 @@ public class MainActivity extends Activity {
                             null
                     );
 
-                    if (
-                            !bitmap.isRecycled()
-                    ) {
+                    if (!bitmap.isRecycled()) {
                         bitmap.recycle();
                     }
                 }
@@ -840,6 +838,7 @@ public class MainActivity extends Activity {
      * CAMERA
      * =========================================================
      */
+
     private void startExpenseCamera(
             String expenseId) {
 
@@ -859,24 +858,17 @@ public class MainActivity extends Activity {
                     );
 
             if (!cameraFolder.exists()) {
-
-                if (!cameraFolder.mkdirs()) {
-
-                    Toast.makeText(
-                            this,
-                            "Could not prepare camera storage.",
-                            Toast.LENGTH_LONG
-                    ).show();
-
-                    return;
-                }
+                cameraFolder.mkdirs();
             }
 
             pendingCameraFile =
-                    File.createTempFile(
-                            "receipt_camera_",
-                            ".jpg",
-                            cameraFolder
+                    new File(
+                            cameraFolder,
+                            "receipt_camera_"
+                                    +
+                                    System.currentTimeMillis()
+                                    +
+                                    ".jpg"
                     );
 
             Uri photoUri =
@@ -951,7 +943,6 @@ public class MainActivity extends Activity {
                                 &&
                         pendingCameraFile.exists()
                 ) {
-
                     pendingCameraFile.delete();
                 }
 
@@ -978,7 +969,6 @@ public class MainActivity extends Activity {
                             &&
                     pendingCameraFile.exists()
             ) {
-
                 pendingCameraFile.delete();
             }
 
@@ -1029,6 +1019,83 @@ public class MainActivity extends Activity {
                     "Could not open your photos.",
                     Toast.LENGTH_LONG
             ).show();
+        }
+    }
+
+    private File saveCameraReceipt() {
+
+        if (
+                pendingCameraFile == null
+                        ||
+                !pendingCameraFile.exists()
+                        ||
+                pendingCameraFile.length() <= 0
+        ) {
+
+            Toast.makeText(
+                    this,
+                    "Receipt photo was not saved.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return null;
+        }
+
+        try {
+
+            File destination =
+                    new File(
+                            receiptFolder(),
+                            newReceiptFileName(
+                                    pendingExpenseId
+                            )
+                    );
+
+            if (
+                    !compressReceiptImage(
+                            pendingCameraFile,
+                            destination
+                    )
+            ) {
+
+                copyFile(
+                        pendingCameraFile,
+                        destination
+                );
+            }
+
+            if (
+                    !destination.exists()
+                            ||
+                    destination.length() <= 0
+            ) {
+
+                Toast.makeText(
+                        this,
+                        "Receipt file was not saved correctly.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return null;
+            }
+
+            Toast.makeText(
+                    this,
+                    "Receipt photo saved.",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            return destination;
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not save the receipt photo.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return null;
         }
     }
 
@@ -1153,7 +1220,6 @@ public class MainActivity extends Activity {
                             &&
                     tempFile.exists()
             ) {
-
                 tempFile.delete();
             }
         }
@@ -1165,7 +1231,6 @@ public class MainActivity extends Activity {
 
         Bitmap bitmap = null;
         Bitmap rotated = null;
-        Bitmap scaled = null;
 
         try {
 
@@ -1179,22 +1244,12 @@ public class MainActivity extends Activity {
                     bounds
             );
 
-            if (
-                    bounds.outWidth <= 0
-                            ||
-                    bounds.outHeight <= 0
-            ) {
-                return false;
-            }
-
-            int maxDecodeSize = 2200;
-
             int sample = 1;
 
             while (
-                    bounds.outWidth / sample > maxDecodeSize
+                    bounds.outWidth / sample > 1800
                             ||
-                    bounds.outHeight / sample > maxDecodeSize
+                    bounds.outHeight / sample > 1800
             ) {
 
                 sample *= 2;
@@ -1203,7 +1258,11 @@ public class MainActivity extends Activity {
             BitmapFactory.Options options =
                     new BitmapFactory.Options();
 
-            options.inSampleSize = sample;
+            options.inSampleSize =
+                    Math.max(
+                            1,
+                            sample
+                    );
 
             bitmap =
                     BitmapFactory.decodeFile(
@@ -1215,50 +1274,10 @@ public class MainActivity extends Activity {
                 return false;
             }
 
-            int rotation = 0;
-
-            try {
-
-                ExifInterface exif =
-                        new ExifInterface(
-                                source.getAbsolutePath()
-                        );
-
-                int orientation =
-                        exif.getAttributeInt(
-                                ExifInterface.TAG_ORIENTATION,
-                                ExifInterface.ORIENTATION_NORMAL
-                        );
-
-                if (
-                        orientation
-                                ==
-                        ExifInterface.ORIENTATION_ROTATE_90
-                ) {
-
-                    rotation = 90;
-
-                } else if (
-                        orientation
-                                ==
-                        ExifInterface.ORIENTATION_ROTATE_180
-                ) {
-
-                    rotation = 180;
-
-                } else if (
-                        orientation
-                                ==
-                        ExifInterface.ORIENTATION_ROTATE_270
-                ) {
-
-                    rotation = 270;
-                }
-
-            } catch (Exception ignored) {
-            }
-
-            rotated = bitmap;
+            int rotation =
+                    getPhotoRotation(
+                            source
+                    );
 
             if (rotation != 0) {
 
@@ -1279,55 +1298,11 @@ public class MainActivity extends Activity {
                                 matrix,
                                 true
                         );
-            }
-
-            int width =
-                    rotated.getWidth();
-
-            int height =
-                    rotated.getHeight();
-
-            int maxSide = 1600;
-
-            if (
-                    width > maxSide
-                            ||
-                    height > maxSide
-            ) {
-
-                float scale =
-                        Math.min(
-                                (float) maxSide / width,
-                                (float) maxSide / height
-                        );
-
-                int newWidth =
-                        Math.max(
-                                1,
-                                Math.round(
-                                        width * scale
-                                )
-                        );
-
-                int newHeight =
-                        Math.max(
-                                1,
-                                Math.round(
-                                        height * scale
-                                )
-                        );
-
-                scaled =
-                        Bitmap.createScaledBitmap(
-                                rotated,
-                                newWidth,
-                                newHeight,
-                                true
-                        );
 
             } else {
 
-                scaled = rotated;
+                rotated =
+                        bitmap;
             }
 
             FileOutputStream output =
@@ -1335,43 +1310,20 @@ public class MainActivity extends Activity {
                             destination
                     );
 
-            boolean success =
-                    scaled.compress(
+            boolean result =
+                    rotated.compress(
                             Bitmap.CompressFormat.JPEG,
-                            78,
+                            82,
                             output
                     );
 
             output.flush();
             output.close();
 
-            return success
-                    &&
-                    destination.exists()
-                    &&
-                    destination.length() > 0;
-
-        } catch (Exception e) {
-
-            return false;
-
-        } finally {
-
             if (
-                    scaled != null
-                            &&
-                    scaled != rotated
-                            &&
-                    !scaled.isRecycled()
-            ) {
-
-                scaled.recycle();
-            }
-
-            if (
-                    rotated != null
-                            &&
                     rotated != bitmap
+                            &&
+                    rotated != null
                             &&
                     !rotated.isRecycled()
             ) {
@@ -1387,68 +1339,91 @@ public class MainActivity extends Activity {
 
                 bitmap.recycle();
             }
+
+            return result;
+
+        } catch (Exception e) {
+
+            try {
+
+                if (
+                        rotated != null
+                                &&
+                        rotated != bitmap
+                                &&
+                        !rotated.isRecycled()
+                ) {
+                    rotated.recycle();
+                }
+
+                if (
+                        bitmap != null
+                                &&
+                        !bitmap.isRecycled()
+                ) {
+                    bitmap.recycle();
+                }
+
+            } catch (Exception ignored) {
+            }
+
+            return false;
         }
     }
 
-    private File saveCameraReceipt() {
-
-        if (
-                pendingCameraFile == null
-                        ||
-                !pendingCameraFile.exists()
-                        ||
-                pendingCameraFile.length() <= 0
-        ) {
-
-            return null;
-        }
-
-        File destination =
-                new File(
-                        receiptFolder(),
-                        newReceiptFileName(
-                                pendingExpenseId
-                        )
-                );
+    private int getPhotoRotation(
+            File file) {
 
         try {
 
-            boolean compressed =
-                    compressReceiptImage(
-                            pendingCameraFile,
-                            destination
+            ExifInterface exif =
+                    new ExifInterface(
+                            file.getAbsolutePath()
                     );
 
-            if (!compressed) {
+            int orientation =
+                    exif.getAttributeInt(
+                            ExifInterface.TAG_ORIENTATION,
+                            ExifInterface.ORIENTATION_NORMAL
+                    );
 
-                copyFile(
-                        pendingCameraFile,
-                        destination
-                );
+            if (
+                    orientation
+                            ==
+                    ExifInterface.ORIENTATION_ROTATE_90
+            ) {
+                return 90;
             }
 
             if (
-                    destination.exists()
-                            &&
-                    destination.length() > 0
+                    orientation
+                            ==
+                    ExifInterface.ORIENTATION_ROTATE_180
             ) {
+                return 180;
+            }
 
-                return destination;
+            if (
+                    orientation
+                            ==
+                    ExifInterface.ORIENTATION_ROTATE_270
+            ) {
+                return 270;
             }
 
         } catch (Exception ignored) {
         }
 
-        if (destination.exists()) {
-            destination.delete();
-        }
-
-        return null;
+        return 0;
     }
 
     private void notifyExpenseReceiptSaved(
             String expenseId,
             String fileName) {
+
+        if (webView == null) {
+            return;
+        }
 
         String javascript =
                 "if(typeof expenseReceiptSaved==='function'){"
@@ -1485,7 +1460,472 @@ public class MainActivity extends Activity {
 
     /*
      * =========================================================
-     * FULL BUSINESS BACKUP
+     * PHONE / TEXT
+     * =========================================================
+     */
+
+    private void openDialler(
+            String phone) {
+
+        if (
+                phone == null
+                        ||
+                phone.trim().isEmpty()
+        ) {
+            return;
+        }
+
+        try {
+
+            Intent intent =
+                    new Intent(
+                            Intent.ACTION_DIAL,
+                            Uri.parse(
+                                    "tel:"
+                                            +
+                                            Uri.encode(
+                                                    phone.trim()
+                                            )
+                            )
+                    );
+
+            startActivity(
+                    intent
+            );
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not open the phone.",
+                    Toast.LENGTH_SHORT
+            ).show();
+        }
+    }
+
+    private void openTextMessage(
+            String phone,
+            String message) {
+
+        if (
+                phone == null
+                        ||
+                phone.trim().isEmpty()
+        ) {
+            return;
+        }
+
+        try {
+
+            Intent intent =
+                    new Intent(
+                            Intent.ACTION_SENDTO
+                    );
+
+            intent.setData(
+                    Uri.parse(
+                            "smsto:"
+                                    +
+                                    Uri.encode(
+                                            phone.trim()
+                                    )
+                    )
+            );
+
+            if (
+                    message != null
+                            &&
+                    !message.trim().isEmpty()
+            ) {
+
+                intent.putExtra(
+                        "sms_body",
+                        message
+                );
+            }
+
+            startActivity(
+                    intent
+            );
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not open messages.",
+                    Toast.LENGTH_SHORT
+            ).show();
+        }
+    }
+
+    /*
+     * =========================================================
+     * CSV
+     * =========================================================
+     */
+
+    private void shareCsvFile(
+            String fileName,
+            String csvText) {
+
+        try {
+
+            String safeFileName =
+                    fileName == null
+                            ||
+                    fileName.trim().isEmpty()
+                            ?
+                            "PureClean-Export.csv"
+                            :
+                            fileName.trim();
+
+            if (
+                    !safeFileName
+                            .toLowerCase(
+                                    Locale.UK
+                            )
+                            .endsWith(
+                                    ".csv"
+                            )
+            ) {
+
+                safeFileName +=
+                        ".csv";
+            }
+
+            File folder =
+                    new File(
+                            getCacheDir(),
+                            "exports"
+                    );
+
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+
+            File file =
+                    new File(
+                            folder,
+                            safeFileName
+                    );
+
+            FileOutputStream output =
+                    new FileOutputStream(
+                            file
+                    );
+
+            output.write(
+                    (
+                            csvText == null
+                                    ?
+                                    ""
+                                    :
+                                    csvText
+                    ).getBytes(
+                            "UTF-8"
+                    )
+            );
+
+            output.flush();
+            output.close();
+
+            Uri uri =
+                    FileProvider.getUriForFile(
+                            this,
+                            getPackageName()
+                                    +
+                                    ".fileprovider",
+                            file
+                    );
+
+            Intent intent =
+                    new Intent(
+                            Intent.ACTION_SEND
+                    );
+
+            intent.setType(
+                    "text/csv"
+            );
+
+            intent.putExtra(
+                    Intent.EXTRA_STREAM,
+                    uri
+            );
+
+            intent.setClipData(
+                    ClipData.newRawUri(
+                            "CSV Export",
+                            uri
+                    )
+            );
+
+            intent.addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+            );
+
+            startActivity(
+                    Intent.createChooser(
+                            intent,
+                            "Share CSV"
+                    )
+            );
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not create CSV.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    private void shareExpensePack(
+            String fileName,
+            String csvText,
+            String receiptNamesJson) {
+
+        try {
+
+            File folder =
+                    new File(
+                            getCacheDir(),
+                            "accountant_pack"
+                    );
+
+            deleteFolder(
+                    folder
+            );
+
+            folder.mkdirs();
+
+            String safeFileName =
+                    fileName == null
+                            ||
+                    fileName.trim().isEmpty()
+                            ?
+                            "PureClean-Expenses.csv"
+                            :
+                            fileName.trim();
+
+            if (
+                    !safeFileName
+                            .toLowerCase(
+                                    Locale.UK
+                            )
+                            .endsWith(
+                                    ".csv"
+                            )
+            ) {
+
+                safeFileName +=
+                        ".csv";
+            }
+
+            File csv =
+                    new File(
+                            folder,
+                            safeFileName
+                    );
+
+            FileOutputStream csvOutput =
+                    new FileOutputStream(
+                            csv
+                    );
+
+            csvOutput.write(
+                    (
+                            csvText == null
+                                    ?
+                                    ""
+                                    :
+                                    csvText
+                    ).getBytes(
+                            "UTF-8"
+                    )
+            );
+
+            csvOutput.flush();
+            csvOutput.close();
+
+            File zipFile =
+                    new File(
+                            getCacheDir(),
+                            "PureClean-Accountant-Pack-"
+                                    +
+                                    System.currentTimeMillis()
+                                    +
+                                    ".zip"
+                    );
+
+            ZipOutputStream zip =
+                    new ZipOutputStream(
+                            new FileOutputStream(
+                                    zipFile
+                            )
+                    );
+
+            addFileToZip(
+                    zip,
+                    csv,
+                    csv.getName()
+            );
+
+            JSONArray names;
+
+            try {
+
+                names =
+                        new JSONArray(
+                                receiptNamesJson == null
+                                        ?
+                                        "[]"
+                                        :
+                                        receiptNamesJson
+                        );
+
+            } catch (Exception e) {
+
+                names =
+                        new JSONArray();
+            }
+
+            for (
+                    int i = 0;
+                    i < names.length();
+                    i++
+            ) {
+
+                String receiptName =
+                        names.optString(
+                                i,
+                                ""
+                        );
+
+                if (
+                        receiptName == null
+                                ||
+                        receiptName.trim().isEmpty()
+                ) {
+                    continue;
+                }
+
+                File receipt =
+                        receiptFile(
+                                receiptName
+                        );
+
+                if (
+                        receipt.exists()
+                                &&
+                        receipt.isFile()
+                ) {
+
+                    addFileToZip(
+                            zip,
+                            receipt,
+                            "receipts/"
+                                    +
+                                    receipt.getName()
+                    );
+                }
+            }
+
+            zip.finish();
+            zip.close();
+
+            Uri uri =
+                    FileProvider.getUriForFile(
+                            this,
+                            getPackageName()
+                                    +
+                                    ".fileprovider",
+                            zipFile
+                    );
+
+            Intent shareIntent =
+                    new Intent(
+                            Intent.ACTION_SEND
+                    );
+
+            shareIntent.setType(
+                    "application/zip"
+            );
+
+            shareIntent.putExtra(
+                    Intent.EXTRA_STREAM,
+                    uri
+            );
+
+            shareIntent.setClipData(
+                    ClipData.newRawUri(
+                            "Accountant Pack",
+                            uri
+                    )
+            );
+
+            shareIntent.addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+            );
+
+            startActivity(
+                    Intent.createChooser(
+                            shareIntent,
+                            "Share Accountant Pack"
+                    )
+            );
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not create accountant pack.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    private void addFileToZip(
+            ZipOutputStream zip,
+            File file,
+            String entryName)
+            throws Exception {
+
+        zip.putNextEntry(
+                new ZipEntry(
+                        entryName
+                )
+        );
+
+        FileInputStream input =
+                new FileInputStream(
+                        file
+                );
+
+        byte[] buffer =
+                new byte[8192];
+
+        int length;
+
+        while (
+                (length = input.read(buffer)) > 0
+        ) {
+
+            zip.write(
+                    buffer,
+                    0,
+                    length
+            );
+        }
+
+        input.close();
+
+        zip.closeEntry();
+    }
+
+    /*
+     * =========================================================
+     * FULL BACKUP
      * =========================================================
      */
 
@@ -1603,7 +2043,8 @@ public class MainActivity extends Activity {
                             "Save Backup",
                             (dialog, which) -> {
 
-                                backupJson = json;
+                                backupJson =
+                                        json;
 
                                 openFullBackupSaveScreen();
                             }
@@ -1751,7 +2192,6 @@ public class MainActivity extends Activity {
                                     ||
                             !receipt.isFile()
                     ) {
-
                         continue;
                     }
 
@@ -1865,18 +2305,15 @@ public class MainActivity extends Activity {
                     StringBuilder jsonText =
                             new StringBuilder();
 
-                    byte[] textBuffer =
-                            new byte[8192];
-
                     int length;
 
                     while (
-                            (length = zip.read(textBuffer)) > 0
+                            (length = zip.read(buffer)) > 0
                     ) {
 
                         jsonText.append(
                                 new String(
-                                        textBuffer,
+                                        buffer,
                                         0,
                                         length,
                                         "UTF-8"
@@ -1902,7 +2339,7 @@ public class MainActivity extends Activity {
                                     name
                             ).getName();
 
-                    File receipt =
+                    File destination =
                             new File(
                                     restoreFolder,
                                     safeName
@@ -1910,7 +2347,7 @@ public class MainActivity extends Activity {
 
                     FileOutputStream output =
                             new FileOutputStream(
-                                    receipt
+                                    destination
                             );
 
                     int length;
@@ -1926,6 +2363,7 @@ public class MainActivity extends Activity {
                         );
                     }
 
+                    output.flush();
                     output.close();
                 }
 
@@ -1933,7 +2371,6 @@ public class MainActivity extends Activity {
             }
 
             zip.close();
-            rawInput.close();
 
             if (
                     restoredJson == null
@@ -1943,124 +2380,77 @@ public class MainActivity extends Activity {
 
                 Toast.makeText(
                         this,
-                        "This is not a Pure Clean full backup.",
+                        "This backup does not contain business data.",
                         Toast.LENGTH_LONG
                 ).show();
+
+                deleteFolder(
+                        restoreFolder
+                );
 
                 return;
             }
 
-            final String finalJson =
-                    restoredJson;
-
-            new AlertDialog.Builder(
-                    this
-            )
-                    .setTitle(
-                            "Restore Backup"
-                    )
-                    .setMessage(
-                            "This will replace your current app data.\n\nContinue?"
-                    )
-                    .setNegativeButton(
-                            "Cancel",
-                            null
-                    )
-                    .setPositiveButton(
-                            "Restore",
-                            (dialog, which) -> {
-
-                                performFullRestore(
-                                        finalJson,
-                                        restoreFolder,
-                                        0
-                                );
-                            }
-                    )
-                    .show();
-
-        } catch (Exception e) {
-
-            Toast.makeText(
-                    this,
-                    "Could not read this backup.",
-                    Toast.LENGTH_LONG
-            ).show();
-        }
-    }
-
-    private void performFullRestore(
-            String restoredJson,
-            File restoreFolder,
-            int receiptCount) {
-
-        try {
-
-            File liveReceipts =
+            File receiptFolder =
                     receiptFolder();
 
-            File[] oldFiles =
-                    liveReceipts.listFiles();
-
-            if (oldFiles != null) {
-
-                for (File file : oldFiles) {
-
-                    if (file.isFile()) {
-                        file.delete();
-                    }
-                }
-            }
-
-            File[] restoredFiles =
+            File[] restoredReceipts =
                     restoreFolder.listFiles();
 
-            if (restoredFiles != null) {
+            if (restoredReceipts != null) {
 
-                for (File file : restoredFiles) {
+                for (File restored : restoredReceipts) {
 
-                    if (file.isFile()) {
+                    if (
+                            restored != null
+                                    &&
+                            restored.isFile()
+                    ) {
 
                         copyFile(
-                                file,
+                                restored,
                                 new File(
-                                        liveReceipts,
-                                        file.getName()
+                                        receiptFolder,
+                                        restored.getName()
                                 )
                         );
                     }
                 }
             }
 
+            final String finalRestoredJson =
+                    restoredJson;
+
+            webView.evaluateJavascript(
+                    "restoreBusinessBackup("
+                            +
+                            JSONObject.quote(
+                                    finalRestoredJson
+                            )
+                            +
+                            ");",
+                    null
+            );
+
             deleteFolder(
                     restoreFolder
             );
 
-            String javascript =
-                    "restoreBusinessBackup("
-                            +
-                            JSONObject.quote(
-                                    restoredJson
-                            )
-                            +
-                            ");";
-
-            webView.evaluateJavascript(
-                    javascript,
-                    null
-            );
-
             Toast.makeText(
                     this,
-                    "Restore complete.",
+                    "Full backup restored.",
                     Toast.LENGTH_LONG
             ).show();
 
         } catch (Exception e) {
 
+            deleteFolder(
+                    restoreFolder
+            );
+
             Toast.makeText(
                     this,
-                    "Could not complete restore.",
+                    "Full backup could not be restored.",
                     Toast.LENGTH_LONG
             ).show();
         }
@@ -2068,458 +2458,7 @@ public class MainActivity extends Activity {
 
     /*
      * =========================================================
-     * EXPENSE ACCOUNTANT PACK
-     * =========================================================
-     */
-
-    private void shareExpensePack(
-            String fileName,
-            String csvText,
-            String receiptNamesJson) {
-
-        if (
-                csvText == null
-                        ||
-                csvText.trim().isEmpty()
-        ) {
-
-            Toast.makeText(
-                    this,
-                    "There is no expense data to export.",
-                    Toast.LENGTH_LONG
-            ).show();
-
-            return;
-        }
-
-        try {
-
-            String safeFileName =
-                    fileName;
-
-            if (
-                    safeFileName == null
-                            ||
-                    safeFileName.trim().isEmpty()
-            ) {
-
-                safeFileName =
-                        "PureClean-Expenses.zip";
-            }
-
-            if (
-                    !safeFileName
-                            .toLowerCase()
-                            .endsWith(
-                                    ".zip"
-                            )
-            ) {
-
-                safeFileName += ".zip";
-            }
-
-            File folder =
-                    new File(
-                            getCacheDir(),
-                            "expense_exports"
-                    );
-
-            if (!folder.exists()) {
-                folder.mkdirs();
-            }
-
-            File zipFile =
-                    new File(
-                            folder,
-                            safeFileName
-                    );
-
-            ZipOutputStream zip =
-                    new ZipOutputStream(
-                            new FileOutputStream(
-                                    zipFile
-                            )
-                    );
-
-            zip.putNextEntry(
-                    new ZipEntry(
-                            "expenses.csv"
-                    )
-            );
-
-            zip.write(
-                    csvText.getBytes(
-                            "UTF-8"
-                    )
-            );
-
-            zip.closeEntry();
-
-            JSONArray receiptNames;
-
-            try {
-
-                receiptNames =
-                        new JSONArray(
-                                receiptNamesJson == null
-                                        ?
-                                        "[]"
-                                        :
-                                        receiptNamesJson
-                        );
-
-            } catch (Exception e) {
-
-                receiptNames =
-                        new JSONArray();
-            }
-
-            byte[] buffer =
-                    new byte[8192];
-
-            for (
-                    int i = 0;
-                    i < receiptNames.length();
-                    i++
-            ) {
-
-                String name =
-                        receiptNames.optString(
-                                i,
-                                ""
-                        );
-
-                File receipt =
-                        receiptFile(
-                                name
-                        );
-
-                if (
-                        !receipt.exists()
-                                ||
-                        !receipt.isFile()
-                ) {
-
-                    continue;
-                }
-
-                zip.putNextEntry(
-                        new ZipEntry(
-                                "receipts/"
-                                        +
-                                        receipt.getName()
-                        )
-                );
-
-                FileInputStream input =
-                        new FileInputStream(
-                                receipt
-                        );
-
-                int length;
-
-                while (
-                        (length = input.read(buffer)) > 0
-                ) {
-
-                    zip.write(
-                            buffer,
-                            0,
-                            length
-                    );
-                }
-
-                input.close();
-                zip.closeEntry();
-            }
-
-            zip.finish();
-            zip.close();
-
-            Uri zipUri =
-                    FileProvider.getUriForFile(
-                            this,
-                            getPackageName()
-                                    +
-                                    ".fileprovider",
-                            zipFile
-                    );
-
-            Intent shareIntent =
-                    new Intent(
-                            Intent.ACTION_SEND
-                    );
-
-            shareIntent.setType(
-                    "application/zip"
-            );
-
-            shareIntent.putExtra(
-                    Intent.EXTRA_STREAM,
-                    zipUri
-            );
-
-            shareIntent.putExtra(
-                    Intent.EXTRA_SUBJECT,
-                    "Pure Clean Expenses"
-            );
-
-            shareIntent.putExtra(
-                    Intent.EXTRA_TEXT,
-                    "Expense export and receipt photos attached."
-            );
-
-            shareIntent.setClipData(
-                    ClipData.newRawUri(
-                            "Expense Export",
-                            zipUri
-                    )
-            );
-
-            shareIntent.addFlags(
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-            );
-
-            startActivity(
-                    Intent.createChooser(
-                            shareIntent,
-                            "Share Expenses"
-                    )
-            );
-
-        } catch (Exception e) {
-
-            Toast.makeText(
-                    this,
-                    "Could not create expense accountant pack.",
-                    Toast.LENGTH_LONG
-            ).show();
-        }
-    }
-
-    /*
-     * =========================================================
-     * PHONE / TEXT
-     * =========================================================
-     */
-
-    private void openDialler(
-            String phone) {
-
-        if (
-                phone == null
-                        ||
-                phone.trim().isEmpty()
-        ) {
-
-            Toast.makeText(
-                    this,
-                    "No phone number saved.",
-                    Toast.LENGTH_LONG
-            ).show();
-
-            return;
-        }
-
-        try {
-
-            Intent intent =
-                    new Intent(
-                            Intent.ACTION_DIAL
-                    );
-
-            intent.setData(
-                    Uri.parse(
-                            "tel:"
-                                    +
-                                    phone.trim()
-                    )
-            );
-
-            startActivity(
-                    intent
-            );
-
-        } catch (Exception e) {
-
-            Toast.makeText(
-                    this,
-                    "Could not open phone.",
-                    Toast.LENGTH_LONG
-            ).show();
-        }
-    }
-
-    private void openTextMessage(
-            String phone,
-            String message) {
-
-        if (
-                phone == null
-                        ||
-                phone.trim().isEmpty()
-        ) {
-
-            Toast.makeText(
-                    this,
-                    "No phone number saved.",
-                    Toast.LENGTH_LONG
-            ).show();
-
-            return;
-        }
-
-        try {
-
-            Intent intent =
-                    new Intent(
-                            Intent.ACTION_SENDTO
-                    );
-
-            intent.setData(
-                    Uri.parse(
-                            "smsto:"
-                                    +
-                                    phone.trim()
-                    )
-            );
-
-            if (
-                    message != null
-                            &&
-                    !message.trim().isEmpty()
-            ) {
-
-                intent.putExtra(
-                        "sms_body",
-                        message
-                );
-            }
-
-            startActivity(
-                    intent
-            );
-
-        } catch (Exception e) {
-
-            Toast.makeText(
-                    this,
-                    "Could not open messages.",
-                    Toast.LENGTH_LONG
-            ).show();
-        }
-    }
-
-    /*
-     * =========================================================
-     * CSV
-     * =========================================================
-     */
-
-    private void shareCsvFile(
-            String fileName,
-            String csvText) {
-
-        if (
-                csvText == null
-                        ||
-                csvText.trim().isEmpty()
-        ) {
-            return;
-        }
-
-        try {
-
-            String safeFileName =
-                    fileName;
-
-            if (
-                    safeFileName == null
-                            ||
-                    safeFileName.trim().isEmpty()
-            ) {
-
-                safeFileName =
-                        "PureClean-Accountant.csv";
-            }
-
-            File folder =
-                    new File(
-                            getCacheDir(),
-                            "exports"
-                    );
-
-            if (!folder.exists()) {
-                folder.mkdirs();
-            }
-
-            File csvFile =
-                    new File(
-                            folder,
-                            safeFileName
-                    );
-
-            FileOutputStream output =
-                    new FileOutputStream(
-                            csvFile
-                    );
-
-            output.write(
-                    csvText.getBytes(
-                            "UTF-8"
-                    )
-            );
-
-            output.flush();
-            output.close();
-
-            Uri csvUri =
-                    FileProvider.getUriForFile(
-                            this,
-                            getPackageName()
-                                    +
-                                    ".fileprovider",
-                            csvFile
-                    );
-
-            Intent shareIntent =
-                    new Intent(
-                            Intent.ACTION_SEND
-                    );
-
-            shareIntent.setType(
-                    "text/csv"
-            );
-
-            shareIntent.putExtra(
-                    Intent.EXTRA_STREAM,
-                    csvUri
-            );
-
-            shareIntent.addFlags(
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-            );
-
-            startActivity(
-                    Intent.createChooser(
-                            shareIntent,
-                            "Share Accountant CSV"
-                    )
-            );
-
-        } catch (Exception e) {
-
-            Toast.makeText(
-                    this,
-                    "Could not create accountant CSV.",
-                    Toast.LENGTH_LONG
-            ).show();
-        }
-    }
-
-    /*
-     * =========================================================
-     * BACKUP
+     * NORMAL BACKUP
      * =========================================================
      */
 
@@ -2531,11 +2470,11 @@ public class MainActivity extends Activity {
                         ||
                 json.trim().isEmpty()
         ) {
-
             return;
         }
 
-        backupJson = json;
+        backupJson =
+                json;
 
         String stamp =
                 new SimpleDateFormat(
@@ -2680,7 +2619,6 @@ public class MainActivity extends Activity {
                         ||
                 data.getData() == null
         ) {
-
             return;
         }
 
@@ -2760,6 +2698,10 @@ public class MainActivity extends Activity {
                             .openInputStream(
                                     uri
                             );
+
+            if (input == null) {
+                return;
+            }
 
             BufferedReader reader =
                     new BufferedReader(
@@ -2851,7 +2793,6 @@ public class MainActivity extends Activity {
                         ||
                 !folder.exists()
         ) {
-
             return;
         }
 
@@ -2974,6 +2915,18 @@ public class MainActivity extends Activity {
                             " - Steven's Pure Clean Exteriors"
             );
 
+            String cleanAmount =
+                    amount == null
+                            ?
+                            "0.00"
+                            :
+                            amount
+                                    .replace(
+                                            "£",
+                                            ""
+                                    )
+                                    .trim();
+
             intent.putExtra(
                     Intent.EXTRA_TEXT,
                     "Hi "
@@ -2988,7 +2941,7 @@ public class MainActivity extends Activity {
                             +
                             "\n\nQuote total: £"
                             +
-                            amount
+                            cleanAmount
                             +
                             "\n\nIf you would like to go ahead, please get in touch."
                             +
@@ -3068,12 +3021,43 @@ public class MainActivity extends Activity {
             folder.mkdirs();
         }
 
+        /*
+         * Remove previous temporary quote PDFs.
+         * This stops Samsung/Gmail/PDF viewers displaying an old
+         * attachment when a quote number has been reused or edited.
+         */
+        File[] oldQuoteFiles =
+                folder.listFiles();
+
+        if (oldQuoteFiles != null) {
+
+            for (File oldFile : oldQuoteFiles) {
+
+                if (
+                        oldFile != null
+                                &&
+                        oldFile.isFile()
+                ) {
+
+                    oldFile.delete();
+                }
+            }
+        }
+
+        /*
+         * IMPORTANT FIX:
+         * Each generated quote now has a unique physical filename.
+         */
         File file =
                 new File(
                         folder,
                         "PureClean-Quote-Q"
                                 +
                                 quoteNumber
+                                +
+                                "-"
+                                +
+                                System.currentTimeMillis()
                                 +
                                 ".pdf"
                 );
@@ -3147,10 +3131,6 @@ public class MainActivity extends Activity {
                 Color.WHITE
         );
 
-        /*
-         * HEADER
-         */
-
         paint.setColor(
                 black
         );
@@ -3174,10 +3154,6 @@ public class MainActivity extends Activity {
                 155,
                 paint
         );
-
-        /*
-         * LOGO
-         */
 
         try {
 
@@ -3278,11 +3254,8 @@ public class MainActivity extends Activity {
                 Paint.Align.LEFT
         );
 
-        /*
-         * QUOTE INFORMATION
-         */
-
-        float infoTop = 185;
+        float infoTop =
+                185;
 
         paint.setColor(
                 dark
@@ -3368,10 +3341,6 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        /*
-         * QUOTE FOR
-         */
-
         paint.setColor(
                 dark
         );
@@ -3445,10 +3414,6 @@ public class MainActivity extends Activity {
                     paint
             );
         }
-
-        /*
-         * SERVICES
-         */
 
         paint.setColor(
                 light
@@ -3525,7 +3490,8 @@ public class MainActivity extends Activity {
                                 "\\n"
                         );
 
-        float lineY = 432;
+        float lineY =
+                432;
 
         for (String line : lines) {
 
@@ -3534,40 +3500,47 @@ public class MainActivity extends Activity {
                             ||
                     line.trim().isEmpty()
             ) {
-
                 continue;
             }
 
-            String service =
+            String cleanLine =
                     line.trim();
 
-            String price = "";
+            String service =
+                    cleanLine;
 
+            String price =
+                    "";
+
+            /*
+             * Accepts BOTH:
+             * Window Cleaning - £25.00
+             * and
+             * Window Cleaning - 25.00
+             */
             int split =
-                    service.lastIndexOf(
-                            " - £"
+                    cleanLine.lastIndexOf(
+                            " - "
                     );
 
             if (split >= 0) {
 
-                price =
-                        service.substring(
-                                split + 3
-                        ).trim();
-
                 service =
-                        service.substring(
+                        cleanLine.substring(
                                 0,
                                 split
+                        ).trim();
+
+                price =
+                        cleanLine.substring(
+                                split + 3
                         ).trim();
             }
 
             /*
-             * IMPORTANT:
-             * Remove every existing pound sign first.
-             * Then the PDF adds exactly one.
+             * Remove any existing pound signs.
+             * PDF adds exactly one below.
              */
-
             price =
                     price.replace(
                             "£",
@@ -3609,16 +3582,13 @@ public class MainActivity extends Activity {
                 );
             }
 
-            lineY += 27;
+            lineY +=
+                    27;
 
             if (lineY > 530) {
                 break;
             }
         }
-
-        /*
-         * TOTAL
-         */
 
         String cleanAmount =
                 amount == null
@@ -3685,10 +3655,6 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        /*
-         * NOTES
-         */
-
         paint.setColor(
                 dark
         );
@@ -3752,10 +3718,6 @@ public class MainActivity extends Activity {
                 735,
                 paint
         );
-
-        /*
-         * FOOTER
-         */
 
         paint.setColor(
                 border
@@ -3845,6 +3807,13 @@ public class MainActivity extends Activity {
             String description) {
 
         if (!validEmail(email)) {
+
+            Toast.makeText(
+                    this,
+                    "The invoice email address is not valid.",
+                    Toast.LENGTH_LONG
+            ).show();
+
             return;
         }
 
@@ -3896,6 +3865,18 @@ public class MainActivity extends Activity {
                             " - Steven's Pure Clean Exteriors"
             );
 
+            String cleanAmount =
+                    amount == null
+                            ?
+                            "0.00"
+                            :
+                            amount
+                                    .replace(
+                                            "£",
+                                            ""
+                                    )
+                                    .trim();
+
             intent.putExtra(
                     Intent.EXTRA_TEXT,
                     "Hi "
@@ -3906,15 +3887,21 @@ public class MainActivity extends Activity {
                             +
                             invoiceNumber
                             +
-                            " for £"
+                            " from Steven's Pure Clean Exteriors."
                             +
-                            amount
+                            "\n\nAmount due: £"
                             +
-                            ".\n\nPlease make payment within 7 days."
+                            cleanAmount
                             +
-                            "\n\nThank you for your custom."
+                            "\nDue date: "
                             +
-                            "\n\nSteven's Pure Clean Exteriors"
+                            dueDate
+                            +
+                            "\n\nPlease make payment within 7 days."
+                            +
+                            "\n\nMany thanks,\nSteven"
+                            +
+                            "\nSteven's Pure Clean Exteriors"
             );
 
             intent.putExtra(
@@ -4006,6 +3993,10 @@ public class MainActivity extends Activity {
                         ".\n\nAmount due: £"
                         +
                         amount
+                                .replace(
+                                        "£",
+                                        ""
+                                )
                         +
                         "\nDue date: "
                         +
@@ -4015,31 +4006,42 @@ public class MainActivity extends Activity {
                         +
                         "Steven's Pure Clean Exteriors";
 
-        Intent intent =
-                new Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse(
-                                "mailto:"
-                                        +
-                                        email.trim()
-                                        +
-                                        "?subject="
-                                        +
-                                        Uri.encode(
-                                                subject
-                                        )
-                                        +
-                                        "&body="
-                                        +
-                                        Uri.encode(
-                                                message
-                                        )
-                        )
-                );
+        try {
 
-        startActivity(
-                intent
-        );
+            Intent intent =
+                    new Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse(
+                                    "mailto:"
+                                            +
+                                            email.trim()
+                                            +
+                                            "?subject="
+                                            +
+                                            Uri.encode(
+                                                    subject
+                                            )
+                                            +
+                                            "&body="
+                                            +
+                                            Uri.encode(
+                                                    message
+                                            )
+                            )
+                    );
+
+            startActivity(
+                    intent
+            );
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not open email.",
+                    Toast.LENGTH_SHORT
+            ).show();
+        }
     }
 
     /*
@@ -4075,6 +4077,10 @@ public class MainActivity extends Activity {
                         "PureClean-Invoice-"
                                 +
                                 invoiceNumber
+                                +
+                                "-"
+                                +
+                                System.currentTimeMillis()
                                 +
                                 ".pdf"
                 );
@@ -4253,7 +4259,7 @@ public class MainActivity extends Activity {
         );
 
         paint.setTextSize(
-                31
+                30
         );
 
         paint.setTextAlign(
@@ -4271,14 +4277,8 @@ public class MainActivity extends Activity {
                 Paint.Align.LEFT
         );
 
-        float infoTop = 185;
-
         paint.setColor(
                 dark
-        );
-
-        paint.setFakeBoldText(
-                true
         );
 
         paint.setTextSize(
@@ -4288,21 +4288,21 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "INVOICE NUMBER",
                 45,
-                infoTop,
+                185,
                 paint
         );
 
         canvas.drawText(
                 "INVOICE DATE",
-                225,
-                infoTop,
+                220,
+                185,
                 paint
         );
 
         canvas.drawText(
                 "DUE DATE",
-                410,
-                infoTop,
+                400,
+                185,
                 paint
         );
 
@@ -4319,25 +4319,35 @@ public class MainActivity extends Activity {
         );
 
         canvas.drawText(
-                "#"
-                        +
+                invoiceNumber == null
+                        ?
+                        ""
+                        :
                         invoiceNumber,
                 45,
-                infoTop + 25,
+                210,
                 paint
         );
 
         canvas.drawText(
-                invoiceDate,
-                225,
-                infoTop + 25,
+                invoiceDate == null
+                        ?
+                        ""
+                        :
+                        invoiceDate,
+                220,
+                210,
                 paint
         );
 
         canvas.drawText(
-                dueDate,
-                410,
-                infoTop + 25,
+                dueDate == null
+                        ?
+                        ""
+                        :
+                        dueDate,
+                400,
+                210,
                 paint
         );
 
@@ -4366,7 +4376,7 @@ public class MainActivity extends Activity {
         );
 
         canvas.drawText(
-                "BILL TO",
+                "INVOICE TO",
                 45,
                 270,
                 paint
@@ -4431,16 +4441,16 @@ public class MainActivity extends Activity {
                 light
         );
 
-        RectF descriptionBox =
+        RectF serviceBox =
                 new RectF(
                         35,
                         370,
                         560,
-                        470
+                        525
                 );
 
         canvas.drawRoundRect(
-                descriptionBox,
+                serviceBox,
                 14,
                 14,
                 paint
@@ -4461,7 +4471,7 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "DESCRIPTION",
                 55,
-                402,
+                405,
                 paint
         );
 
@@ -4469,42 +4479,40 @@ public class MainActivity extends Activity {
                 false
         );
 
-        paint.setTextSize(
-                15
-        );
-
         String cleanDescription =
                 description == null
+                        ||
+                description.trim().isEmpty()
                         ?
-                        ""
+                        "Exterior cleaning service"
                         :
                         description.trim();
 
-        if (cleanDescription.isEmpty()) {
-
-            cleanDescription =
-                    "Exterior cleaning service";
-        }
-
-        if (cleanDescription.length() > 55) {
+        if (
+                cleanDescription.length() > 90
+        ) {
 
             cleanDescription =
                     cleanDescription.substring(
                             0,
-                            55
+                            90
                     )
                             +
                             "...";
         }
 
+        paint.setTextSize(
+                13
+        );
+
         canvas.drawText(
                 cleanDescription,
                 55,
-                435,
+                445,
                 paint
         );
 
-        String cleanInvoiceAmount =
+        String cleanAmount =
                 amount == null
                         ?
                         "0.00"
@@ -4521,9 +4529,9 @@ public class MainActivity extends Activity {
         RectF amountBox =
                 new RectF(
                         315,
-                        495,
+                        565,
                         560,
-                        585
+                        655
                 );
 
         canvas.drawRoundRect(
@@ -4548,7 +4556,7 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "AMOUNT DUE",
                 338,
-                525,
+                595,
                 paint
         );
 
@@ -4563,90 +4571,10 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "£"
                         +
-                        cleanInvoiceAmount,
+                        cleanAmount,
                 338,
-                565,
+                635,
                 paint
-        );
-
-        paint.setColor(
-                dark
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setTextSize(
-                15
-        );
-
-        canvas.drawText(
-                "PAYMENT DETAILS",
-                45,
-                620,
-                paint
-        );
-
-        paint.setFakeBoldText(
-                false
-        );
-
-        paint.setTextSize(
-                13
-        );
-
-        canvas.drawText(
-                "Please make payment within 7 days.",
-                45,
-                645,
-                paint
-        );
-
-        paint.setColor(
-                Color.rgb(
-                        250,
-                        250,
-                        250
-                )
-        );
-
-        RectF bankBox =
-                new RectF(
-                        35,
-                        670,
-                        560,
-                        770
-                );
-
-        canvas.drawRoundRect(
-                bankBox,
-                14,
-                14,
-                paint
-        );
-
-        paint.setStyle(
-                Paint.Style.STROKE
-        );
-
-        paint.setStrokeWidth(
-                1.5f
-        );
-
-        paint.setColor(
-                lime
-        );
-
-        canvas.drawRoundRect(
-                bankBox,
-                14,
-                14,
-                paint
-        );
-
-        paint.setStyle(
-                Paint.Style.FILL
         );
 
         paint.setColor(
@@ -4662,9 +4590,9 @@ public class MainActivity extends Activity {
         );
 
         canvas.drawText(
-                "BANK TRANSFER",
-                55,
-                700,
+                "PAYMENT TERMS",
+                45,
+                705,
                 paint
         );
 
@@ -4672,35 +4600,18 @@ public class MainActivity extends Activity {
                 false
         );
 
+        paint.setColor(
+                grey
+        );
+
         paint.setTextSize(
-                13
+                12
         );
 
         canvas.drawText(
-                "Account name: Steven B Attew",
-                55,
-                727,
-                paint
-        );
-
-        canvas.drawText(
-                "Bank: Monzo",
-                55,
-                752,
-                paint
-        );
-
-        canvas.drawText(
-                "Sort code: 04-00-06",
-                330,
-                727,
-                paint
-        );
-
-        canvas.drawText(
-                "Account number: 34121651",
-                330,
-                752,
+                "Please make payment within 7 days.",
+                45,
+                732,
                 paint
         );
 
@@ -4729,7 +4640,7 @@ public class MainActivity extends Activity {
         );
 
         canvas.drawText(
-                "Thank you for your custom.",
+                "Thank you for your business.",
                 35,
                 818,
                 paint
@@ -4773,4 +4684,4 @@ public class MainActivity extends Activity {
 
         return file;
     }
-            }
+                    }
