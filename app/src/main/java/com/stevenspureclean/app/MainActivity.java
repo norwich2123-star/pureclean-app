@@ -331,12 +331,6 @@ public class MainActivity extends Activity {
             );
         }
 
-        /*
-         * =====================================================
-         * QUOTE EMAIL
-         * =====================================================
-         */
-
         @JavascriptInterface
         public void emailQuoteWithAddress(
                 String email,
@@ -576,12 +570,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    /*
-     * =========================================================
-     * EXPENSE RECEIPT STORAGE
-     * =========================================================
-     */
-
     private File receiptFolder() {
 
         File folder =
@@ -634,7 +622,6 @@ public class MainActivity extends Activity {
                             &&
                     file.isFile()
             ) {
-
                 count++;
             }
         }
@@ -655,12 +642,8 @@ public class MainActivity extends Activity {
                         "_"
                 );
 
-        if (
-                clean.trim().isEmpty()
-        ) {
-
-            clean =
-                    "expense";
+        if (clean.trim().isEmpty()) {
+            clean = "expense";
         }
 
         return clean;
@@ -692,7 +675,6 @@ public class MainActivity extends Activity {
                         "appreceipt://receipt/"
                 )
         ) {
-
             return null;
         }
 
@@ -706,10 +688,7 @@ public class MainActivity extends Activity {
             String name =
                     uri.getLastPathSegment();
 
-            if (
-                    name == null
-            ) {
-
+            if (name == null) {
                 return null;
             }
 
@@ -728,7 +707,6 @@ public class MainActivity extends Activity {
                             ||
                     !file.isFile()
             ) {
-
                 return null;
             }
 
@@ -748,12 +726,6 @@ public class MainActivity extends Activity {
             return null;
         }
     }
-
-    /*
-     * =========================================================
-     * BUILT-IN RECEIPT VIEWER
-     * =========================================================
-     */
 
     private void showReceiptInApp(
             String fileName) {
@@ -785,9 +757,7 @@ public class MainActivity extends Activity {
                         file.getAbsolutePath()
                 );
 
-        if (
-                bitmap == null
-        ) {
+        if (bitmap == null) {
 
             Toast.makeText(
                     this,
@@ -857,7 +827,6 @@ public class MainActivity extends Activity {
                     if (
                             !bitmap.isRecycled()
                     ) {
-
                         bitmap.recycle();
                     }
                 }
@@ -982,6 +951,7 @@ public class MainActivity extends Activity {
                                 &&
                         pendingCameraFile.exists()
                 ) {
+
                     pendingCameraFile.delete();
                 }
 
@@ -1008,6 +978,7 @@ public class MainActivity extends Activity {
                             &&
                     pendingCameraFile.exists()
             ) {
+
                 pendingCameraFile.delete();
             }
 
@@ -1182,6 +1153,7 @@ public class MainActivity extends Activity {
                             &&
                     tempFile.exists()
             ) {
+
                 tempFile.delete();
             }
         }
@@ -1224,6 +1196,7 @@ public class MainActivity extends Activity {
                             ||
                     bounds.outHeight / sample > maxDecodeSize
             ) {
+
                 sample *= 2;
             }
 
@@ -1262,6 +1235,7 @@ public class MainActivity extends Activity {
                                 ==
                         ExifInterface.ORIENTATION_ROTATE_90
                 ) {
+
                     rotation = 90;
 
                 } else if (
@@ -1269,6 +1243,7 @@ public class MainActivity extends Activity {
                                 ==
                         ExifInterface.ORIENTATION_ROTATE_180
                 ) {
+
                     rotation = 180;
 
                 } else if (
@@ -1276,6 +1251,7 @@ public class MainActivity extends Activity {
                                 ==
                         ExifInterface.ORIENTATION_ROTATE_270
                 ) {
+
                     rotation = 270;
                 }
 
@@ -1388,6 +1364,7 @@ public class MainActivity extends Activity {
                             &&
                     !scaled.isRecycled()
             ) {
+
                 scaled.recycle();
             }
 
@@ -1398,6 +1375,7 @@ public class MainActivity extends Activity {
                             &&
                     !rotated.isRecycled()
             ) {
+
                 rotated.recycle();
             }
 
@@ -1406,6 +1384,7 @@ public class MainActivity extends Activity {
                             &&
                     !bitmap.isRecycled()
             ) {
+
                 bitmap.recycle();
             }
         }
@@ -1420,6 +1399,7 @@ public class MainActivity extends Activity {
                         ||
                 pendingCameraFile.length() <= 0
         ) {
+
             return null;
         }
 
@@ -1452,6 +1432,7 @@ public class MainActivity extends Activity {
                             &&
                     destination.length() > 0
             ) {
+
                 return destination;
             }
 
@@ -1504,7 +1485,7 @@ public class MainActivity extends Activity {
 
     /*
      * =========================================================
-     * FULL BUSINESS BACKUP WITH PHOTOS
+     * FULL BUSINESS BACKUP
      * =========================================================
      */
 
@@ -1770,6 +1751,7 @@ public class MainActivity extends Activity {
                                     ||
                             !receipt.isFile()
                     ) {
+
                         continue;
                     }
 
@@ -2086,7 +2068,7 @@ public class MainActivity extends Activity {
 
     /*
      * =========================================================
-     * EXPENSE ACCOUNTANT ZIP
+     * EXPENSE ACCOUNTANT PACK
      * =========================================================
      */
 
@@ -2100,6 +2082,13 @@ public class MainActivity extends Activity {
                         ||
                 csvText.trim().isEmpty()
         ) {
+
+            Toast.makeText(
+                    this,
+                    "There is no expense data to export.",
+                    Toast.LENGTH_LONG
+            ).show();
+
             return;
         }
 
@@ -2116,6 +2105,17 @@ public class MainActivity extends Activity {
 
                 safeFileName =
                         "PureClean-Expenses.zip";
+            }
+
+            if (
+                    !safeFileName
+                            .toLowerCase()
+                            .endsWith(
+                                    ".zip"
+                            )
+            ) {
+
+                safeFileName += ".zip";
             }
 
             File folder =
@@ -2155,14 +2155,24 @@ public class MainActivity extends Activity {
 
             zip.closeEntry();
 
-            JSONArray receiptNames =
-                    new JSONArray(
-                            receiptNamesJson == null
-                                    ?
-                                    "[]"
-                                    :
-                                    receiptNamesJson
-                    );
+            JSONArray receiptNames;
+
+            try {
+
+                receiptNames =
+                        new JSONArray(
+                                receiptNamesJson == null
+                                        ?
+                                        "[]"
+                                        :
+                                        receiptNamesJson
+                        );
+
+            } catch (Exception e) {
+
+                receiptNames =
+                        new JSONArray();
+            }
 
             byte[] buffer =
                     new byte[8192];
@@ -2173,15 +2183,23 @@ public class MainActivity extends Activity {
                     i++
             ) {
 
-                File receipt =
-                        receiptFile(
-                                receiptNames.optString(
-                                        i,
-                                        ""
-                                )
+                String name =
+                        receiptNames.optString(
+                                i,
+                                ""
                         );
 
-                if (!receipt.exists()) {
+                File receipt =
+                        receiptFile(
+                                name
+                        );
+
+                if (
+                        !receipt.exists()
+                                ||
+                        !receipt.isFile()
+                ) {
+
                     continue;
                 }
 
@@ -2212,7 +2230,6 @@ public class MainActivity extends Activity {
                 }
 
                 input.close();
-
                 zip.closeEntry();
             }
 
@@ -2242,6 +2259,23 @@ public class MainActivity extends Activity {
                     zipUri
             );
 
+            shareIntent.putExtra(
+                    Intent.EXTRA_SUBJECT,
+                    "Pure Clean Expenses"
+            );
+
+            shareIntent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    "Expense export and receipt photos attached."
+            );
+
+            shareIntent.setClipData(
+                    ClipData.newRawUri(
+                            "Expense Export",
+                            zipUri
+                    )
+            );
+
             shareIntent.addFlags(
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
             );
@@ -2263,6 +2297,12 @@ public class MainActivity extends Activity {
         }
     }
 
+    /*
+     * =========================================================
+     * PHONE / TEXT
+     * =========================================================
+     */
+
     private void openDialler(
             String phone) {
 
@@ -2271,22 +2311,43 @@ public class MainActivity extends Activity {
                         ||
                 phone.trim().isEmpty()
         ) {
+
+            Toast.makeText(
+                    this,
+                    "No phone number saved.",
+                    Toast.LENGTH_LONG
+            ).show();
+
             return;
         }
 
-        Intent intent =
-                new Intent(
-                        Intent.ACTION_DIAL,
-                        Uri.parse(
-                                "tel:"
-                                        +
-                                        phone.trim()
-                        )
-                );
+        try {
 
-        startActivity(
-                intent
-        );
+            Intent intent =
+                    new Intent(
+                            Intent.ACTION_DIAL
+                    );
+
+            intent.setData(
+                    Uri.parse(
+                            "tel:"
+                                    +
+                                    phone.trim()
+                    )
+            );
+
+            startActivity(
+                    intent
+            );
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not open phone.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
     }
 
     private void openTextMessage(
@@ -2298,44 +2359,89 @@ public class MainActivity extends Activity {
                         ||
                 phone.trim().isEmpty()
         ) {
+
+            Toast.makeText(
+                    this,
+                    "No phone number saved.",
+                    Toast.LENGTH_LONG
+            ).show();
+
             return;
         }
 
-        Intent intent =
-                new Intent(
-                        Intent.ACTION_SENDTO
-                );
+        try {
 
-        intent.setData(
-                Uri.parse(
-                        "smsto:"
-                                +
-                                phone.trim()
-                )
-        );
+            Intent intent =
+                    new Intent(
+                            Intent.ACTION_SENDTO
+                    );
 
-        if (
-                message != null
-                        &&
-                !message.trim().isEmpty()
-        ) {
-
-            intent.putExtra(
-                    "sms_body",
-                    message
+            intent.setData(
+                    Uri.parse(
+                            "smsto:"
+                                    +
+                                    phone.trim()
+                    )
             );
-        }
 
-        startActivity(
-                intent
-        );
+            if (
+                    message != null
+                            &&
+                    !message.trim().isEmpty()
+            ) {
+
+                intent.putExtra(
+                        "sms_body",
+                        message
+                );
+            }
+
+            startActivity(
+                    intent
+            );
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not open messages.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
     }
+
+    /*
+     * =========================================================
+     * CSV
+     * =========================================================
+     */
 
     private void shareCsvFile(
             String fileName,
             String csvText) {
 
+        if (
+                csvText == null
+                        ||
+                csvText.trim().isEmpty()
+        ) {
+            return;
+        }
+
         try {
+
+            String safeFileName =
+                    fileName;
+
+            if (
+                    safeFileName == null
+                            ||
+                    safeFileName.trim().isEmpty()
+            ) {
+
+                safeFileName =
+                        "PureClean-Accountant.csv";
+            }
 
             File folder =
                     new File(
@@ -2350,7 +2456,7 @@ public class MainActivity extends Activity {
             File csvFile =
                     new File(
                             folder,
-                            fileName
+                            safeFileName
                     );
 
             FileOutputStream output =
@@ -2364,9 +2470,10 @@ public class MainActivity extends Activity {
                     )
             );
 
+            output.flush();
             output.close();
 
-            Uri uri =
+            Uri csvUri =
                     FileProvider.getUriForFile(
                             this,
                             getPackageName()
@@ -2375,28 +2482,28 @@ public class MainActivity extends Activity {
                             csvFile
                     );
 
-            Intent share =
+            Intent shareIntent =
                     new Intent(
                             Intent.ACTION_SEND
                     );
 
-            share.setType(
+            shareIntent.setType(
                     "text/csv"
             );
 
-            share.putExtra(
+            shareIntent.putExtra(
                     Intent.EXTRA_STREAM,
-                    uri
+                    csvUri
             );
 
-            share.addFlags(
+            shareIntent.addFlags(
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
             );
 
             startActivity(
                     Intent.createChooser(
-                            share,
-                            "Share CSV"
+                            shareIntent,
+                            "Share Accountant CSV"
                     )
             );
 
@@ -2404,16 +2511,39 @@ public class MainActivity extends Activity {
 
             Toast.makeText(
                     this,
-                    "Could not create CSV.",
+                    "Could not create accountant CSV.",
                     Toast.LENGTH_LONG
             ).show();
         }
     }
 
+    /*
+     * =========================================================
+     * BACKUP
+     * =========================================================
+     */
+
     private void startBackup(
             String json) {
 
+        if (
+                json == null
+                        ||
+                json.trim().isEmpty()
+        ) {
+
+            return;
+        }
+
         backupJson = json;
+
+        String stamp =
+                new SimpleDateFormat(
+                        "yyyy-MM-dd-HHmmss",
+                        Locale.UK
+                ).format(
+                        new Date()
+                );
 
         Intent intent =
                 new Intent(
@@ -2430,7 +2560,11 @@ public class MainActivity extends Activity {
 
         intent.putExtra(
                 Intent.EXTRA_TITLE,
-                "PureClean-Backup.json"
+                "PureClean-Backup-"
+                        +
+                        stamp
+                        +
+                        ".json"
         );
 
         startActivityForResult(
@@ -2473,11 +2607,15 @@ public class MainActivity extends Activity {
         );
 
         if (
-                requestCode == TAKE_EXPENSE_PHOTO
+                requestCode
+                        ==
+                TAKE_EXPENSE_PHOTO
         ) {
 
             if (
-                    resultCode == RESULT_OK
+                    resultCode
+                            ==
+                    RESULT_OK
             ) {
 
                 File savedReceipt =
@@ -2494,6 +2632,15 @@ public class MainActivity extends Activity {
                 }
             }
 
+            if (
+                    pendingCameraFile != null
+                            &&
+                    pendingCameraFile.exists()
+            ) {
+
+                pendingCameraFile.delete();
+            }
+
             pendingCameraFile = null;
             pendingExpenseId = "";
 
@@ -2501,11 +2648,15 @@ public class MainActivity extends Activity {
         }
 
         if (
-                requestCode == CHOOSE_EXPENSE_PHOTO
+                requestCode
+                        ==
+                CHOOSE_EXPENSE_PHOTO
         ) {
 
             if (
-                    resultCode == RESULT_OK
+                    resultCode
+                            ==
+                    RESULT_OK
                             &&
                     data != null
                             &&
@@ -2529,6 +2680,7 @@ public class MainActivity extends Activity {
                         ||
                 data.getData() == null
         ) {
+
             return;
         }
 
@@ -2580,6 +2732,10 @@ public class MainActivity extends Activity {
                                     uri
                             );
 
+            if (output == null) {
+                return;
+            }
+
             output.write(
                     backupJson.getBytes(
                             "UTF-8"
@@ -2587,6 +2743,8 @@ public class MainActivity extends Activity {
             );
 
             output.close();
+
+            backupJson = "";
 
         } catch (Exception ignored) {
         }
@@ -2627,14 +2785,20 @@ public class MainActivity extends Activity {
 
             reader.close();
 
-            webView.evaluateJavascript(
+            String json =
+                    text.toString();
+
+            String javascript =
                     "restoreBusinessBackup("
                             +
                             JSONObject.quote(
-                                    text.toString()
+                                    json
                             )
                             +
-                            ");",
+                            ");";
+
+            webView.evaluateJavascript(
+                    javascript,
                     null
             );
 
@@ -2673,6 +2837,8 @@ public class MainActivity extends Activity {
             );
         }
 
+        output.flush();
+
         input.close();
         output.close();
     }
@@ -2685,6 +2851,7 @@ public class MainActivity extends Activity {
                         ||
                 !folder.exists()
         ) {
+
             return;
         }
 
@@ -2696,8 +2863,13 @@ public class MainActivity extends Activity {
             for (File file : files) {
 
                 if (file.isDirectory()) {
-                    deleteFolder(file);
+
+                    deleteFolder(
+                            file
+                    );
+
                 } else {
+
                     file.delete();
                 }
             }
@@ -2705,6 +2877,12 @@ public class MainActivity extends Activity {
 
         folder.delete();
     }
+
+    /*
+     * =========================================================
+     * EMAIL / PDF
+     * =========================================================
+     */
 
     private boolean validEmail(
             String email) {
@@ -2738,6 +2916,13 @@ public class MainActivity extends Activity {
             String notes) {
 
         if (!validEmail(email)) {
+
+            Toast.makeText(
+                    this,
+                    "The quote email address is not valid.",
+                    Toast.LENGTH_LONG
+            ).show();
+
             return;
         }
 
@@ -2795,13 +2980,21 @@ public class MainActivity extends Activity {
                             +
                             customerName
                             +
-                            ",\n\nPlease find attached your quotation from Steven's Pure Clean Exteriors."
+                            ",\n\nPlease find attached Quote Q"
+                            +
+                            quoteNumber
+                            +
+                            " from Steven's Pure Clean Exteriors."
                             +
                             "\n\nQuote total: £"
                             +
                             amount
                             +
+                            "\n\nIf you would like to go ahead, please get in touch."
+                            +
                             "\n\nMany thanks,\nSteven"
+                            +
+                            "\nSteven's Pure Clean Exteriors"
             );
 
             intent.putExtra(
@@ -2943,9 +3136,20 @@ public class MainActivity extends Activity {
                         245
                 );
 
+        int border =
+                Color.rgb(
+                        220,
+                        220,
+                        220
+                );
+
         canvas.drawColor(
                 Color.WHITE
         );
+
+        /*
+         * HEADER
+         */
 
         paint.setColor(
                 black
@@ -2970,6 +3174,10 @@ public class MainActivity extends Activity {
                 155,
                 paint
         );
+
+        /*
+         * LOGO
+         */
 
         try {
 
@@ -3028,12 +3236,12 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(
-                Color.WHITE
-        );
-
         paint.setFakeBoldText(
                 false
+        );
+
+        paint.setColor(
+                Color.WHITE
         );
 
         paint.setTextSize(
@@ -3070,8 +3278,18 @@ public class MainActivity extends Activity {
                 Paint.Align.LEFT
         );
 
+        /*
+         * QUOTE INFORMATION
+         */
+
+        float infoTop = 185;
+
         paint.setColor(
                 dark
+        );
+
+        paint.setFakeBoldText(
+                true
         );
 
         paint.setTextSize(
@@ -3081,21 +3299,21 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "QUOTE NUMBER",
                 45,
-                185,
+                infoTop,
                 paint
         );
 
         canvas.drawText(
                 "QUOTE DATE",
                 225,
-                185,
+                infoTop,
                 paint
         );
 
         canvas.drawText(
                 "VALID FOR",
                 410,
-                185,
+                infoTop,
                 paint
         );
 
@@ -3116,23 +3334,43 @@ public class MainActivity extends Activity {
                         +
                         quoteNumber,
                 45,
-                210,
+                infoTop + 25,
                 paint
         );
 
         canvas.drawText(
-                quoteDate,
+                quoteDate == null
+                        ?
+                        ""
+                        :
+                        quoteDate,
                 225,
-                210,
+                infoTop + 25,
                 paint
         );
 
         canvas.drawText(
                 "30 days",
                 410,
-                210,
+                infoTop + 25,
                 paint
         );
+
+        paint.setColor(
+                border
+        );
+
+        canvas.drawRect(
+                35,
+                232,
+                560,
+                234,
+                paint
+        );
+
+        /*
+         * QUOTE FOR
+         */
 
         paint.setColor(
                 dark
@@ -3162,7 +3400,11 @@ public class MainActivity extends Activity {
         );
 
         canvas.drawText(
-                customerName,
+                customerName == null
+                        ?
+                        ""
+                        :
+                        customerName,
                 45,
                 298,
                 paint
@@ -3176,19 +3418,37 @@ public class MainActivity extends Activity {
                 12
         );
 
-        canvas.drawText(
-                customerAddress,
-                45,
-                320,
-                paint
-        );
+        if (
+                customerAddress != null
+                        &&
+                !customerAddress.trim().isEmpty()
+        ) {
 
-        canvas.drawText(
-                customerPostcode,
-                45,
-                340,
-                paint
-        );
+            canvas.drawText(
+                    customerAddress.trim(),
+                    45,
+                    320,
+                    paint
+            );
+        }
+
+        if (
+                customerPostcode != null
+                        &&
+                !customerPostcode.trim().isEmpty()
+        ) {
+
+            canvas.drawText(
+                    customerPostcode.trim(),
+                    45,
+                    340,
+                    paint
+            );
+        }
+
+        /*
+         * SERVICES
+         */
 
         paint.setColor(
                 light
@@ -3247,12 +3507,21 @@ public class MainActivity extends Activity {
                 false
         );
 
-        String[] lines =
+        String cleanDescription =
                 description == null
                         ?
-                        new String[0]
+                        ""
                         :
-                        description.split(
+                        description.trim();
+
+        String[] lines =
+                cleanDescription.isEmpty()
+                        ?
+                        new String[]{
+                                "Exterior cleaning service"
+                        }
+                        :
+                        cleanDescription.split(
                                 "\\n"
                         );
 
@@ -3265,6 +3534,7 @@ public class MainActivity extends Activity {
                             ||
                     line.trim().isEmpty()
             ) {
+
                 continue;
             }
 
@@ -3292,6 +3562,18 @@ public class MainActivity extends Activity {
                         ).trim();
             }
 
+            /*
+             * IMPORTANT:
+             * Remove every existing pound sign first.
+             * Then the PDF adds exactly one.
+             */
+
+            price =
+                    price.replace(
+                            "£",
+                            ""
+                    ).trim();
+
             paint.setColor(
                     dark
             );
@@ -3313,16 +3595,10 @@ public class MainActivity extends Activity {
                         Paint.Align.RIGHT
                 );
 
-                /*
-                 * DOUBLE £ FIX
-                 */
-
                 canvas.drawText(
-                        price.startsWith("£")
-                                ?
-                                price
-                                :
-                                "£" + price,
+                        "£"
+                                +
+                                price,
                         535,
                         lineY,
                         paint
@@ -3334,13 +3610,31 @@ public class MainActivity extends Activity {
             }
 
             lineY += 27;
+
+            if (lineY > 530) {
+                break;
+            }
         }
+
+        /*
+         * TOTAL
+         */
+
+        String cleanAmount =
+                amount == null
+                        ?
+                        "0.00"
+                        :
+                        amount.replace(
+                                "£",
+                                ""
+                        ).trim();
 
         paint.setColor(
                 black
         );
 
-        RectF totalBox =
+        RectF amountBox =
                 new RectF(
                         315,
                         590,
@@ -3349,7 +3643,7 @@ public class MainActivity extends Activity {
                 );
 
         canvas.drawRoundRect(
-                totalBox,
+                amountBox,
                 14,
                 14,
                 paint
@@ -3385,14 +3679,22 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "£"
                         +
-                        amount,
+                        cleanAmount,
                 338,
                 660,
                 paint
         );
 
+        /*
+         * NOTES
+         */
+
         paint.setColor(
                 dark
+        );
+
+        paint.setFakeBoldText(
+                true
         );
 
         paint.setTextSize(
@@ -3451,12 +3753,32 @@ public class MainActivity extends Activity {
                 paint
         );
 
+        /*
+         * FOOTER
+         */
+
+        paint.setColor(
+                border
+        );
+
+        canvas.drawRect(
+                35,
+                792,
+                560,
+                794,
+                paint
+        );
+
         paint.setColor(
                 grey
         );
 
         paint.setTextSize(
                 11
+        );
+
+        paint.setTextAlign(
+                Paint.Align.LEFT
         );
 
         canvas.drawText(
@@ -3611,11 +3933,11 @@ public class MainActivity extends Activity {
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
             );
 
-            intent.setPackage(
-                    "com.google.android.gm"
-            );
-
             try {
+
+                intent.setPackage(
+                        "com.google.android.gm"
+                );
 
                 startActivity(
                         intent
@@ -3675,7 +3997,9 @@ public class MainActivity extends Activity {
                         +
                         customerName
                         +
-                        ",\n\nThis is a friendly reminder regarding invoice #"
+                        ",\n\n"
+                        +
+                        "This is a friendly reminder regarding invoice #"
                         +
                         invoiceNumber
                         +
@@ -3687,7 +4011,9 @@ public class MainActivity extends Activity {
                         +
                         dueDate
                         +
-                        "\n\nThank you,\nSteven's Pure Clean Exteriors";
+                        "\n\nThank you,\n"
+                        +
+                        "Steven's Pure Clean Exteriors";
 
         Intent intent =
                 new Intent(
@@ -3718,7 +4044,7 @@ public class MainActivity extends Activity {
 
     /*
      * =========================================================
-     * POLISHED PDF INVOICE
+     * INVOICE PDF
      * =========================================================
      */
 
@@ -3811,6 +4137,13 @@ public class MainActivity extends Activity {
                         245
                 );
 
+        int border =
+                Color.rgb(
+                        220,
+                        220,
+                        220
+                );
+
         canvas.drawColor(
                 Color.WHITE
         );
@@ -3896,12 +4229,12 @@ public class MainActivity extends Activity {
                 paint
         );
 
-        paint.setColor(
-                Color.WHITE
-        );
-
         paint.setFakeBoldText(
                 false
+        );
+
+        paint.setColor(
+                Color.WHITE
         );
 
         paint.setTextSize(
@@ -3938,8 +4271,14 @@ public class MainActivity extends Activity {
                 Paint.Align.LEFT
         );
 
+        float infoTop = 185;
+
         paint.setColor(
                 dark
+        );
+
+        paint.setFakeBoldText(
+                true
         );
 
         paint.setTextSize(
@@ -3949,21 +4288,21 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "INVOICE NUMBER",
                 45,
-                185,
+                infoTop,
                 paint
         );
 
         canvas.drawText(
                 "INVOICE DATE",
                 225,
-                185,
+                infoTop,
                 paint
         );
 
         canvas.drawText(
                 "DUE DATE",
                 410,
-                185,
+                infoTop,
                 paint
         );
 
@@ -3984,21 +4323,33 @@ public class MainActivity extends Activity {
                         +
                         invoiceNumber,
                 45,
-                210,
+                infoTop + 25,
                 paint
         );
 
         canvas.drawText(
                 invoiceDate,
                 225,
-                210,
+                infoTop + 25,
                 paint
         );
 
         canvas.drawText(
                 dueDate,
                 410,
-                210,
+                infoTop + 25,
+                paint
+        );
+
+        paint.setColor(
+                border
+        );
+
+        canvas.drawRect(
+                35,
+                232,
+                560,
+                234,
                 paint
         );
 
@@ -4030,7 +4381,11 @@ public class MainActivity extends Activity {
         );
 
         canvas.drawText(
-                customerName,
+                customerName == null
+                        ?
+                        ""
+                        :
+                        customerName,
                 45,
                 298,
                 paint
@@ -4044,19 +4399,33 @@ public class MainActivity extends Activity {
                 12
         );
 
-        canvas.drawText(
-                customerAddress,
-                45,
-                320,
-                paint
-        );
+        if (
+                customerAddress != null
+                        &&
+                !customerAddress.trim().isEmpty()
+        ) {
 
-        canvas.drawText(
-                customerPostcode,
-                45,
-                340,
-                paint
-        );
+            canvas.drawText(
+                    customerAddress.trim(),
+                    45,
+                    320,
+                    paint
+            );
+        }
+
+        if (
+                customerPostcode != null
+                        &&
+                !customerPostcode.trim().isEmpty()
+        ) {
+
+            canvas.drawText(
+                    customerPostcode.trim(),
+                    45,
+                    340,
+                    paint
+            );
+        }
 
         paint.setColor(
                 light
@@ -4104,16 +4473,46 @@ public class MainActivity extends Activity {
                 15
         );
 
-        canvas.drawText(
+        String cleanDescription =
                 description == null
                         ?
                         ""
                         :
-                        description,
+                        description.trim();
+
+        if (cleanDescription.isEmpty()) {
+
+            cleanDescription =
+                    "Exterior cleaning service";
+        }
+
+        if (cleanDescription.length() > 55) {
+
+            cleanDescription =
+                    cleanDescription.substring(
+                            0,
+                            55
+                    )
+                            +
+                            "...";
+        }
+
+        canvas.drawText(
+                cleanDescription,
                 55,
                 435,
                 paint
         );
+
+        String cleanInvoiceAmount =
+                amount == null
+                        ?
+                        "0.00"
+                        :
+                        amount.replace(
+                                "£",
+                                ""
+                        ).trim();
 
         paint.setColor(
                 black
@@ -4164,7 +4563,7 @@ public class MainActivity extends Activity {
         canvas.drawText(
                 "£"
                         +
-                        amount,
+                        cleanInvoiceAmount,
                 338,
                 565,
                 paint
@@ -4205,11 +4604,128 @@ public class MainActivity extends Activity {
         );
 
         paint.setColor(
+                Color.rgb(
+                        250,
+                        250,
+                        250
+                )
+        );
+
+        RectF bankBox =
+                new RectF(
+                        35,
+                        670,
+                        560,
+                        770
+                );
+
+        canvas.drawRoundRect(
+                bankBox,
+                14,
+                14,
+                paint
+        );
+
+        paint.setStyle(
+                Paint.Style.STROKE
+        );
+
+        paint.setStrokeWidth(
+                1.5f
+        );
+
+        paint.setColor(
+                lime
+        );
+
+        canvas.drawRoundRect(
+                bankBox,
+                14,
+                14,
+                paint
+        );
+
+        paint.setStyle(
+                Paint.Style.FILL
+        );
+
+        paint.setColor(
+                dark
+        );
+
+        paint.setFakeBoldText(
+                true
+        );
+
+        paint.setTextSize(
+                14
+        );
+
+        canvas.drawText(
+                "BANK TRANSFER",
+                55,
+                700,
+                paint
+        );
+
+        paint.setFakeBoldText(
+                false
+        );
+
+        paint.setTextSize(
+                13
+        );
+
+        canvas.drawText(
+                "Account name: Steven B Attew",
+                55,
+                727,
+                paint
+        );
+
+        canvas.drawText(
+                "Bank: Monzo",
+                55,
+                752,
+                paint
+        );
+
+        canvas.drawText(
+                "Sort code: 04-00-06",
+                330,
+                727,
+                paint
+        );
+
+        canvas.drawText(
+                "Account number: 34121651",
+                330,
+                752,
+                paint
+        );
+
+        paint.setColor(
+                border
+        );
+
+        canvas.drawRect(
+                35,
+                792,
+                560,
+                794,
+                paint
+        );
+
+        paint.setColor(
                 grey
         );
 
         paint.setTextSize(
                 11
+        );
+
+        paint.setTextAlign(
+                Paint.Align.LEFT
         );
 
         canvas.drawText(
