@@ -381,35 +381,61 @@ font-size:21px;
 font-weight:bold;
 }
 
+/* IMPROVED PLANNER JOB CARDS */
+
+.planner-job-card{
+border:1px solid #3b3b3b;
+background:linear-gradient(180deg,#151515,#0e0e0e);
+}
+
 .job-detail{
-margin-top:9px;
-padding-top:9px;
+margin-top:11px;
+padding-top:10px;
 border-top:1px solid #292929;
+line-height:1.65;
 }
 
 .job-notes{
-margin-top:10px;
-background:linear-gradient(135deg,#342600,#211800);
-border:1px solid #8b6917;
-border-left:5px solid #ffc33d;
-border-radius:11px;
-padding:12px;
-color:#ffe7a0;
-font-size:13px;
-line-height:1.5;
+margin-top:13px;
+background:linear-gradient(135deg,#3b2b00,#211800);
+border:2px solid #e0a900;
+border-left:7px solid #ffc400;
+border-radius:13px;
+padding:13px;
+color:#fff1b8;
+font-size:14px;
+line-height:1.55;
+box-shadow:0 0 0 1px rgba(255,195,61,.08);
 }
 
-.job-notes strong{
-display:block;
-color:#ffc33d;
-margin-bottom:4px;
+.job-notes-header{
+display:flex;
+align-items:center;
+gap:9px;
+color:#ffc400;
+font-size:14px;
+font-weight:bold;
+margin-bottom:8px;
+letter-spacing:.2px;
+}
+
+.job-notes-icon{
+font-size:23px;
+line-height:1;
+}
+
+.job-notes-body{
+color:#fff4cc;
+white-space:pre-line;
+font-size:14px;
+line-height:1.6;
 }
 
 .job-buttons{
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:8px;
-margin-top:9px;
+margin-top:11px;
 }
 
 .job-buttons .action{margin-top:0}
@@ -2556,7 +2582,7 @@ plannerJobs.innerHTML=
 jobs.map(
 (c,index)=>`
 
-<div class="item">
+<div class="item planner-job-card">
 
 <div class="row">
 
@@ -2587,23 +2613,15 @@ ${c.postcode
 
 </div>
 
-<div style="margin-top:8px">
+<div style="margin-top:9px">
 
 <span class="badge areaBadge">
 ${safe(c.roundArea || "Unassigned")}
 </span>
 
-</div>
-
-<div class="job-detail muted">
-
-<strong>Service:</strong>
-${safe(c.services || "Window Cleaning")}
-
-<br>
-
-<strong>Frequency:</strong>
+<span class="badge dayBadge">
 Every ${c.frequency || 4} weeks
+</span>
 
 </div>
 
@@ -2612,17 +2630,25 @@ ${c.notes
 `
 <div class="job-notes">
 
-<strong>
-⚠ IMPORTANT ACCESS NOTE
-</strong>
+<div class="job-notes-header">
+<span class="job-notes-icon">⚠️</span>
+<span>ACCESS NOTES</span>
+</div>
 
-${safe(c.notes)}
+<div class="job-notes-body">${safe(c.notes)}</div>
 
 </div>
 `
 :
 ""
 }
+
+<div class="job-detail muted">
+
+<strong>Service:</strong>
+${safe(c.services || "Window Cleaning")}
+
+</div>
 
 <div class="job-buttons">
 
