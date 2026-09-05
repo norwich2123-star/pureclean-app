@@ -568,6 +568,90 @@ font-size:16px;
 margin-top:3px;
 }
 
+/* NEW MONTHLY EXPENSE CATEGORY SUMMARY */
+
+.month-category-card{
+margin-top:16px;
+border-color:#43571d;
+background:linear-gradient(180deg,#14180d,#10120c);
+}
+
+.month-category-title{
+margin:0;
+color:var(--lime);
+font-size:20px;
+}
+
+.month-category-subtitle{
+margin-top:5px;
+color:#999;
+font-size:12px;
+}
+
+.month-category-list{
+display:grid;
+gap:8px;
+margin-top:14px;
+}
+
+.month-category-row{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:12px;
+background:#0d0d0d;
+border:1px solid #303030;
+border-radius:11px;
+padding:11px 12px;
+}
+
+.month-category-left{
+display:flex;
+align-items:center;
+gap:10px;
+min-width:0;
+}
+
+.month-category-icon{
+width:37px;
+height:37px;
+border-radius:9px;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#202020;
+border:1px solid #414141;
+font-size:19px;
+flex-shrink:0;
+}
+
+.month-category-name{
+font-weight:bold;
+font-size:14px;
+}
+
+.month-category-amount{
+font-weight:bold;
+font-size:16px;
+color:var(--green);
+white-space:nowrap;
+}
+
+.month-category-total{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:10px;
+margin-top:11px;
+background:#162006;
+border:2px solid var(--lime);
+border-radius:12px;
+padding:13px;
+font-size:17px;
+font-weight:bold;
+color:var(--lime2);
+}
+
 .expense-form-title{
 color:var(--lime);
 margin:0;
@@ -1105,6 +1189,25 @@ Tap any day to open it in your Daily Planner.
 </div>
 
 <button class="action" onclick="newExpense()">+ Add Expense</button>
+
+<!-- NEW MONTHLY CATEGORY SUMMARY -->
+
+<div class="card month-category-card">
+
+<h3 class="month-category-title">
+This Month by Category
+</h3>
+
+<div id="monthCategorySubtitle" class="month-category-subtitle"></div>
+
+<div id="monthCategoryList" class="month-category-list"></div>
+
+<div class="month-category-total">
+<span>Σ Total</span>
+<span id="monthCategoryTotal">£0.00</span>
+</div>
+
+</div>
 
 <div id="expenseForm" class="formBox card">
 <h3 id="expenseFormTitle" class="expense-form-title">Add Expense</h3>
@@ -3425,17 +3528,13 @@ ${!inv.paid
 <button
 class="action small"
 onclick="markPaid('${inv.id}')">
-
 Mark Paid
-
 </button>
 
 <button
 class="action small reminderbtn"
 onclick="sendReminder('${inv.id}')">
-
 Send Reminder
-
 </button>
 `
 :
@@ -3443,9 +3542,7 @@ Send Reminder
 <button
 class="action small secondary"
 onclick="undoPaid('${inv.id}')">
-
 Undo Paid
-
 </button>
 `
 }
@@ -3453,17 +3550,13 @@ Undo Paid
 <button
 class="action small emailbtn"
 onclick="emailInvoice('${inv.id}')">
-
 Email Customer
-
 </button>
 
 <button
 class="action small danger"
 onclick="deleteInvoice('${inv.id}')">
-
 Delete Invoice
-
 </button>
 
 </div>
@@ -3816,17 +3909,13 @@ ${c.phone
 <button
 class="action small callbtn"
 onclick="callCustomer('${c.id}')">
-
 Call
-
 </button>
 
 <button
 class="action small textbtn"
 onclick="textCustomer('${c.id}')">
-
 Text
-
 </button>
 `
 :
@@ -4177,17 +4266,13 @@ ${url
 <button
 class="action receiptbtn"
 onclick="openExpenseReceipt('${safe(name)}')">
-
 View
-
 </button>
 
 <button
 class="action danger"
 onclick="removeDraftReceipt(${index})">
-
 Delete
-
 </button>
 
 </div>
@@ -4461,6 +4546,198 @@ saveData();
 renderExpenses();
 }
 
+/* NEW THIS MONTH BY CATEGORY */
+
+function renderMonthlyExpenseCategories(){
+
+if(
+!document.getElementById(
+"monthCategoryList"
+)
+){
+return;
+}
+
+let now=
+new Date();
+
+let year=
+now.getFullYear();
+
+let month=
+now.getMonth();
+
+let monthNumber=
+String(
+month+1
+)
+.padStart(
+2,
+"0"
+);
+
+let key=
+year+
+"-"+
+monthNumber;
+
+let first=
+new Date(
+year,
+month,
+1
+);
+
+let last=
+new Date(
+year,
+month+1,
+0
+);
+
+monthCategorySubtitle.innerText=
+first.toLocaleDateString(
+"en-GB",
+{
+day:"numeric",
+month:"short",
+year:"numeric"
+}
+)
++
+" – "
++
+last.toLocaleDateString(
+"en-GB",
+{
+day:"numeric",
+month:"short",
+year:"numeric"
+}
+);
+
+let monthExpenses=
+expenses.filter(
+exp=>
+monthKey(exp.date)===key
+);
+
+let totals={};
+
+monthExpenses.forEach(exp=>{
+
+let category=
+exp.category || "Other";
+
+totals[category]=
+(totals[category] || 0)
++
+Number(
+exp.total || 0
+);
+
+});
+
+let icons={
+
+"Fuel":"⛽",
+"Equipment":"🔧",
+"Van":"🚐",
+"Insurance":"🛡️",
+"Advertising":"📣",
+"Phone":"📱",
+"Water / Filters":"💧",
+"Repairs":"🛠️",
+"Uniform":"👕",
+"Office":"📁",
+"Other":"•••"
+
+};
+
+let order=[
+
+"Fuel",
+"Equipment",
+"Van",
+"Insurance",
+"Advertising",
+"Phone",
+"Water / Filters",
+"Repairs",
+"Uniform",
+"Office",
+"Other"
+
+];
+
+let rows=
+order
+.filter(
+category=>
+Number(
+totals[category] || 0
+)>0
+);
+
+if(!rows.length){
+
+monthCategoryList.innerHTML=
+'<div class="empty">No expenses recorded this month.</div>';
+
+monthCategoryTotal.innerText=
+"£0.00";
+
+return;
+}
+
+monthCategoryList.innerHTML=
+rows
+.map(category=>`
+
+<div class="month-category-row">
+
+<div class="month-category-left">
+
+<div class="month-category-icon">
+${icons[category] || "•"}
+</div>
+
+<div class="month-category-name">
+${safe(
+category==="Van"
+?
+"Van / Vehicle"
+:
+category
+)}
+</div>
+
+</div>
+
+<div class="month-category-amount">
+£${Number(
+totals[category] || 0
+).toFixed(2)}
+</div>
+
+</div>
+
+`)
+.join("");
+
+let total=
+monthExpenses
+.reduce(
+(sum,exp)=>
+sum+Number(exp.total || 0),
+0
+);
+
+monthCategoryTotal.innerText=
+"£"+
+total.toFixed(2);
+}
+
 function renderExpenseTotals(){
 
 if(
@@ -4563,6 +4840,8 @@ yearVat.toFixed(2);
 
 expenseReceiptCount.innerText=
 receiptCount;
+
+renderMonthlyExpenseCategories();
 
 renderExpenseCategoryTotals();
 }
@@ -4742,17 +5021,13 @@ ${receiptButtons}
 <button
 class="action small"
 onclick="editExpense('${exp.id}')">
-
 Edit
-
 </button>
 
 <button
 class="action small danger"
 onclick="deleteExpense('${exp.id}')">
-
 Delete
-
 </button>
 
 </div>
