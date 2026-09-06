@@ -1273,8 +1273,6 @@ Tap any day to open it in your Daily Planner.
 
 </section>
 
-<!-- QUOTES -->
-
 <section id="quotes" class="screen">
 
 <h2>Quotes</h2>
@@ -5143,6 +5141,54 @@ x=>x.id===id
 
 if(!c)return;
 
+/* One-off jobs must not disappear when Skip is pressed */
+if(
+customerFrequencyNumber(
+c
+)
+===
+0
+){
+
+let box=
+document.getElementById(
+"move-"+id
+);
+
+let input=
+document.getElementById(
+"move-date-"+id
+);
+
+if(
+input
+){
+
+input.value=
+c.nextClean
+||
+plannerDate.value
+||
+today();
+
+}
+
+if(box){
+
+box.classList.add(
+"show"
+);
+
+}
+
+alert(
+"This is a One-off job, so it has no automatic next clean date.\n\nChoose a new date below instead."
+);
+
+return;
+
+}
+
 c.nextClean=
 nextRecurringDate(
 c,
@@ -5402,8 +5448,6 @@ tomorrowTextQueue=[];
 tomorrowTextIndex=0;
 
 }
-
-/* QUOTES */
   /* QUOTES */
 
 function getNextQuoteNumber(){
@@ -6480,6 +6524,26 @@ return;
 
 }
 
+/*
+Ask whether the accepted quote is a one-off job.
+OK = One-off
+Cancel = Regular 4-weekly customer
+*/
+
+let isOneOff=
+confirm(
+"Is this a ONE-OFF job?\n\n"+
+"OK = One-off\n"+
+"Cancel = Regular 4-weekly"
+);
+
+let chosenFrequency=
+isOneOff
+?
+0
+:
+4;
+
 let c={
 
 id:
@@ -6512,7 +6576,7 @@ q.total || 0
 ),
 
 frequency:
-4,
+chosenFrequency,
 
 nextClean:
 today(),
@@ -6559,7 +6623,11 @@ renderQuotes();
 renderCustomers();
 
 alert(
-"Customer added.\n\nYou can now edit their cleaning frequency, next clean date and round area."
+isOneOff
+?
+"Customer added as a One-off job.\n\nYou can edit the next clean date and round area."
+:
+"Customer added as a 4-weekly customer.\n\nYou can edit the frequency, next clean date and round area."
 );
 
 }
@@ -7781,6 +7849,13 @@ block:"start"
 
 }
 
+/*
+VAT FIX:
+VAT can never be less than £0 or more than the total cost.
+The corrected VAT is written back into the VAT box so the
+saved amount always matches the Net figure shown on screen.
+*/
+
 function calculateExpenseNet(){
 
 let total=
@@ -7788,12 +7863,28 @@ Number(
 expenseTotal.value || 0
 );
 
+if(
+!Number.isFinite(
+total
+)
+||
+total<0
+){
+
+total=0;
+
+}
+
 let vat=
 Number(
 expenseVat.value || 0
 );
 
 if(
+!Number.isFinite(
+vat
+)
+||
 vat<0
 ){
 
@@ -7808,6 +7899,9 @@ vat>total
 vat=total;
 
 }
+
+expenseVat.value=
+vat.toFixed(2);
 
 expenseNet.value=
 Math.max(
@@ -8123,6 +8217,10 @@ return;
 }
 
 if(
+!Number.isFinite(
+total
+)
+||
 total<=0
 ){
 
@@ -8135,6 +8233,46 @@ return;
 }
 
 calculateExpenseNet();
+
+/*
+Use the corrected VAT value after calculateExpenseNet()
+rather than the original invalid figure.
+*/
+
+let correctedVat=
+Number(
+expenseVat.value || 0
+);
+
+if(
+!Number.isFinite(
+correctedVat
+)
+||
+correctedVat<0
+){
+
+correctedVat=0;
+
+}
+
+if(
+correctedVat>total
+){
+
+correctedVat=total;
+
+}
+
+expenseVat.value=
+correctedVat.toFixed(2);
+
+expenseNet.value=
+Math.max(
+0,
+total-correctedVat
+)
+.toFixed(2);
 
 let exp={
 
@@ -8159,9 +8297,7 @@ total:
 total,
 
 vat:
-Number(
-expenseVat.value || 0
-),
+correctedVat,
 
 net:
 Number(
@@ -8896,9 +9032,8 @@ Delete
 )
 .join("");
 
-}
-
-/* EXPENSE EXPORT */
+  }
+  /* EXPENSE EXPORT */
 
 function updateExpenseExportDates(){
 
