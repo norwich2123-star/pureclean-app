@@ -3166,6 +3166,79 @@ alert(
 
 /* BACKUP */
 
+function highestExistingNumber(
+items,
+field
+){
+
+let highest=1000;
+
+items.forEach(
+item=>{
+
+let value=
+Number(
+item[
+field
+]
+);
+
+if(
+Number.isFinite(
+value
+)
+&&
+value>highest
+){
+
+highest=value;
+
+}
+
+}
+);
+
+return highest;
+
+}
+
+function safeNextNumber(
+items,
+field,
+savedNext
+){
+
+let next=
+Number(
+savedNext
+);
+
+if(
+!Number.isFinite(
+next
+)
+||
+next<1001
+){
+
+next=1001;
+
+}
+
+let highest=
+highestExistingNumber(
+items,
+field
+);
+
+return Math.max(
+next,
+highest+1,
+1001
+);
+
+}
+
 function buildBackup(){
 
 return{
@@ -3311,21 +3384,15 @@ backup.quotes
 [];
 
 let next=
-Number(
+safeNextNumber(
+
+invoices,
+
+"invoiceNumber",
+
 backup.nextInvoiceNumber
+
 );
-
-if(
-!Number.isFinite(
-next
-)
-||
-next<1001
-){
-
-next=1001;
-
-}
 
 localStorage.setItem(
 "pcNextInvoiceNumber",
@@ -3335,21 +3402,15 @@ next
 );
 
 let nextQuote=
-Number(
+safeNextNumber(
+
+quotes,
+
+"quoteNumber",
+
 backup.nextQuoteNumber
+
 );
-
-if(
-!Number.isFinite(
-nextQuote
-)
-||
-nextQuote<1001
-){
-
-nextQuote=1001;
-
-}
 
 localStorage.setItem(
 "pcNextQuoteNumber",
@@ -6524,12 +6585,6 @@ return;
 
 }
 
-/*
-Ask whether the accepted quote is a one-off job.
-OK = One-off
-Cancel = Regular 4-weekly customer
-*/
-
 let isOneOff=
 confirm(
 "Is this a ONE-OFF job?\n\n"+
@@ -7849,13 +7904,6 @@ block:"start"
 
 }
 
-/*
-VAT FIX:
-VAT can never be less than £0 or more than the total cost.
-The corrected VAT is written back into the VAT box so the
-saved amount always matches the Net figure shown on screen.
-*/
-
 function calculateExpenseNet(){
 
 let total=
@@ -8233,11 +8281,6 @@ return;
 }
 
 calculateExpenseNet();
-
-/*
-Use the corrected VAT value after calculateExpenseNet()
-rather than the original invalid figure.
-*/
 
 let correctedVat=
 Number(
@@ -10534,6 +10577,59 @@ exp.vat || 0
 }
 
 }
+);
+
+/*
+NUMBERING SAFETY
+
+This checks the numbers already saved in the app every time it
+starts. If the saved "next number" is ever lower than an invoice
+or quote that already exists, it automatically moves it forward.
+
+Example:
+Highest invoice already saved = 1025
+Saved next number = 1018
+New corrected next number = 1026
+*/
+
+let correctedNextInvoiceNumber=
+safeNextNumber(
+
+invoices,
+
+"invoiceNumber",
+
+localStorage.getItem(
+"pcNextInvoiceNumber"
+)
+
+);
+
+localStorage.setItem(
+"pcNextInvoiceNumber",
+String(
+correctedNextInvoiceNumber
+)
+);
+
+let correctedNextQuoteNumber=
+safeNextNumber(
+
+quotes,
+
+"quoteNumber",
+
+localStorage.getItem(
+"pcNextQuoteNumber"
+)
+
+);
+
+localStorage.setItem(
+"pcNextQuoteNumber",
+String(
+correctedNextQuoteNumber
+)
 );
 
 /* START */
