@@ -1419,7 +1419,6 @@ Cancel
 <div id="customerList" class="customer-list"></div>
 
 </section>
-
 <section id="planner" class="screen">
 
 <h2>
@@ -2188,7 +2187,6 @@ NEXT 7 DAYS
 </div>
 
 </section>
-
 <section id="expenses" class="screen">
 
 <h2>
@@ -2730,10 +2728,6 @@ let removedExpenseReceipts=[];
 let map=null;
 let mapMarkers=[];
 
-/* BUG FIX:
-   Cache postcode coordinates so refreshing the map
-   does not repeatedly look up every postcode.
-*/
 let postcodeCache=
 JSON.parse(
 localStorage.getItem("pcPostcodeCache")
@@ -2741,10 +2735,6 @@ localStorage.getItem("pcPostcodeCache")
 "{}"
 );
 
-/* BUG FIX:
-   Hold a reminder until Android tells us
-   that the email app was successfully opened.
-*/
 let pendingReminderInvoiceId="";
 
 let pinMode="unlock";
@@ -2883,10 +2873,6 @@ String(value).slice(
 
 }
 
-/* BUG FIX:
-   Completed one-off customers with no future clean date
-   are no longer counted as active.
-*/
 function activeCustomers(){
 
 return customers.filter(
@@ -3659,7 +3645,8 @@ highest+1,
 );
 
 }
-  /* BACKUP REMINDER */
+
+/* BACKUP REMINDER */
 
 function backupLastDate(){
 
@@ -3811,11 +3798,6 @@ updateBackupStatus();
 
 }
 
-/*
-BUG FIX:
-Android calls this only AFTER the backup file
-has really been written successfully.
-*/
 function backupCompletedFromAndroid(){
 
 markBackupCompleted();
@@ -4001,13 +3983,6 @@ null,
 2
 )
 );
-
-/*
-BUG FIX:
-Do NOT mark the backup complete here.
-Android will call backupCompletedFromAndroid()
-after it has actually saved the ZIP.
-*/
 
 }else{
 
@@ -4698,12 +4673,6 @@ renderCustomers();
 
 }
 
-/*
-BUG FIX:
-If a converted customer is permanently deleted,
-remove the old quote link so the quote can be
-converted again later.
-*/
 function deleteCustomerPermanently(id){
 
 let c=
@@ -5822,10 +5791,6 @@ null;
 
 }
 
-/*
-BUG FIX:
-Use the planner date being viewed as the invoice/job date.
-*/
 function finishCompletedJob(method){
 
 let c=
@@ -7063,17 +7028,13 @@ ${safe(q.notes)}
 <button
 class="action small"
 onclick="editQuote('${q.id}')">
-
 Edit
-
 </button>
 
 <button
 class="action small emailbtn"
 onclick="emailQuote('${q.id}')">
-
 Email Quote
-
 </button>
 
 ${status!=="Accepted"
@@ -7082,9 +7043,7 @@ ${status!=="Accepted"
 <button
 class="action small quoteacceptbtn"
 onclick="markQuoteAccepted('${q.id}')">
-
 Accept
-
 </button>
 `
 :
@@ -7097,9 +7056,7 @@ ${status!=="Declined"
 <button
 class="action small quotedeclinebtn"
 onclick="markQuoteDeclined('${q.id}')">
-
 Decline
-
 </button>
 `
 :
@@ -7114,9 +7071,7 @@ ${status==="Accepted"
 <button
 class="action small quotebtn"
 onclick="convertQuoteToCustomer('${q.id}')">
-
 Add as Customer
-
 </button>
 `
 :
@@ -7126,9 +7081,7 @@ Add as Customer
 <button
 class="action small danger"
 onclick="deleteQuote('${q.id}')">
-
 Delete
-
 </button>
 
 </div>
@@ -7236,13 +7189,6 @@ x=>x.name
 
 }
 
-/*
-BUG FIX:
-Better duplicate checking:
-1. Email
-2. Phone
-3. Name + postcode
-*/
 function findExistingCustomerForQuote(q){
 
 let quoteEmail=
@@ -7387,10 +7333,6 @@ return;
 
 }
 
-/*
-If the old customer was deleted,
-clear the broken quote link.
-*/
 q.convertedCustomerId="";
 
 }
@@ -7578,30 +7520,22 @@ Android.emailQuoteWithAddress
 Android.emailQuoteWithAddress(
 
 q.email || "",
-
 q.customerName || "",
-
 q.address || "",
-
 q.postcode || "",
-
 String(
 quoteNumber(q)
 ),
-
 formatDate(
 q.date
 ),
-
 Number(
 q.total || 0
 )
 .toFixed(2),
-
 quoteEmailDescription(
 q
 ),
-
 q.notes || ""
 
 );
@@ -8022,17 +7956,13 @@ ${!inv.paid
 <button
 class="action small"
 onclick="markPaid('${inv.id}')">
-
 Mark Paid
-
 </button>
 
 <button
 class="action small reminderbtn"
 onclick="sendReminder('${inv.id}')">
-
 Send Reminder
-
 </button>
 `
 :
@@ -8040,9 +7970,7 @@ Send Reminder
 <button
 class="action small secondary"
 onclick="undoPaid('${inv.id}')">
-
 Undo Paid
-
 </button>
 `
 }
@@ -8050,17 +7978,13 @@ Undo Paid
 <button
 class="action small emailbtn"
 onclick="emailInvoice('${inv.id}')">
-
 Email Customer
-
 </button>
 
 <button
 class="action small danger"
 onclick="deleteInvoice('${inv.id}')">
-
 Delete Invoice
-
 </button>
 
 </div>
@@ -8071,8 +7995,9 @@ Delete Invoice
 )
 .join("");
 
-  }
-  function deleteInvoice(id){
+}
+
+function deleteInvoice(id){
 
 let inv=
 invoices.find(
@@ -8276,30 +8201,22 @@ Android.emailCustomerWithAddress
 Android.emailCustomerWithAddress(
 
 c.email,
-
 c.name,
-
 c.address || "",
-
 c.postcode || "",
-
 String(
 invoiceNumber(inv)
 ),
-
 formatDate(
 inv.date
 ),
-
 formatDate(
 invoiceDueDate(inv)
 ),
-
 Number(
 inv.amount || 0
 )
 .toFixed(2),
-
 inv.description || ""
 
 );
@@ -8308,16 +8225,6 @@ inv.description || ""
 
 }
 
-/*
-BUG FIX:
-The reminder is no longer counted immediately.
-
-MainActivity.java will open the email, wait until you
-return to the app, then ask whether you actually sent it.
-
-Only when you press Yes will Android call
-reminderConfirmedFromAndroid().
-*/
 function sendReminder(id){
 
 let inv=
@@ -8358,30 +8265,22 @@ id;
 Android.sendReminderWithId(
 
 id,
-
 c.email,
-
 c.name,
-
 String(
 invoiceNumber(inv)
 ),
-
 formatDate(
 inv.date
 ),
-
 formatDate(
 invoiceDueDate(inv)
 ),
-
 Number(
 inv.amount || 0
 )
 .toFixed(2),
-
 inv.description || "",
-
 invoiceStatus(inv)==="overdue"
 
 );
@@ -8564,17 +8463,13 @@ ${c.phone
 <button
 class="action small callbtn"
 onclick="callCustomer('${c.id}')">
-
 Call
-
 </button>
 
 <button
 class="action small textbtn"
 onclick="textCustomer('${c.id}')">
-
 Text
-
 </button>
 `
 :
@@ -8598,6 +8493,13 @@ html.join("")
 }
 
 /* EXPENSES */
+   function expenseElement(id){
+
+return document.getElementById(
+id
+);
+
+}
 
 function deleteExpenseReceiptFile(name){
 
@@ -8648,8 +8550,102 @@ clearExpenseReceiptTracking();
 
 function newExpense(){
 
+let form=
+expenseElement(
+"expenseForm"
+);
+
+let title=
+expenseElement(
+"expenseFormTitle"
+);
+
+let idInput=
+expenseElement(
+"expenseId"
+);
+
+let dateInput=
+expenseElement(
+"expenseDate"
+);
+
+let supplierInput=
+expenseElement(
+"expenseSupplier"
+);
+
+let categoryInput=
+expenseElement(
+"expenseCategory"
+);
+
+let descriptionInput=
+expenseElement(
+"expenseDescription"
+);
+
+let totalInput=
+expenseElement(
+"expenseTotal"
+);
+
+let vatInput=
+expenseElement(
+"expenseVat"
+);
+
+let netInput=
+expenseElement(
+"expenseNet"
+);
+
+let paymentInput=
+expenseElement(
+"expensePaymentMethod"
+);
+
+let notesInput=
+expenseElement(
+"expenseNotes"
+);
+
 if(
-expenseForm.classList.contains(
+!form
+||
+!title
+||
+!idInput
+||
+!dateInput
+||
+!supplierInput
+||
+!categoryInput
+||
+!descriptionInput
+||
+!totalInput
+||
+!vatInput
+||
+!netInput
+||
+!paymentInput
+||
+!notesInput
+){
+
+alert(
+"Expense form could not be opened."
+);
+
+return;
+
+}
+
+if(
+form.classList.contains(
 "show"
 )
 ){
@@ -8658,33 +8654,42 @@ cleanupUnsavedExpenseReceipts();
 
 }
 
-expenseForm.classList.add(
+clearExpenseReceiptTracking();
+
+form.classList.add(
 "show"
 );
 
-expenseFormTitle.innerText=
+title.innerText=
 "Add Expense";
 
-expenseId.value=
+idInput.value=
 "exp_"
 +
 Date.now();
 
-expenseDate.value=
+dateInput.value=
 today();
 
-expenseSupplier.value="";
-expenseCategory.value="Fuel";
-expenseDescription.value="";
-expenseTotal.value="";
-expenseVat.value="0";
-expenseNet.value="0.00";
-expensePaymentMethod.value="Bank Card";
-expenseNotes.value="";
-
-clearExpenseReceiptTracking();
+supplierInput.value="";
+categoryInput.value="Fuel";
+descriptionInput.value="";
+totalInput.value="";
+vatInput.value="0";
+netInput.value="0.00";
+paymentInput.value="Bank Card";
+notesInput.value="";
 
 renderExpenseReceiptPreviews();
+
+setTimeout(()=>{
+
+form.scrollIntoView({
+behavior:"smooth",
+block:"start"
+});
+
+},100);
 
 }
 
@@ -8697,8 +8702,102 @@ x=>x.id===id
 
 if(!exp)return;
 
+let form=
+expenseElement(
+"expenseForm"
+);
+
+let title=
+expenseElement(
+"expenseFormTitle"
+);
+
+let idInput=
+expenseElement(
+"expenseId"
+);
+
+let dateInput=
+expenseElement(
+"expenseDate"
+);
+
+let supplierInput=
+expenseElement(
+"expenseSupplier"
+);
+
+let categoryInput=
+expenseElement(
+"expenseCategory"
+);
+
+let descriptionInput=
+expenseElement(
+"expenseDescription"
+);
+
+let totalInput=
+expenseElement(
+"expenseTotal"
+);
+
+let vatInput=
+expenseElement(
+"expenseVat"
+);
+
+let netInput=
+expenseElement(
+"expenseNet"
+);
+
+let paymentInput=
+expenseElement(
+"expensePaymentMethod"
+);
+
+let notesInput=
+expenseElement(
+"expenseNotes"
+);
+
 if(
-expenseForm.classList.contains(
+!form
+||
+!title
+||
+!idInput
+||
+!dateInput
+||
+!supplierInput
+||
+!categoryInput
+||
+!descriptionInput
+||
+!totalInput
+||
+!vatInput
+||
+!netInput
+||
+!paymentInput
+||
+!notesInput
+){
+
+alert(
+"Expense form could not be opened."
+);
+
+return;
+
+}
+
+if(
+form.classList.contains(
 "show"
 )
 ){
@@ -8707,54 +8806,54 @@ cleanupUnsavedExpenseReceipts();
 
 }
 
-expenseForm.classList.add(
+form.classList.add(
 "show"
 );
 
-expenseFormTitle.innerText=
+title.innerText=
 "Edit Expense";
 
-expenseId.value=
+idInput.value=
 exp.id;
 
-expenseDate.value=
+dateInput.value=
 exp.date
 ||
 today();
 
-expenseSupplier.value=
+supplierInput.value=
 exp.supplier || "";
 
-expenseCategory.value=
+categoryInput.value=
 exp.category || "Other";
 
-expenseDescription.value=
+descriptionInput.value=
 exp.description || "";
 
-expenseTotal.value=
+totalInput.value=
 Number(
 exp.total || 0
 )
 .toFixed(2);
 
-expenseVat.value=
+vatInput.value=
 Number(
 exp.vat || 0
 )
 .toFixed(2);
 
-expenseNet.value=
+netInput.value=
 Number(
 exp.net || 0
 )
 .toFixed(2);
 
-expensePaymentMethod.value=
+paymentInput.value=
 exp.paymentMethod
 ||
 "Bank Card";
 
-expenseNotes.value=
+notesInput.value=
 exp.notes || "";
 
 originalExpenseReceipts=
@@ -8781,7 +8880,7 @@ renderExpenseReceiptPreviews();
 
 setTimeout(()=>{
 
-expenseForm.scrollIntoView({
+form.scrollIntoView({
 behavior:"smooth",
 block:"start"
 });
@@ -8792,9 +8891,36 @@ block:"start"
 
 function calculateExpenseNet(){
 
+let totalInput=
+expenseElement(
+"expenseTotal"
+);
+
+let vatInput=
+expenseElement(
+"expenseVat"
+);
+
+let netInput=
+expenseElement(
+"expenseNet"
+);
+
+if(
+!totalInput
+||
+!vatInput
+||
+!netInput
+){
+
+return;
+
+}
+
 let total=
 Number(
-expenseTotal.value || 0
+totalInput.value || 0
 );
 
 if(
@@ -8811,7 +8937,7 @@ total=0;
 
 let vat=
 Number(
-expenseVat.value || 0
+vatInput.value || 0
 );
 
 if(
@@ -8834,10 +8960,10 @@ vat=total;
 
 }
 
-expenseVat.value=
+vatInput.value=
 vat.toFixed(2);
 
-expenseNet.value=
+netInput.value=
 Math.max(
 0,
 total-vat
@@ -8848,8 +8974,15 @@ total-vat
 
 function takeExpensePhoto(){
 
+let idInput=
+expenseElement(
+"expenseId"
+);
+
 if(
-!expenseId.value
+!idInput
+||
+!idInput.value
 ){
 
 alert(
@@ -8867,7 +9000,7 @@ Android.takeExpenseReceipt
 ){
 
 Android.takeExpenseReceipt(
-expenseId.value
+idInput.value
 );
 
 }
@@ -8876,8 +9009,15 @@ expenseId.value
 
 function chooseExpensePhoto(){
 
+let idInput=
+expenseElement(
+"expenseId"
+);
+
 if(
-!expenseId.value
+!idInput
+||
+!idInput.value
 ){
 
 alert(
@@ -8895,7 +9035,7 @@ Android.chooseExpenseReceipt
 ){
 
 Android.chooseExpenseReceipt(
-expenseId.value
+idInput.value
 );
 
 }
@@ -8909,12 +9049,26 @@ fileName
 
 if(!fileName)return;
 
+let form=
+expenseElement(
+"expenseForm"
+);
+
+let idInput=
+expenseElement(
+"expenseId"
+);
+
 if(
-!expenseForm.classList.contains(
+!form
+||
+!idInput
+||
+!form.classList.contains(
 "show"
 )
 ||
-expenseId.value!==expenseIdFromAndroid
+idInput.value!==expenseIdFromAndroid
 ){
 
 deleteExpenseReceiptFile(
@@ -8982,18 +9136,29 @@ return "";
 
 function renderExpenseReceiptPreviews(){
 
+let previewBox=
+expenseElement(
+"expenseReceiptPreviews"
+);
+
+if(!previewBox){
+
+return;
+
+}
+
 if(
 !draftExpenseReceipts.length
 ){
 
-expenseReceiptPreviews.innerHTML=
+previewBox.innerHTML=
 '<div class="muted">No receipt photos saved yet.</div>';
 
 return;
 
 }
 
-expenseReceiptPreviews.innerHTML=
+previewBox.innerHTML=
 draftExpenseReceipts
 .map(
 (name,index)=>{
@@ -9121,13 +9286,100 @@ renderExpenseReceiptPreviews();
 
 function saveExpense(){
 
-let total=
-Number(
-expenseTotal.value || 0
+let form=
+expenseElement(
+"expenseForm"
+);
+
+let idInput=
+expenseElement(
+"expenseId"
+);
+
+let dateInput=
+expenseElement(
+"expenseDate"
+);
+
+let supplierInput=
+expenseElement(
+"expenseSupplier"
+);
+
+let categoryInput=
+expenseElement(
+"expenseCategory"
+);
+
+let descriptionInput=
+expenseElement(
+"expenseDescription"
+);
+
+let totalInput=
+expenseElement(
+"expenseTotal"
+);
+
+let vatInput=
+expenseElement(
+"expenseVat"
+);
+
+let netInput=
+expenseElement(
+"expenseNet"
+);
+
+let paymentInput=
+expenseElement(
+"expensePaymentMethod"
+);
+
+let notesInput=
+expenseElement(
+"expenseNotes"
 );
 
 if(
-!expenseDate.value
+!form
+||
+!idInput
+||
+!dateInput
+||
+!supplierInput
+||
+!categoryInput
+||
+!descriptionInput
+||
+!totalInput
+||
+!vatInput
+||
+!netInput
+||
+!paymentInput
+||
+!notesInput
+){
+
+alert(
+"Expense form could not be saved."
+);
+
+return;
+
+}
+
+let total=
+Number(
+totalInput.value || 0
+);
+
+if(
+!dateInput.value
 ){
 
 alert(
@@ -9139,7 +9391,7 @@ return;
 }
 
 if(
-!expenseSupplier.value.trim()
+!supplierInput.value.trim()
 ){
 
 alert(
@@ -9170,7 +9422,7 @@ calculateExpenseNet();
 
 let correctedVat=
 Number(
-expenseVat.value || 0
+vatInput.value || 0
 );
 
 if(
@@ -9193,10 +9445,10 @@ correctedVat=total;
 
 }
 
-expenseVat.value=
+vatInput.value=
 correctedVat.toFixed(2);
 
-expenseNet.value=
+netInput.value=
 Math.max(
 0,
 total-correctedVat
@@ -9206,21 +9458,21 @@ total-correctedVat
 let exp={
 
 id:
-expenseId.value
+idInput.value
 ||
 "exp_"+Date.now(),
 
 date:
-expenseDate.value,
+dateInput.value,
 
 supplier:
-expenseSupplier.value.trim(),
+supplierInput.value.trim(),
 
 category:
-expenseCategory.value,
+categoryInput.value,
 
 description:
-expenseDescription.value.trim(),
+descriptionInput.value.trim(),
 
 total:
 total,
@@ -9230,14 +9482,14 @@ correctedVat,
 
 net:
 Number(
-expenseNet.value || 0
+netInput.value || 0
 ),
 
 paymentMethod:
-expensePaymentMethod.value,
+paymentInput.value,
 
 notes:
-expenseNotes.value.trim(),
+notesInput.value.trim(),
 
 receipts:
 [
@@ -9286,7 +9538,7 @@ name
 }
 );
 
-expenseForm.classList.remove(
+form.classList.remove(
 "show"
 );
 
@@ -9313,9 +9565,18 @@ name
 }
 );
 
-expenseForm.classList.remove(
+let form=
+expenseElement(
+"expenseForm"
+);
+
+if(form){
+
+form.classList.remove(
 "show"
 );
+
+}
 
 clearExpenseReceiptTracking();
 
@@ -9370,10 +9631,27 @@ renderExpenses();
 
 function renderMonthlyExpenseCategories(){
 
-if(
-!document.getElementById(
+let listBox=
+expenseElement(
 "monthCategoryList"
-)
+);
+
+let subtitle=
+expenseElement(
+"monthCategorySubtitle"
+);
+
+let totalBox=
+expenseElement(
+"monthCategoryTotal"
+);
+
+if(
+!listBox
+||
+!subtitle
+||
+!totalBox
 ){
 
 return;
@@ -9417,7 +9695,7 @@ month+1,
 0
 );
 
-monthCategorySubtitle.innerText=
+subtitle.innerText=
 first.toLocaleDateString(
 "en-GB",
 {
@@ -9526,17 +9804,17 @@ if(
 !rows.length
 ){
 
-monthCategoryList.innerHTML=
+listBox.innerHTML=
 '<div class="empty">No expenses recorded this month.</div>';
 
-monthCategoryTotal.innerText=
+totalBox.innerText=
 "£0.00";
 
 return;
 
 }
 
-monthCategoryList.innerHTML=
+listBox.innerHTML=
 rows.map(
 category=>`
 
@@ -9585,7 +9863,7 @@ exp.total || 0
 0
 );
 
-monthCategoryTotal.innerText=
+totalBox.innerText=
 "£"
 +
 total.toFixed(2);
@@ -9594,10 +9872,34 @@ total.toFixed(2);
 
 function renderExpenseTotals(){
 
-if(
-!document.getElementById(
+let monthBox=
+expenseElement(
 "expenseMonthTotal"
-)
+);
+
+let yearBox=
+expenseElement(
+"expenseYearTotal"
+);
+
+let vatBox=
+expenseElement(
+"expenseYearVat"
+);
+
+let receiptBox=
+expenseElement(
+"expenseReceiptCount"
+);
+
+if(
+!monthBox
+||
+!yearBox
+||
+!vatBox
+||
+!receiptBox
 ){
 
 return;
@@ -9687,22 +9989,22 @@ e.receipts.length
 0
 );
 
-expenseMonthTotal.innerText=
+monthBox.innerText=
 "£"
 +
 monthTotal.toFixed(2);
 
-expenseYearTotal.innerText=
+yearBox.innerText=
 "£"
 +
 yearTotal.toFixed(2);
 
-expenseYearVat.innerText=
+vatBox.innerText=
 "£"
 +
 yearVat.toFixed(2);
 
-expenseReceiptCount.innerText=
+receiptBox.innerText=
 receiptCount;
 
 renderMonthlyExpenseCategories();
@@ -9712,6 +10014,17 @@ renderExpenseCategoryTotals();
 }
 
 function renderExpenseCategoryTotals(){
+
+let summary=
+expenseElement(
+"expenseCategorySummary"
+);
+
+if(!summary){
+
+return;
+
+}
 
 let totals={};
 
@@ -9750,7 +10063,7 @@ totals
 b[1]-a[1]
 );
 
-expenseCategorySummary.innerHTML=
+summary.innerHTML=
 entries.length
 ?
 "<strong style='color:#9bd600'>All-Time Category Totals</strong><br>"
@@ -9781,10 +10094,28 @@ function renderExpenses(){
 
 renderExpenseTotals();
 
+let searchInput=
+expenseElement(
+"expenseSearch"
+);
+
+let listBox=
+expenseElement(
+"expenseList"
+);
+
+if(!listBox){
+
+return;
+
+}
+
 let search=
 (
-expenseSearch.value
-||
+searchInput
+?
+searchInput.value
+:
 ""
 )
 .toLowerCase();
@@ -9829,14 +10160,14 @@ if(
 !list.length
 ){
 
-expenseList.innerHTML=
+listBox.innerHTML=
 '<div class="item empty">No expenses recorded yet.</div>';
 
 return;
 
 }
 
-expenseList.innerHTML=
+listBox.innerHTML=
 list.map(
 exp=>{
 
@@ -9965,8 +10296,28 @@ Delete
 
 function updateExpenseExportDates(){
 
-expenseExportDates.style.display=
-expenseExportRange.value==="custom"
+let dates=
+expenseElement(
+"expenseExportDates"
+);
+
+let range=
+expenseElement(
+"expenseExportRange"
+);
+
+if(
+!dates
+||
+!range
+){
+
+return;
+
+}
+
+dates.style.display=
+range.value==="custom"
 ?
 "grid"
 :
@@ -10033,9 +10384,26 @@ value ?? ""
 
 function getExpenseExportRange(){
 
+let rangeInput=
+expenseElement(
+"expenseExportRange"
+);
+
+let fromInput=
+expenseElement(
+"expenseExportFrom"
+);
+
+let toInput=
+expenseElement(
+"expenseExportTo"
+);
+
 let range=
-expenseExportRange.value
-||
+rangeInput
+?
+rangeInput.value || "all"
+:
 "all";
 
 if(
@@ -10105,10 +10473,18 @@ range==="custom"
 ){
 
 let from=
-expenseExportFrom.value;
+fromInput
+?
+fromInput.value
+:
+"";
 
 let to=
-expenseExportTo.value;
+toInput
+?
+toInput.value
+:
+"";
 
 if(
 !from
@@ -10157,9 +10533,16 @@ getExpenseExportRange();
 
 if(!range)return;
 
+let categoryInput=
+expenseElement(
+"expenseExportCategory"
+);
+
 let category=
-expenseExportCategory.value
-||
+categoryInput
+?
+categoryInput.value || "all"
+:
 "all";
 
 let rows=
@@ -10997,11 +11380,6 @@ next7.toFixed(2);
 
 /* MAP */
 
-/*
-BUG FIX:
-Postcodes are cached in localStorage after the first
-successful lookup, so future map refreshes are much faster.
-*/
 async function postcodeCoordinates(
 postcode
 ){
@@ -11303,12 +11681,6 @@ mapCustomers.length-bounds.length===1
 
 }
 
-/*
-BUG FIX:
-Directions are handed directly to Android.
-MainActivity will try a maps app first and fall back
-to the browser if needed.
-*/
 function openCustomerMap(id){
 
 let c=
@@ -11526,11 +11898,6 @@ q.convertedCustomerId="";
 
 }
 
-/*
-BUG FIX:
-Repair old converted quote links if the linked customer
-has since been permanently deleted.
-*/
 if(
 q.convertedCustomerId
 &&
@@ -11680,4 +12047,4 @@ initialisePinSecurity,
 </script>
 
 </body>
-   </html>
+</html>
