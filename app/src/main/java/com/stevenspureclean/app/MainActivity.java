@@ -3,6 +3,8 @@ package com.stevenspureclean.app;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 
 import android.content.Intent;
 import android.content.ClipData;
@@ -82,6 +84,18 @@ public class MainActivity extends Activity {
     private String pendingExpenseId = "";
 
     private File pendingCameraFile = null;
+
+    /*
+     * =========================================================
+     * PAYMENT REMINDER CONFIRMATION
+     * =========================================================
+     */
+
+    private boolean waitingForReminderReturn = false;
+    private boolean reminderAppActuallyOpened = false;
+
+    private String pendingReminderId = "";
+    private String pendingReminderCustomer = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -223,6 +237,157 @@ public class MainActivity extends Activity {
         );
     }
 
+    /*
+     * =========================================================
+     * REMINDER RETURN CHECK
+     * =========================================================
+     */
+
+    @Override
+    protected void onResume() {
+
+        super.onResume();
+
+        if (
+                waitingForReminderReturn
+                        &&
+                reminderAppActuallyOpened
+                        &&
+                pendingReminderId != null
+                        &&
+                !pendingReminderId.trim().isEmpty()
+        ) {
+
+            waitingForReminderReturn = false;
+
+            new Handler(
+                    Looper.getMainLooper()
+            ).postDelayed(
+                    () -> showReminderSentConfirmation(),
+                    450
+            );
+        }
+    }
+
+    private void showReminderSentConfirmation() {
+
+        if (
+                pendingReminderId == null
+                        ||
+                pendingReminderId.trim().isEmpty()
+        ) {
+            return;
+        }
+
+        String name =
+                pendingReminderCustomer == null
+                        ?
+                        ""
+                        :
+                        pendingReminderCustomer.trim();
+
+        String message =
+                name.isEmpty()
+                        ?
+                        "Did you send the payment reminder email?"
+                        :
+                        "Did you send the payment reminder to "
+                                +
+                                name
+                                +
+                                "?";
+
+        new AlertDialog.Builder(
+                this
+        )
+                .setTitle(
+                        "Payment Reminder"
+                )
+                .setMessage(
+                        message
+                )
+                .setCancelable(
+                        false
+                )
+                .setPositiveButton(
+                        "Yes, Sent",
+                        (dialog, which) -> {
+
+                            String reminderId =
+                                    pendingReminderId;
+
+                            clearPendingReminder();
+
+                            callJavascript(
+                                    "reminderConfirmedFromAndroid("
+                                            +
+                                            JSONObject.quote(
+                                                    reminderId
+                                            )
+                                            +
+                                            ");"
+                            );
+                        }
+                )
+                .setNegativeButton(
+                        "No",
+                        (dialog, which) -> {
+
+                            String reminderId =
+                                    pendingReminderId;
+
+                            clearPendingReminder();
+
+                            callJavascript(
+                                    "reminderCancelledFromAndroid("
+                                            +
+                                            JSONObject.quote(
+                                                    reminderId
+                                            )
+                                            +
+                                            ");"
+                            );
+                        }
+                )
+                .show();
+    }
+
+    private void clearPendingReminder() {
+
+        waitingForReminderReturn = false;
+        reminderAppActuallyOpened = false;
+
+        pendingReminderId = "";
+        pendingReminderCustomer = "";
+    }
+
+    private void callJavascript(
+            String javascript) {
+
+        if (
+                webView == null
+                        ||
+                javascript == null
+                        ||
+                javascript.trim().isEmpty()
+        ) {
+            return;
+        }
+
+        webView.post(
+                () -> webView.evaluateJavascript(
+                        javascript,
+                        null
+                )
+        );
+    }
+
+    /*
+     * =========================================================
+     * EXTERNAL LINKS
+     * =========================================================
+     */
+
     private boolean openExternalLink(
             String url) {
 
@@ -276,6 +441,12 @@ public class MainActivity extends Activity {
 
         return false;
     }
+
+    /*
+     * =========================================================
+     * ANDROID BRIDGE
+     * =========================================================
+     */
 
     public class AndroidBridge {
 
@@ -358,6 +529,9 @@ public class MainActivity extends Activity {
             );
         }
 
+        /*
+         * Kept for compatibility with older HTML versions.
+         */
         @JavascriptInterface
         public void sendReminder(
                 String email,
@@ -371,6 +545,7 @@ public class MainActivity extends Activity {
 
             runOnUiThread(
                     () -> reminderEmail(
+                            "",
                             email,
                             customerName,
                             invoiceNumber,
@@ -378,7 +553,56 @@ public class MainActivity extends Activity {
                             dueDate,
                             amount,
                             description,
-                            overdue
+                            overdue,
+                            false
+                    )
+            );
+        }
+
+        /*
+         * New reminder method.
+         *
+         * HTML sends the invoice ID so the reminder is only
+         * recorded after Steven confirms that it was sent.
+         */
+        @JavascriptInterface
+        public void sendReminderWithId(
+                String reminderId,
+                String email,
+                String customerName,
+                String invoiceNumber,
+                String invoiceDate,
+                String dueDate,
+                String amount,
+                String description,
+                boolean overdue) {
+
+            runOnUiThread(
+                    () -> reminderEmail(
+                            reminderId,
+                            email,
+                            customerName,
+                            invoiceNumber,
+                            invoiceDate,
+                            dueDate,
+                            amount,
+                            description,
+                            overdue,
+                            true
+                    )
+            );
+        }
+
+        /*
+         * Opens customer directions using an Android maps app.
+         */
+        @JavascriptInterface
+        public void openMapDirections(
+                String query) {
+
+            runOnUiThread(
+                    () -> openDirections(
+                            query
                     )
             );
         }
@@ -569,6 +793,111 @@ public class MainActivity extends Activity {
             );
         }
     }
+
+    /*
+     * =========================================================
+     * DIRECTIONS
+     * =========================================================
+     */
+
+    private void openDirections(
+            String query) {
+
+        if (
+                query == null
+                        ||
+                query.trim().isEmpty()
+        ) {
+
+            Toast.makeText(
+                    this,
+                    "No customer address is saved.",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            return;
+        }
+
+        String cleanQuery =
+                query.trim();
+
+        /*
+         * First try a normal Android geo intent.
+         * This lets Google Maps, Waze or another mapping app
+         * handle the address.
+         */
+        try {
+
+            Uri geoUri =
+                    Uri.parse(
+                            "geo:0,0?q="
+                                    +
+                                    Uri.encode(
+                                            cleanQuery
+                                    )
+                    );
+
+            Intent mapIntent =
+                    new Intent(
+                            Intent.ACTION_VIEW,
+                            geoUri
+                    );
+
+            if (
+                    mapIntent.resolveActivity(
+                            getPackageManager()
+                    ) != null
+            ) {
+
+                startActivity(
+                        mapIntent
+                );
+
+                return;
+            }
+
+        } catch (Exception ignored) {
+        }
+
+        /*
+         * Browser fallback.
+         */
+        try {
+
+            Uri webUri =
+                    Uri.parse(
+                            "https://www.google.com/maps/search/?api=1&query="
+                                    +
+                                    Uri.encode(
+                                            cleanQuery
+                                    )
+                    );
+
+            Intent browserIntent =
+                    new Intent(
+                            Intent.ACTION_VIEW,
+                            webUri
+                    );
+
+            startActivity(
+                    browserIntent
+            );
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not open directions.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    /*
+     * =========================================================
+     * RECEIPT FILES
+     * =========================================================
+     */
 
     private File receiptFolder() {
 
@@ -1457,7 +1786,8 @@ public class MainActivity extends Activity {
                 null
         );
     }
-        /*
+
+    /*
      * =========================================================
      * PHONE / TEXT
      * =========================================================
@@ -2141,6 +2471,11 @@ public class MainActivity extends Activity {
         }
     }
 
+    /*
+     * BUG FIX:
+     * Android only tells the HTML that the backup completed
+     * AFTER the ZIP has actually been written successfully.
+     */
     private void saveFullBackup(
             Uri uri) {
 
@@ -2153,6 +2488,13 @@ public class MainActivity extends Activity {
                             );
 
             if (rawOutput == null) {
+
+                Toast.makeText(
+                        this,
+                        "Full backup could not be saved.",
+                        Toast.LENGTH_LONG
+                ).show();
+
                 return;
             }
 
@@ -2231,6 +2573,10 @@ public class MainActivity extends Activity {
 
             backupJson = "";
 
+            callJavascript(
+                    "if(typeof backupCompletedFromAndroid==='function'){backupCompletedFromAndroid();}"
+            );
+
             Toast.makeText(
                     this,
                     "Full backup saved.",
@@ -2247,26 +2593,23 @@ public class MainActivity extends Activity {
                     Toast.LENGTH_LONG
             ).show();
         }
-    }
-
-    private void restoreFullBackup(
+        }
+        private void restoreFullBackup(
             Uri uri) {
 
         File restoreFolder =
                 new File(
                         getCacheDir(),
-                        "restore_receipts"
+                        "full_restore"
                 );
 
-        deleteFolder(
-                restoreFolder
-        );
-
-        restoreFolder.mkdirs();
-
-        String restoredJson = null;
-
         try {
+
+            deleteFolder(
+                    restoreFolder
+            );
+
+            restoreFolder.mkdirs();
 
             InputStream rawInput =
                     getContentResolver()
@@ -2275,6 +2618,13 @@ public class MainActivity extends Activity {
                             );
 
             if (rawInput == null) {
+
+                Toast.makeText(
+                        this,
+                        "Backup could not be opened.",
+                        Toast.LENGTH_LONG
+                ).show();
+
                 return;
             }
 
@@ -2285,85 +2635,105 @@ public class MainActivity extends Activity {
 
             ZipEntry entry;
 
-            byte[] buffer =
-                    new byte[8192];
+            String businessJson = null;
 
             while (
                     (entry = zip.getNextEntry()) != null
             ) {
 
-                String name =
+                String entryName =
                         entry.getName();
 
                 if (
-                        "business.json".equals(
-                                name
+                        entryName == null
+                                ||
+                        entryName.trim().isEmpty()
+                ) {
+
+                    zip.closeEntry();
+                    continue;
+                }
+
+                if (
+                        entryName.equals(
+                                "business.json"
                         )
                 ) {
 
-                    StringBuilder jsonText =
+                    StringBuilder text =
                             new StringBuilder();
 
-                    int length;
-
-                    while (
-                            (length = zip.read(buffer)) > 0
-                    ) {
-
-                        jsonText.append(
-                                new String(
-                                        buffer,
-                                        0,
-                                        length,
-                                        "UTF-8"
-                                )
-                        );
-                    }
-
-                    restoredJson =
-                            jsonText.toString();
-
-                } else if (
-                        name != null
-                                &&
-                        name.startsWith(
-                                "receipts/"
-                        )
-                                &&
-                        !entry.isDirectory()
-                ) {
-
-                    String safeName =
-                            new File(
-                                    name
-                            ).getName();
-
-                    File destination =
-                            new File(
-                                    restoreFolder,
-                                    safeName
+                    BufferedReader reader =
+                            new BufferedReader(
+                                    new InputStreamReader(
+                                            zip,
+                                            "UTF-8"
+                                    )
                             );
 
-                    FileOutputStream output =
-                            new FileOutputStream(
-                                    destination
-                            );
+                    char[] buffer =
+                            new char[4096];
 
                     int length;
 
                     while (
-                            (length = zip.read(buffer)) > 0
+                            (length = reader.read(buffer)) > 0
                     ) {
 
-                        output.write(
+                        text.append(
                                 buffer,
                                 0,
                                 length
                         );
                     }
 
-                    output.flush();
-                    output.close();
+                    businessJson =
+                            text.toString();
+
+                } else if (
+                        entryName.startsWith(
+                                "receipts/"
+                        )
+                ) {
+
+                    String fileName =
+                            new File(
+                                    entryName
+                            ).getName();
+
+                    if (
+                            !fileName.trim().isEmpty()
+                    ) {
+
+                        File destination =
+                                receiptFile(
+                                        fileName
+                                );
+
+                        FileOutputStream output =
+                                new FileOutputStream(
+                                        destination
+                                );
+
+                        byte[] buffer =
+                                new byte[8192];
+
+                        int length;
+
+                        while (
+                                (length = zip.read(buffer)) > 0
+                        ) {
+
+                            output.write(
+                                    buffer,
+                                    0,
+                                    length
+                            );
+                        }
+
+                        output.flush();
+                        output.close();
+                    }
                 }
 
                 zip.closeEntry();
@@ -2372,80 +2742,84 @@ public class MainActivity extends Activity {
             zip.close();
 
             if (
-                    restoredJson == null
+                    businessJson == null
                             ||
-                    restoredJson.trim().isEmpty()
+                    businessJson.trim().isEmpty()
             ) {
 
                 Toast.makeText(
                         this,
-                        "This backup does not contain business data.",
+                        "This does not look like a Pure Clean full backup.",
                         Toast.LENGTH_LONG
                 ).show();
-
-                deleteFolder(
-                        restoreFolder
-                );
 
                 return;
             }
 
-            File receiptFolder =
-                    receiptFolder();
+            JSONObject test =
+                    new JSONObject(
+                            businessJson
+                    );
 
-            File[] restoredReceipts =
-                    restoreFolder.listFiles();
+            if (
+                    test.optJSONArray(
+                            "customers"
+                    ) == null
+                            ||
+                    test.optJSONArray(
+                            "invoices"
+                    ) == null
+            ) {
 
-            if (restoredReceipts != null) {
+                Toast.makeText(
+                        this,
+                        "Backup business data is invalid.",
+                        Toast.LENGTH_LONG
+                ).show();
 
-                for (File restored : restoredReceipts) {
-
-                    if (
-                            restored != null
-                                    &&
-                            restored.isFile()
-                    ) {
-
-                        copyFile(
-                                restored,
-                                new File(
-                                        receiptFolder,
-                                        restored.getName()
-                                )
-                        );
-                    }
-                }
+                return;
             }
 
-            final String finalRestoredJson =
-                    restoredJson;
+            String finalBusinessJson =
+                    businessJson;
 
-            webView.evaluateJavascript(
-                    "restoreBusinessBackup("
-                            +
-                            JSONObject.quote(
-                                    finalRestoredJson
-                            )
-                            +
-                            ");",
-                    null
-            );
+            new AlertDialog.Builder(
+                    this
+            )
+                    .setTitle(
+                            "Restore Full Backup"
+                    )
+                    .setMessage(
+                            "This will replace the business data currently stored in the app.\n\nContinue?"
+                    )
+                    .setNegativeButton(
+                            "Cancel",
+                            null
+                    )
+                    .setPositiveButton(
+                            "Restore",
+                            (dialog, which) -> {
 
-            deleteFolder(
-                    restoreFolder
-            );
+                                callJavascript(
+                                        "restoreBusinessBackup("
+                                                +
+                                                JSONObject.quote(
+                                                        finalBusinessJson
+                                                )
+                                                +
+                                                ");"
+                                );
 
-            Toast.makeText(
-                    this,
-                    "Full backup restored.",
-                    Toast.LENGTH_LONG
-            ).show();
+                                Toast.makeText(
+                                        this,
+                                        "Full backup restored.",
+                                        Toast.LENGTH_LONG
+                                ).show();
+                            }
+                    )
+                    .show();
 
         } catch (Exception e) {
-
-            deleteFolder(
-                    restoreFolder
-            );
 
             Toast.makeText(
                     this,
@@ -2457,7 +2831,7 @@ public class MainActivity extends Activity {
 
     /*
      * =========================================================
-     * NORMAL BACKUP
+     * STANDARD DATA BACKUP
      * =========================================================
      */
 
@@ -2469,6 +2843,13 @@ public class MainActivity extends Activity {
                         ||
                 json.trim().isEmpty()
         ) {
+
+            Toast.makeText(
+                    this,
+                    "No data to back up.",
+                    Toast.LENGTH_LONG
+            ).show();
+
             return;
         }
 
@@ -2505,10 +2886,23 @@ public class MainActivity extends Activity {
                         ".json"
         );
 
-        startActivityForResult(
-                intent,
-                SAVE_BACKUP
-        );
+        try {
+
+            startActivityForResult(
+                    intent,
+                    SAVE_BACKUP
+            );
+
+        } catch (Exception e) {
+
+            backupJson = "";
+
+            Toast.makeText(
+                    this,
+                    "Could not open backup screen.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
     }
 
     private void startRestore() {
@@ -2523,138 +2917,23 @@ public class MainActivity extends Activity {
         );
 
         intent.setType(
-                "*/*"
+                "application/json"
         );
 
-        startActivityForResult(
-                intent,
-                RESTORE_BACKUP
-        );
-    }
+        try {
 
-    @Override
-    protected void onActivityResult(
-            int requestCode,
-            int resultCode,
-            Intent data) {
-
-        super.onActivityResult(
-                requestCode,
-                resultCode,
-                data
-        );
-
-        if (
-                requestCode
-                        ==
-                TAKE_EXPENSE_PHOTO
-        ) {
-
-            if (
-                    resultCode
-                            ==
-                    RESULT_OK
-            ) {
-
-                File savedReceipt =
-                        saveCameraReceipt();
-
-                if (
-                        savedReceipt != null
-                ) {
-
-                    notifyExpenseReceiptSaved(
-                            pendingExpenseId,
-                            savedReceipt.getName()
-                    );
-                }
-            }
-
-            if (
-                    pendingCameraFile != null
-                            &&
-                    pendingCameraFile.exists()
-            ) {
-
-                pendingCameraFile.delete();
-            }
-
-            pendingCameraFile = null;
-            pendingExpenseId = "";
-
-            return;
-        }
-
-        if (
-                requestCode
-                        ==
-                CHOOSE_EXPENSE_PHOTO
-        ) {
-
-            if (
-                    resultCode
-                            ==
-                    RESULT_OK
-                            &&
-                    data != null
-                            &&
-                    data.getData() != null
-            ) {
-
-                saveChosenExpensePhoto(
-                        data.getData()
-                );
-            }
-
-            pendingExpenseId = "";
-
-            return;
-        }
-
-        if (
-                resultCode != RESULT_OK
-                        ||
-                data == null
-                        ||
-                data.getData() == null
-        ) {
-            return;
-        }
-
-        Uri uri =
-                data.getData();
-
-        if (
-                requestCode == SAVE_BACKUP
-        ) {
-
-            saveBackup(
-                    uri
+            startActivityForResult(
+                    intent,
+                    RESTORE_BACKUP
             );
 
-        } else if (
-                requestCode == RESTORE_BACKUP
-        ) {
+        } catch (Exception e) {
 
-            loadBackup(
-                    uri
-            );
-
-        } else if (
-                requestCode == SAVE_FULL_BACKUP
-        ) {
-
-            saveFullBackup(
-                    uri
-            );
-
-        } else if (
-                requestCode == RESTORE_FULL_BACKUP
-        ) {
-
-            restoreFullBackup(
-                    uri
-            );
+            Toast.makeText(
+                    this,
+                    "Could not open restore screen.",
+                    Toast.LENGTH_LONG
+            ).show();
         }
     }
 
@@ -2670,6 +2949,13 @@ public class MainActivity extends Activity {
                             );
 
             if (output == null) {
+
+                Toast.makeText(
+                        this,
+                        "Backup could not be saved.",
+                        Toast.LENGTH_LONG
+                ).show();
+
                 return;
             }
 
@@ -2679,15 +2965,30 @@ public class MainActivity extends Activity {
                     )
             );
 
+            output.flush();
             output.close();
 
             backupJson = "";
 
-        } catch (Exception ignored) {
+            Toast.makeText(
+                    this,
+                    "Backup saved.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+        } catch (Exception e) {
+
+            backupJson = "";
+
+            Toast.makeText(
+                    this,
+                    "Backup could not be saved.",
+                    Toast.LENGTH_LONG
+            ).show();
         }
     }
 
-    private void loadBackup(
+    private void restoreBackup(
             Uri uri) {
 
         try {
@@ -2710,7 +3011,7 @@ public class MainActivity extends Activity {
                             )
                     );
 
-            StringBuilder text =
+            StringBuilder builder =
                     new StringBuilder();
 
             String line;
@@ -2719,33 +3020,2518 @@ public class MainActivity extends Activity {
                     (line = reader.readLine()) != null
             ) {
 
-                text.append(
+                builder.append(
                         line
+                );
+
+                builder.append(
+                        "\n"
                 );
             }
 
             reader.close();
+            input.close();
 
             String json =
-                    text.toString();
+                    builder.toString();
 
-            String javascript =
+            new JSONObject(
+                    json
+            );
+
+            callJavascript(
                     "restoreBusinessBackup("
                             +
                             JSONObject.quote(
                                     json
                             )
                             +
-                            ");";
-
-            webView.evaluateJavascript(
-                    javascript,
-                    null
+                            ");"
             );
 
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Backup could not be restored.",
+                    Toast.LENGTH_LONG
+            ).show();
         }
     }
+
+    /*
+     * =========================================================
+     * ACTIVITY RESULTS
+     * =========================================================
+     */
+
+    @Override
+    protected void onActivityResult(
+            int requestCode,
+            int resultCode,
+            Intent data) {
+
+        super.onActivityResult(
+                requestCode,
+                resultCode,
+                data
+        );
+
+        /*
+         * Camera receipt
+         */
+        if (
+                requestCode
+                        ==
+                TAKE_EXPENSE_PHOTO
+        ) {
+
+            if (
+                    resultCode
+                            ==
+                    RESULT_OK
+            ) {
+
+                File saved =
+                        saveCameraReceipt();
+
+                if (saved != null) {
+
+                    notifyExpenseReceiptSaved(
+                            pendingExpenseId,
+                            saved.getName()
+                    );
+                }
+            }
+
+            if (
+                    pendingCameraFile != null
+                            &&
+                    pendingCameraFile.exists()
+            ) {
+
+                pendingCameraFile.delete();
+            }
+
+            pendingCameraFile = null;
+            pendingExpenseId = "";
+
+            return;
+        }
+
+        /*
+         * Existing receipt photo
+         */
+        if (
+                requestCode
+                        ==
+                CHOOSE_EXPENSE_PHOTO
+        ) {
+
+            if (
+                    resultCode
+                            ==
+                    RESULT_OK
+                    &&
+                    data != null
+                    &&
+                    data.getData() != null
+            ) {
+
+                saveChosenExpensePhoto(
+                        data.getData()
+                );
+            }
+
+            pendingExpenseId = "";
+
+            return;
+        }
+
+        /*
+         * BUG FIX:
+         * If Full Backup Save is cancelled,
+         * throw away the pending JSON rather than leaving it
+         * hanging around for a future backup.
+         */
+        if (
+                requestCode
+                        ==
+                SAVE_FULL_BACKUP
+                &&
+                resultCode
+                        !=
+                RESULT_OK
+        ) {
+
+            backupJson = "";
+            return;
+        }
+
+        if (
+                resultCode
+                        !=
+                RESULT_OK
+                ||
+                data == null
+                ||
+                data.getData() == null
+        ) {
+
+            return;
+        }
+
+        Uri uri =
+                data.getData();
+
+        if (
+                requestCode
+                        ==
+                SAVE_BACKUP
+        ) {
+
+            saveBackup(
+                    uri
+            );
+
+        } else if (
+                requestCode
+                        ==
+                RESTORE_BACKUP
+        ) {
+
+            restoreBackup(
+                    uri
+            );
+
+        } else if (
+                requestCode
+                        ==
+                SAVE_FULL_BACKUP
+        ) {
+
+            saveFullBackup(
+                    uri
+            );
+
+        } else if (
+                requestCode
+                        ==
+                RESTORE_FULL_BACKUP
+        ) {
+
+            restoreFullBackup(
+                    uri
+            );
+        }
+    }
+
+    /*
+     * =========================================================
+     * PAYMENT REMINDER EMAIL
+     * =========================================================
+     */
+
+    private void reminderEmail(
+            String reminderId,
+            String email,
+            String customerName,
+            String invoiceNumber,
+            String invoiceDate,
+            String dueDate,
+            String amount,
+            String description,
+            boolean overdue,
+            boolean requireConfirmation) {
+
+        if (
+                email == null
+                        ||
+                email.trim().isEmpty()
+                        ||
+                !Patterns.EMAIL_ADDRESS
+                        .matcher(
+                                email.trim()
+                        )
+                        .matches()
+        ) {
+
+            Toast.makeText(
+                    this,
+                    "Customer email address is missing or invalid.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            if (requireConfirmation) {
+
+                callJavascript(
+                        "reminderCancelledFromAndroid("
+                                +
+                                JSONObject.quote(
+                                        reminderId
+                                )
+                                +
+                                ");"
+                );
+            }
+
+            return;
+        }
+
+        String subject =
+                overdue
+                        ?
+                        "Payment Reminder - Invoice #"
+                                +
+                                invoiceNumber
+                        :
+                        "Invoice Reminder - Invoice #"
+                                +
+                                invoiceNumber;
+
+        String firstName =
+                customerName == null
+                        ?
+                        ""
+                        :
+                        customerName.trim();
+
+        if (
+                firstName.contains(
+                        " "
+                )
+        ) {
+
+            firstName =
+                    firstName.substring(
+                            0,
+                            firstName.indexOf(
+                                    " "
+                            )
+                    );
+        }
+
+        StringBuilder body =
+                new StringBuilder();
+
+        body.append(
+                "Hi"
+        );
+
+        if (
+                !firstName.isEmpty()
+        ) {
+
+            body.append(
+                    " "
+            );
+
+            body.append(
+                    firstName
+            );
+        }
+
+        body.append(
+                ",\n\n"
+        );
+
+        if (overdue) {
+
+            body.append(
+                    "Just a friendly reminder that payment for the following invoice is now overdue."
+            );
+
+        } else {
+
+            body.append(
+                    "Just a friendly reminder regarding the following unpaid invoice."
+            );
+        }
+
+        body.append(
+                "\n\nInvoice #"
+        );
+
+        body.append(
+                invoiceNumber
+        );
+
+        if (
+                invoiceDate != null
+                        &&
+                !invoiceDate.trim().isEmpty()
+        ) {
+
+            body.append(
+                    "\nInvoice date: "
+            );
+
+            body.append(
+                    invoiceDate
+            );
+        }
+
+        if (
+                dueDate != null
+                        &&
+                !dueDate.trim().isEmpty()
+        ) {
+
+            body.append(
+                    "\nDue date: "
+            );
+
+            body.append(
+                    dueDate
+            );
+        }
+
+        body.append(
+                "\nAmount: £"
+        );
+
+        body.append(
+                cleanMoney(
+                        amount
+                )
+        );
+
+        if (
+                description != null
+                        &&
+                !description.trim().isEmpty()
+        ) {
+
+            body.append(
+                    "\n"
+            );
+
+            body.append(
+                    description.trim()
+            );
+        }
+
+        body.append(
+                "\n\nPlease make payment as soon as convenient."
+        );
+
+        body.append(
+                "\n\nMany thanks,\nSteven's Pure Clean Exteriors"
+        );
+
+        try {
+
+            Uri uri =
+                    Uri.parse(
+                            "mailto:"
+                                    +
+                                    Uri.encode(
+                                            email.trim()
+                                    )
+                    );
+
+            Intent intent =
+                    new Intent(
+                            Intent.ACTION_VIEW,
+                            uri
+                    );
+
+            intent.putExtra(
+                    Intent.EXTRA_SUBJECT,
+                    subject
+            );
+
+            intent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    body.toString()
+            );
+
+            if (
+                    intent.resolveActivity(
+                            getPackageManager()
+                    ) == null
+            ) {
+
+                Toast.makeText(
+                        this,
+                        "No email app was found.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                if (requireConfirmation) {
+
+                    callJavascript(
+                            "reminderCancelledFromAndroid("
+                                    +
+                                    JSONObject.quote(
+                                            reminderId
+                                    )
+                                    +
+                                    ");"
+                    );
+                }
+
+                return;
+            }
+
+            if (requireConfirmation) {
+
+                pendingReminderId =
+                        reminderId == null
+                                ?
+                                ""
+                                :
+                                reminderId;
+
+                pendingReminderCustomer =
+                        customerName == null
+                                ?
+                                ""
+                                :
+                                customerName;
+
+                waitingForReminderReturn =
+                        true;
+
+                reminderAppActuallyOpened =
+                        true;
+            }
+
+            startActivity(
+                    intent
+            );
+
+        } catch (Exception e) {
+
+            clearPendingReminder();
+
+            Toast.makeText(
+                    this,
+                    "Could not open the email app.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            if (requireConfirmation) {
+
+                callJavascript(
+                        "reminderCancelledFromAndroid("
+                                +
+                                JSONObject.quote(
+                                        reminderId
+                                )
+                                +
+                                ");"
+                );
+            }
+        }
+    }
+
+    /*
+     * =========================================================
+     * QUOTE EMAIL
+     * =========================================================
+     */
+
+    private void emailQuote(
+            String email,
+            String customerName,
+            String customerAddress,
+            String customerPostcode,
+            String quoteNumber,
+            String quoteDate,
+            String amount,
+            String description,
+            String notes) {
+
+        if (
+                email == null
+                        ||
+                email.trim().isEmpty()
+                        ||
+                !Patterns.EMAIL_ADDRESS
+                        .matcher(
+                                email.trim()
+                        )
+                        .matches()
+        ) {
+
+            Toast.makeText(
+                    this,
+                    "Quote email address is missing or invalid.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
+        try {
+
+            File pdf =
+                    createQuotePdf(
+                            customerName,
+                            customerAddress,
+                            customerPostcode,
+                            quoteNumber,
+                            quoteDate,
+                            amount,
+                            description,
+                            notes
+                    );
+
+            if (
+                    pdf == null
+                            ||
+                    !pdf.exists()
+            ) {
+
+                Toast.makeText(
+                        this,
+                        "Quote PDF could not be created.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+            Uri pdfUri =
+                    FileProvider.getUriForFile(
+                            this,
+                            getPackageName()
+                                    +
+                                    ".fileprovider",
+                            pdf
+                    );
+
+            Intent intent =
+                    new Intent(
+                            Intent.ACTION_SEND
+                    );
+
+            intent.setType(
+                    "application/pdf"
+            );
+
+            intent.putExtra(
+                    Intent.EXTRA_EMAIL,
+                    new String[]{
+                            email.trim()
+                    }
+            );
+
+            intent.putExtra(
+                    Intent.EXTRA_SUBJECT,
+                    "Quote Q"
+                            +
+                            quoteNumber
+                            +
+                            " - Steven's Pure Clean Exteriors"
+            );
+
+            String body =
+                    "Hi "
+                            +
+                            safePersonName(
+                                    customerName
+                            )
+                            +
+                            ",\n\n"
+                            +
+                            "Please find your quote attached.\n\n"
+                            +
+                            "Quote total: £"
+                            +
+                            cleanMoney(
+                                    amount
+                            )
+                            +
+                            "\n\n"
+                            +
+                            "This quote is valid for 30 days."
+                            +
+                            "\n\n"
+                            +
+                            "Many thanks,\n"
+                            +
+                            "Steven's Pure Clean Exteriors";
+
+            intent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    body
+            );
+
+            intent.putExtra(
+                    Intent.EXTRA_STREAM,
+                    pdfUri
+            );
+
+            intent.setClipData(
+                    ClipData.newRawUri(
+                            "Quote PDF",
+                            pdfUri
+                    )
+            );
+
+            intent.addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+            );
+
+            startActivity(
+                    Intent.createChooser(
+                            intent,
+                            "Email Quote"
+                    )
+            );
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not open quote email.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    private File createQuotePdf(
+            String customerName,
+            String customerAddress,
+            String customerPostcode,
+            String quoteNumber,
+            String quoteDate,
+            String amount,
+            String description,
+            String notes) {
+
+        PdfDocument document =
+                new PdfDocument();
+
+        try {
+
+            File folder =
+                    new File(
+                            getCacheDir(),
+                            "quotes"
+                    );
+
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+
+            File[] oldFiles =
+                    folder.listFiles();
+
+            if (oldFiles != null) {
+
+                for (File old : oldFiles) {
+
+                    if (
+                            old != null
+                                    &&
+                            old.isFile()
+                                    &&
+                            old.getName()
+                                    .startsWith(
+                                            "PureClean-Quote-"
+                                    )
+                    ) {
+
+                        old.delete();
+                    }
+                }
+            }
+
+            File outputFile =
+                    new File(
+                            folder,
+                            "PureClean-Quote-"
+                                    +
+                                    cleanFilePart(
+                                            quoteNumber
+                                    )
+                                    +
+                                    "-"
+                                    +
+                                    System.currentTimeMillis()
+                                    +
+                                    ".pdf"
+                    );
+
+            PdfDocument.PageInfo pageInfo =
+                    new PdfDocument.PageInfo.Builder(
+                            595,
+                            842,
+                            1
+                    )
+                            .create();
+
+            PdfDocument.Page page =
+                    document.startPage(
+                            pageInfo
+                    );
+
+            Canvas canvas =
+                    page.getCanvas();
+
+            Paint paint =
+                    new Paint(
+                            Paint.ANTI_ALIAS_FLAG
+                    );
+
+            /*
+             * Black top banner
+             */
+            paint.setColor(
+                    Color.rgb(
+                            8,
+                            8,
+                            8
+                    )
+            );
+
+            canvas.drawRect(
+                    0,
+                    0,
+                    595,
+                    180,
+                    paint
+            );
+
+            Bitmap logo =
+                    loadCompanyLogo();
+
+            if (logo != null) {
+
+                RectF logoRect =
+                        new RectF(
+                                34,
+                                28,
+                                144,
+                                138
+                        );
+
+                canvas.drawBitmap(
+                        logo,
+                        null,
+                        logoRect,
+                        paint
+                );
+            }
+
+            paint.setColor(
+                    Color.rgb(
+                            155,
+                            214,
+                            0
+                    )
+            );
+
+            paint.setTextSize(
+                    24
+            );
+
+            paint.setFakeBoldText(
+                    true
+            );
+
+            canvas.drawText(
+                    "STEVEN'S PURE CLEAN",
+                    165,
+                    62,
+                    paint
+            );
+
+            canvas.drawText(
+                    "EXTERIORS",
+                    165,
+                    91,
+                    paint
+            );
+
+            paint.setTextSize(
+                    12
+            );
+
+            paint.setFakeBoldText(
+                    false
+            );
+
+            canvas.drawText(
+                    "Pure Results • Clean Exteriors",
+                    165,
+                    117,
+                    paint
+            );
+
+            paint.setColor(
+                    Color.WHITE
+            );
+
+            paint.setTextSize(
+                    28
+            );
+
+            paint.setFakeBoldText(
+                    true
+            );
+
+            canvas.drawText(
+                    "QUOTE",
+                    432,
+                    155,
+                    paint
+            );
+
+            paint.setFakeBoldText(
+                    false
+            );
+
+            /*
+             * Quote details
+             */
+            paint.setColor(
+                    Color.rgb(
+                            35,
+                            35,
+                            35
+                    )
+            );
+
+            paint.setTextSize(
+                    11
+            );
+
+            canvas.drawText(
+                    "Quote Number",
+                    36,
+                    213,
+                    paint
+            );
+
+            canvas.drawText(
+                    "Quote Date",
+                    210,
+                    213,
+                    paint
+            );
+
+            canvas.drawText(
+                    "Valid For",
+                    380,
+                    213,
+                    paint
+            );
+
+            paint.setTextSize(
+                    14
+            );
+
+            paint.setFakeBoldText(
+                    true
+            );
+
+            canvas.drawText(
+                    "Q"
+                            +
+                            safePdfText(
+                                    quoteNumber
+                            ),
+                    36,
+                    235,
+                    paint
+            );
+
+            canvas.drawText(
+                    safePdfText(
+                            quoteDate
+                    ),
+                    210,
+                    235,
+                    paint
+            );
+
+            canvas.drawText(
+                    "30 days",
+                    380,
+                    235,
+                    paint
+            );
+
+            paint.setFakeBoldText(
+                    false
+            );
+
+            /*
+             * Customer
+             */
+            paint.setColor(
+                    Color.rgb(
+                            155,
+                            214,
+                            0
+                    )
+            );
+
+            paint.setTextSize(
+                    14
+            );
+
+            paint.setFakeBoldText(
+                    true
+            );
+
+            canvas.drawText(
+                    "QUOTE FOR",
+                    36,
+                    284,
+                    paint
+            );
+
+            paint.setColor(
+                    Color.rgb(
+                            25,
+                            25,
+                            25
+                    )
+            );
+
+            paint.setTextSize(
+                    14
+            );
+
+            canvas.drawText(
+                    safePdfText(
+                            customerName
+                    ),
+                    36,
+                    310,
+                    paint
+            );
+
+            paint.setFakeBoldText(
+                    false
+            );
+
+            paint.setTextSize(
+                    12
+            );
+
+            int customerY =
+                    332;
+
+            if (
+                    customerAddress != null
+                            &&
+                    !customerAddress.trim().isEmpty()
+            ) {
+
+                canvas.drawText(
+                        safePdfText(
+                                customerAddress
+                        ),
+                        36,
+                        customerY,
+                        paint
+                );
+
+                customerY +=
+                        20;
+            }
+
+            if (
+                    customerPostcode != null
+                            &&
+                    !customerPostcode.trim().isEmpty()
+            ) {
+
+                canvas.drawText(
+                        safePdfText(
+                                customerPostcode
+                        ),
+                        36,
+                        customerY,
+                        paint
+                );
+            }
+
+            /*
+             * Services table
+             */
+            int tableTop =
+                    386;
+
+            paint.setColor(
+                    Color.rgb(
+                            20,
+                            20,
+                            20
+                    )
+            );
+
+            canvas.drawRect(
+                    36,
+                    tableTop,
+                    559,
+                    tableTop + 34,
+                    paint
+            );
+
+            paint.setColor(
+                    Color.rgb(
+                            155,
+                            214,
+                            0
+                    )
+            );
+
+            paint.setTextSize(
+                    12
+            );
+
+            paint.setFakeBoldText(
+                    true
+            );
+
+            canvas.drawText(
+                    "SERVICE",
+                    50,
+                    tableTop + 22,
+                    paint
+            );
+
+            canvas.drawText(
+                    "PRICE",
+                    484,
+                    tableTop + 22,
+                    paint
+            );
+
+            paint.setFakeBoldText(
+                    false
+            );
+
+            int lineY =
+                    448;
+
+            String[] lines =
+                    (
+                            description == null
+                                    ?
+                                    ""
+                                    :
+                                    description
+                    )
+                            .split(
+                                    "\\r?\\n"
+                            );
+
+            paint.setTextSize(
+                    12
+            );
+
+            for (String line : lines) {
+
+                if (
+                        line == null
+                                ||
+                        line.trim().isEmpty()
+                ) {
+                    continue;
+                }
+
+                String service =
+                        line.trim();
+
+                String price =
+                        "";
+
+                int separator =
+                        service.lastIndexOf(
+                                " - £"
+                        );
+
+                if (separator >= 0) {
+
+                    price =
+                            service.substring(
+                                    separator + 4
+                            )
+                                    .trim();
+
+                    service =
+                            service.substring(
+                                    0,
+                                    separator
+                            )
+                                    .trim();
+                }
+
+                paint.setColor(
+                        Color.rgb(
+                                35,
+                                35,
+                                35
+                        )
+                );
+
+                canvas.drawText(
+                        safePdfText(
+                                service
+                        ),
+                        50,
+                        lineY,
+                        paint
+                );
+
+                if (!price.isEmpty()) {
+
+                    paint.setFakeBoldText(
+                            true
+                    );
+
+                    canvas.drawText(
+                            "£"
+                                    +
+                                    cleanMoney(
+                                            price
+                                    ),
+                            484,
+                            lineY,
+                            paint
+                    );
+
+                    paint.setFakeBoldText(
+                            false
+                    );
+                }
+
+                paint.setColor(
+                        Color.rgb(
+                                220,
+                                220,
+                                220
+                        )
+                );
+
+                canvas.drawLine(
+                        42,
+                        lineY + 10,
+                        553,
+                        lineY + 10,
+                        paint
+                );
+
+                lineY +=
+                        22;
+
+                /*
+                 * Fits six service rows on the existing PDF.
+                 */
+                if (lineY > 580) {
+                    break;
+                }
+            }
+
+            /*
+             * Total
+             */
+            int totalTop =
+                    Math.max(
+                            lineY + 18,
+                            612
+                    );
+
+            paint.setColor(
+                    Color.rgb(
+                            240,
+                            240,
+                            240
+                    )
+            );
+
+            canvas.drawRoundRect(
+                    new RectF(
+                            338,
+                            totalTop,
+                            559,
+                            totalTop + 60
+                    ),
+                    8,
+                    8,
+                    paint
+            );
+
+            paint.setColor(
+                    Color.rgb(
+                            40,
+                            40,
+                            40
+                    )
+            );
+
+            paint.setTextSize(
+                    13
+            );
+
+            paint.setFakeBoldText(
+                    true
+            );
+
+            canvas.drawText(
+                    "TOTAL",
+                    357,
+                    totalTop + 25,
+                    paint
+            );
+
+            paint.setColor(
+                    Color.rgb(
+                            72,
+                            145,
+                            34
+                    )
+            );
+
+            paint.setTextSize(
+                    20
+            );
+
+            canvas.drawText(
+                    "£"
+                            +
+                            cleanMoney(
+                                    amount
+                            ),
+                    445,
+                    totalTop + 38,
+                    paint
+            );
+
+            paint.setFakeBoldText(
+                    false
+            );
+
+            /*
+             * Notes
+             */
+            if (
+                    notes != null
+                            &&
+                    !notes.trim().isEmpty()
+            ) {
+
+                paint.setColor(
+                        Color.rgb(
+                                45,
+                                45,
+                                45
+                        )
+                );
+
+                paint.setTextSize(
+                        11
+                );
+
+                paint.setFakeBoldText(
+                        true
+                );
+
+                canvas.drawText(
+                        "NOTES",
+                        36,
+                        704,
+                        paint
+                );
+
+                paint.setFakeBoldText(
+                        false
+                );
+
+                drawWrappedText(
+                        canvas,
+                        paint,
+                        notes,
+                        36,
+                        725,
+                        500,
+                        14,
+                        3
+                );
+            }
+
+            /*
+             * Footer
+             */
+            paint.setColor(
+                    Color.rgb(
+                            155,
+                            214,
+                            0
+                    )
+            );
+
+            canvas.drawRect(
+                    0,
+                    792,
+                    595,
+                    842,
+                    paint
+            );
+
+            paint.setColor(
+                    Color.BLACK
+            );
+
+            paint.setTextSize(
+                    11
+            );
+
+            paint.setFakeBoldText(
+                    true
+            );
+
+            canvas.drawText(
+                    "Steven's Pure Clean Exteriors",
+                    36,
+                    817,
+                    paint
+            );
+
+            paint.setFakeBoldText(
+                    false
+            );
+
+            paint.setTextSize(
+                    9
+            );
+
+            canvas.drawText(
+                    "Thank you for the opportunity to provide this quote.",
+                    36,
+                    833,
+                    paint
+            );
+
+            document.finishPage(
+                    page
+            );
+
+            FileOutputStream output =
+                    new FileOutputStream(
+                            outputFile
+                    );
+
+            document.writeTo(
+                    output
+            );
+
+            output.flush();
+            output.close();
+
+            document.close();
+
+            return outputFile;
+
+        } catch (Exception e) {
+
+            try {
+                document.close();
+            } catch (Exception ignored) {
+            }
+
+            return null;
+        }
+    }
+
+    /*
+     * =========================================================
+     * INVOICE EMAIL
+     * =========================================================
+     */
+
+    private void emailInvoice(
+            String email,
+            String customerName,
+            String customerAddress,
+            String customerPostcode,
+            String invoiceNumber,
+            String invoiceDate,
+            String dueDate,
+            String amount,
+            String description) {
+
+        if (
+                email == null
+                        ||
+                email.trim().isEmpty()
+                        ||
+                !Patterns.EMAIL_ADDRESS
+                        .matcher(
+                                email.trim()
+                        )
+                        .matches()
+        ) {
+
+            Toast.makeText(
+                    this,
+                    "Customer email address is missing or invalid.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
+        try {
+
+            File pdf =
+                    createInvoicePdf(
+                            customerName,
+                            customerAddress,
+                            customerPostcode,
+                            invoiceNumber,
+                            invoiceDate,
+                            dueDate,
+                            amount,
+                            description
+                    );
+
+            if (
+                    pdf == null
+                            ||
+                    !pdf.exists()
+            ) {
+
+                Toast.makeText(
+                        this,
+                        "Invoice PDF could not be created.",
+                        Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+
+            Uri pdfUri =
+                    FileProvider.getUriForFile(
+                            this,
+                            getPackageName()
+                                    +
+                                    ".fileprovider",
+                            pdf
+                    );
+
+            Intent intent =
+                    new Intent(
+                            Intent.ACTION_SEND
+                    );
+
+            intent.setType(
+                    "application/pdf"
+            );
+
+            intent.putExtra(
+                    Intent.EXTRA_EMAIL,
+                    new String[]{
+                            email.trim()
+                    }
+            );
+
+            intent.putExtra(
+                    Intent.EXTRA_SUBJECT,
+                    "Invoice #"
+                            +
+                            invoiceNumber
+                            +
+                            " - Steven's Pure Clean Exteriors"
+            );
+
+            String body =
+                    "Hi "
+                            +
+                            safePersonName(
+                                    customerName
+                            )
+                            +
+                            ",\n\n"
+                            +
+                            "Please find your invoice attached."
+                            +
+                            "\n\n"
+                            +
+                            "Amount due: £"
+                            +
+                            cleanMoney(
+                                    amount
+                            )
+                            +
+                            "\n"
+                            +
+                            "Please make payment within 7 days."
+                            +
+                            "\n\n"
+                            +
+                            "Many thanks,\n"
+                            +
+                            "Steven's Pure Clean Exteriors";
+
+            intent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    body
+            );
+
+            intent.putExtra(
+                    Intent.EXTRA_STREAM,
+                    pdfUri
+            );
+
+            intent.setClipData(
+                    ClipData.newRawUri(
+                            "Invoice PDF",
+                            pdfUri
+                    )
+            );
+
+            intent.addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+            );
+
+            startActivity(
+                    Intent.createChooser(
+                            intent,
+                            "Email Invoice"
+                    )
+            );
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Could not open invoice email.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    private File createInvoicePdf(
+            String customerName,
+            String customerAddress,
+            String customerPostcode,
+            String invoiceNumber,
+            String invoiceDate,
+            String dueDate,
+            String amount,
+            String description) {
+
+        PdfDocument document =
+                new PdfDocument();
+
+        try {
+
+            File folder =
+                    new File(
+                            getCacheDir(),
+                            "invoices"
+                    );
+
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+
+            /*
+             * Remove old temporary invoice PDFs so Samsung/Gmail
+             * does not accidentally show a stale version.
+             */
+            File[] oldFiles =
+                    folder.listFiles();
+
+            if (oldFiles != null) {
+
+                for (File old : oldFiles) {
+
+                    if (
+                            old != null
+                                    &&
+                            old.isFile()
+                                    &&
+                            old.getName()
+                                    .startsWith(
+                                            "PureClean-Invoice-"
+                                    )
+                    ) {
+
+                        old.delete();
+                    }
+                }
+            }
+
+            File outputFile =
+                    new File(
+                            folder,
+                            "PureClean-Invoice-"
+                                    +
+                                    cleanFilePart(
+                                            invoiceNumber
+                                    )
+                                    +
+                                    "-"
+                                    +
+                                    System.currentTimeMillis()
+                                    +
+                                    ".pdf"
+                    );
+
+            PdfDocument.PageInfo pageInfo =
+                    new PdfDocument.PageInfo.Builder(
+                            595,
+                            842,
+                            1
+                    )
+                            .create();
+
+            PdfDocument.Page page =
+                    document.startPage(
+                            pageInfo
+                    );
+
+            Canvas canvas =
+                    page.getCanvas();
+
+            Paint paint =
+                    new Paint(
+                            Paint.ANTI_ALIAS_FLAG
+                    );
+
+            /*
+             * Header
+             */
+            paint.setColor(
+                    Color.rgb(
+                            8,
+                            8,
+                            8
+                    )
+            );
+
+            canvas.drawRect(
+                    0,
+                    0,
+                    595,
+                    180,
+                    paint
+            );
+
+            Bitmap logo =
+                    loadCompanyLogo();
+
+            if (logo != null) {
+
+                canvas.drawBitmap(
+                        logo,
+                        null,
+                        new RectF(
+                                34,
+                                28,
+                                144,
+                                138
+                        ),
+                        paint
+                );
+            }
+
+            paint.setColor(
+                    Color.rgb(
+                            155,
+                            214,
+                            0
+                    )
+            );
+
+            paint.setTextSize(
+                    24
+            );
+
+            paint.setFakeBoldText(
+                    true
+            );
+
+            canvas.drawText(
+                    "STEVEN'S PURE CLEAN",
+                    165,
+                    62,
+                    paint
+            );
+
+            canvas.drawText(
+                    "EXTERIORS",
+                    165,
+                    91,
+                    paint
+            );
+
+            paint.setTextSize(
+                    12
+            );
+
+            paint.setFakeBoldText(
+                    false
+            );
+
+            canvas.drawText(
+                    "Pure Results • Clean Exteriors",
+                    165,
+                    117,
+                    paint
+            );
+
+            paint.setColor(
+                    Color.WHITE
+            );
+
+            paint.setTextSize(
+                    28
+            );
+
+            paint.setFakeBoldText(
+                    true
+            );
+
+            canvas.drawText(
+                    "INVOICE",
+                    405,
+                    155,
+                    paint
+            );
+
+            /*
+             * Invoice data
+             */
+            paint.setColor(
+                    Color.rgb(
+                            35,
+                            35,
+                            35
+                    )
+            );
+
+            paint.setTextSize(
+                    11
+            );
+
+            paint.setFakeBoldText(
+                    false
+            );
+
+            canvas.drawText(
+                    "Invoice Number",
+                    36,
+                    213,
+                    paint
+            );
+
+            canvas.drawText(
+                    "Invoice Date",
+                    210,
+                    213,
+                    paint
+            );
+
+            canvas.drawText(
+                    "Due Date",
+                    380,
+                    213,
+                    paint
+            );
+
+            paint.setTextSize(
+                    14
+            );
+
+            paint.setFakeBoldText(
+                    true
+            );
+
+            canvas.drawText(
+                    "#"
+                            +
+                            safePdfText(
+                                    invoiceNumber
+                            ),
+                    36,
+                    235,
+                    paint
+            );
+
+            canvas.drawText(
+                    safePdfText(
+                            invoiceDate
+                    ),
+                    210,
+                    235,
+                    paint
+            );
+
+            canvas.drawText(
+                    safePdfText(
+                            dueDate
+                    ),
+                    380,
+                    235,
+                    paint
+            );
+
+            /*
+             * Bill to
+             */
+            paint.setColor(
+                    Color.rgb(
+                            155,
+                            214,
+                            0
+                    )
+            );
+
+            paint.setTextSize(
+                    14
+            );
+
+            canvas.drawText(
+                    "BILL TO",
+                    36,
+                    284,
+                    paint
+            );
+
+            paint.setColor(
+                    Color.rgb(
+                            30,
+                            30,
+                            30
+                    )
+            );
+
+            paint.setTextSize(
+                    14
+            );
+
+            canvas.drawText(
+                    safePdfText(
+                            customerName
+                    ),
+                    36,
+                    310,
+                    paint
+            );
+
+            paint.setTextSize(
+                    12
+            );
+
+            paint.setFakeBoldText(
+                    false
+            );
+
+            int y =
+                    332;
+
+            if (
+                    customerAddress != null
+                            &&
+                    !customerAddress.trim().isEmpty()
+            ) {
+
+                canvas.drawText(
+                        safePdfText(
+                                customerAddress
+                        ),
+                        36,
+                        y,
+                        paint
+                );
+
+                y +=
+                        20;
+            }
+
+            if (
+                    customerPostcode != null
+                            &&
+                    !customerPostcode.trim().isEmpty()
+            ) {
+
+                canvas.drawText(
+                        safePdfText(
+                                customerPostcode
+                        ),
+                        36,
+                        y,
+                        paint
+                );
+            }
+
+            /*
+             * Invoice table
+             */
+            paint.setColor(
+                    Color.rgb(
+                            20,
+                            20,
+                            20
+                    )
+            );
+
+            canvas.drawRect(
+                    36,
+                    386,
+                    559,
+                    420,
+                    paint
+            );
+
+            paint.setColor(
+                    Color.rgb(
+                            155,
+                            214,
+                            0
+                    )
+            );
+
+            paint.setTextSize(
+                    12
+            );
+
+            paint.setFakeBoldText(
+                    true
+            );
+
+            canvas.drawText(
+                    "DESCRIPTION",
+                    50,
+                    408,
+                    paint
+            );
+
+            canvas.drawText(
+                    "AMOUNT",
+                    474,
+                    408,
+                    paint
+            );
+
+            paint.setColor(
+                    Color.rgb(
+                            35,
+                            35,
+                            35
+                    )
+            );
+
+            paint.setFakeBoldText(
+                    false
+            );
+
+            paint.setTextSize(
+                    12
+            );
+
+            String invoiceDescription =
+                    description == null
+                            ||
+                    description.trim().isEmpty()
+                            ?
+                            "Exterior Cleaning Service"
+                            :
+                            description.trim();
+
+            drawWrappedText(
+                    canvas,
+                    paint,
+                    invoiceDescription,
+                    50,
+                    452,
+                    385,
+                    17,
+                    5
+            );
+
+            paint.setFakeBoldText(
+                    true
+            );
+
+            canvas.drawText(
+                    "£"
+                            +
+                            cleanMoney(
+                                    amount
+                            ),
+                    475,
+                    452,
+                    paint
+            );
+
+            /*
+             * Total
+             */
+            paint.setColor(
+                    Color.rgb(
+                            240,
+                            240,
+                            240
+                    )
+            );
+
+            canvas.drawRoundRect(
+                    new RectF(
+                            338,
+                            565,
+                            559,
+                            630
+                    ),
+                    8,
+                    8,
+                    paint
+            );
+
+            paint.setColor(
+                    Color.rgb(
+                            40,
+                            40,
+                            40
+                    )
+            );
+
+            paint.setTextSize(
+                    13
+            );
+
+            canvas.drawText(
+                    "TOTAL DUE",
+                    355,
+                    592,
+                    paint
+            );
+
+            paint.setColor(
+                    Color.rgb(
+                            72,
+                            145,
+                            34
+                    )
+            );
+
+            paint.setTextSize(
+                    21
+            );
+
+            canvas.drawText(
+                    "£"
+                            +
+                            cleanMoney(
+                                    amount
+                            ),
+                    445,
+                    612,
+                    paint
+            );
+
+            /*
+             * Payment terms
+             */
+            paint.setColor(
+                    Color.rgb(
+                            55,
+                            55,
+                            55
+                    )
+            );
+
+            paint.setTextSize(
+                    12
+            );
+
+            paint.setFakeBoldText(
+                    true
+            );
+
+            canvas.drawText(
+                    "PAYMENT TERMS",
+                    36,
+                    687,
+                    paint
+            );
+
+            paint.setFakeBoldText(
+                    false
+            );
+
+            paint.setTextSize(
+                    11
+            );
+
+            canvas.drawText(
+                    "Please make payment within 7 days.",
+                    36,
+                    710,
+                    paint
+            );
+
+            /*
+             * Footer
+             */
+            paint.setColor(
+                    Color.rgb(
+                            155,
+                            214,
+                            0
+                    )
+            );
+
+            canvas.drawRect(
+                    0,
+                    792,
+                    595,
+                    842,
+                    paint
+            );
+
+            paint.setColor(
+                    Color.BLACK
+            );
+
+            paint.setTextSize(
+                    11
+            );
+
+            paint.setFakeBoldText(
+                    true
+            );
+
+            canvas.drawText(
+                    "Steven's Pure Clean Exteriors",
+                    36,
+                    817,
+                    paint
+            );
+
+            paint.setFakeBoldText(
+                    false
+            );
+
+            paint.setTextSize(
+                    9
+            );
+
+            canvas.drawText(
+                    "Thank you for your business.",
+                    36,
+                    833,
+                    paint
+            );
+
+            document.finishPage(
+                    page
+            );
+
+            FileOutputStream output =
+                    new FileOutputStream(
+                            outputFile
+                    );
+
+            document.writeTo(
+                    output
+            );
+
+            output.flush();
+            output.close();
+
+            document.close();
+
+            return outputFile;
+
+        } catch (Exception e) {
+
+            try {
+                document.close();
+            } catch (Exception ignored) {
+            }
+
+            return null;
+        }
+    }
+
+    /*
+     * =========================================================
+     * PDF HELPERS
+     * =========================================================
+     */
+
+    private Bitmap loadCompanyLogo() {
+
+        try {
+
+            InputStream input =
+                    getAssets()
+                            .open(
+                                    "logo.jpg"
+                            );
+
+            Bitmap bitmap =
+                    BitmapFactory.decodeStream(
+                            input
+                    );
+
+            input.close();
+
+            return bitmap;
+
+        } catch (Exception e) {
+
+            return null;
+        }
+    }
+
+    private void drawWrappedText(
+            Canvas canvas,
+            Paint paint,
+            String text,
+            float x,
+            float startY,
+            float maxWidth,
+            float lineHeight,
+            int maxLines) {
+
+        if (
+                text == null
+                        ||
+                text.trim().isEmpty()
+        ) {
+            return;
+        }
+
+        String clean =
+                text.replace(
+                        "\r",
+                        " "
+                )
+                        .replace(
+                                "\n",
+                                " "
+                        )
+                        .trim();
+
+        String[] words =
+                clean.split(
+                        "\\s+"
+                );
+
+        StringBuilder line =
+                new StringBuilder();
+
+        float y =
+                startY;
+
+        int lines =
+                0;
+
+        for (String word : words) {
+
+            String trial =
+                    line.length() == 0
+                            ?
+                            word
+                            :
+                            line
+                                    +
+                                    " "
+                                    +
+                                    word;
+
+            if (
+                    paint.measureText(
+                            trial
+                    )
+                            >
+                    maxWidth
+            ) {
+
+                if (
+                        line.length() > 0
+                ) {
+
+                    canvas.drawText(
+                            safePdfText(
+                                    line.toString()
+                            ),
+                            x,
+                            y,
+                            paint
+                    );
+
+                    y +=
+                            lineHeight;
+
+                    lines++;
+
+                    if (
+                            lines >= maxLines
+                    ) {
+                        return;
+                    }
+                }
+
+                line =
+                        new StringBuilder(
+                                word
+                        );
+
+            } else {
+
+                line =
+                        new StringBuilder(
+                                trial
+                        );
+            }
+        }
+
+        if (
+                line.length() > 0
+                        &&
+                lines < maxLines
+        ) {
+
+            canvas.drawText(
+                    safePdfText(
+                            line.toString()
+                    ),
+                    x,
+                    y,
+                    paint
+            );
+        }
+    }
+
+    private String safePdfText(
+            String value) {
+
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace(
+                        "\n",
+                        " "
+                )
+                .replace(
+                        "\r",
+                        " "
+                )
+                .trim();
+    }
+
+    private String safePersonName(
+            String name) {
+
+        if (
+                name == null
+                        ||
+                name.trim().isEmpty()
+        ) {
+
+            return "there";
+        }
+
+        String clean =
+                name.trim();
+
+        int space =
+                clean.indexOf(
+                        " "
+                );
+
+        if (space > 0) {
+
+            clean =
+                    clean.substring(
+                            0,
+                            space
+                    );
+        }
+
+        return clean;
+    }
+
+    /*
+     * Prevents the double-£ problem.
+     */
+    private String cleanMoney(
+            String amount) {
+
+        if (amount == null) {
+            return "0.00";
+        }
+
+        String clean =
+                amount
+                        .replace(
+                                "£",
+                                ""
+                        )
+                        .replace(
+                                ",",
+                                ""
+                        )
+                        .trim();
+
+        try {
+
+            double value =
+                    Double.parseDouble(
+                            clean
+                    );
+
+            return String.format(
+                    Locale.UK,
+                    "%.2f",
+                    value
+            );
+
+        } catch (Exception e) {
+
+            return clean.isEmpty()
+                    ?
+                    "0.00"
+                    :
+                    clean;
+        }
+    }
+
+    private String cleanFilePart(
+            String value) {
+
+        if (value == null) {
+            return "file";
+        }
+
+        String clean =
+                value.replaceAll(
+                        "[^A-Za-z0-9_-]",
+                        "_"
+                );
+
+        if (
+                clean.trim().isEmpty()
+        ) {
+
+            clean =
+                    "file";
+        }
+
+        return clean;
+    }
+
+    /*
+     * =========================================================
+     * FILE HELPERS
+     * =========================================================
+     */
 
     private void copyFile(
             File source,
@@ -2785,1889 +5571,32 @@ public class MainActivity extends Activity {
     }
 
     private void deleteFolder(
-            File folder) {
+            File file) {
 
         if (
-                folder == null
+                file == null
                         ||
-                !folder.exists()
+                !file.exists()
         ) {
             return;
         }
 
-        File[] files =
-                folder.listFiles();
+        if (file.isDirectory()) {
 
-        if (files != null) {
+            File[] children =
+                    file.listFiles();
 
-            for (File file : files) {
+            if (children != null) {
 
-                if (file.isDirectory()) {
+                for (File child : children) {
 
                     deleteFolder(
-                            file
+                            child
                     );
-
-                } else {
-
-                    file.delete();
                 }
             }
         }
 
-        folder.delete();
+        file.delete();
     }
-
-    /*
-     * =========================================================
-     * EMAIL / PDF
-     * =========================================================
-     */
-
-    private boolean validEmail(
-            String email) {
-
-        return email != null
-                &&
-                !email.trim().isEmpty()
-                &&
-                Patterns.EMAIL_ADDRESS
-                        .matcher(
-                                email.trim()
-                        )
-                        .matches();
-    }
-
-    /*
-     * =========================================================
-     * QUOTE EMAIL
-     * =========================================================
-     */
-
-    private void emailQuote(
-            String email,
-            String customerName,
-            String customerAddress,
-            String customerPostcode,
-            String quoteNumber,
-            String quoteDate,
-            String amount,
-            String description,
-            String notes) {
-
-        if (!validEmail(email)) {
-
-            Toast.makeText(
-                    this,
-                    "The quote email address is not valid.",
-                    Toast.LENGTH_LONG
-            ).show();
-
-            return;
-        }
-
-        try {
-
-            File pdf =
-                    createQuotePdf(
-                            customerName,
-                            customerAddress,
-                            customerPostcode,
-                            quoteNumber,
-                            quoteDate,
-                            amount,
-                            description,
-                            notes
-                    );
-
-            Uri pdfUri =
-                    FileProvider.getUriForFile(
-                            this,
-                            getPackageName()
-                                    +
-                                    ".fileprovider",
-                            pdf
-                    );
-
-            Intent intent =
-                    new Intent(
-                            Intent.ACTION_SEND
-                    );
-
-            intent.setType(
-                    "application/pdf"
-            );
-
-            intent.putExtra(
-                    Intent.EXTRA_EMAIL,
-                    new String[]{
-                            email.trim()
-                    }
-            );
-
-            intent.putExtra(
-                    Intent.EXTRA_SUBJECT,
-                    "Quote Q"
-                            +
-                            quoteNumber
-                            +
-                            " - Steven's Pure Clean Exteriors"
-            );
-
-            String cleanAmount =
-                    amount == null
-                            ?
-                            "0.00"
-                            :
-                            amount
-                                    .replace(
-                                            "£",
-                                            ""
-                                    )
-                                    .trim();
-
-            intent.putExtra(
-                    Intent.EXTRA_TEXT,
-                    "Hi "
-                            +
-                            customerName
-                            +
-                            ",\n\nPlease find attached Quote Q"
-                            +
-                            quoteNumber
-                            +
-                            " from Steven's Pure Clean Exteriors."
-                            +
-                            "\n\nQuote total: £"
-                            +
-                            cleanAmount
-                            +
-                            "\n\nIf you would like to go ahead, please get in touch."
-                            +
-                            "\n\nMany thanks,\nSteven"
-                            +
-                            "\nSteven's Pure Clean Exteriors"
-            );
-
-            intent.putExtra(
-                    Intent.EXTRA_STREAM,
-                    pdfUri
-            );
-
-            intent.setClipData(
-                    ClipData.newRawUri(
-                            "Quote PDF",
-                            pdfUri
-                    )
-            );
-
-            intent.addFlags(
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-            );
-
-            try {
-
-                intent.setPackage(
-                        "com.google.android.gm"
-                );
-
-                startActivity(
-                        intent
-                );
-
-            } catch (Exception e) {
-
-                intent.setPackage(
-                        null
-                );
-
-                startActivity(
-                        Intent.createChooser(
-                                intent,
-                                "Email Quote"
-                        )
-                );
-            }
-
-        } catch (Exception e) {
-
-            Toast.makeText(
-                    this,
-                    "Could not create quote email.",
-                    Toast.LENGTH_LONG
-            ).show();
-        }
-    }
-
-    private File createQuotePdf(
-            String customerName,
-            String customerAddress,
-            String customerPostcode,
-            String quoteNumber,
-            String quoteDate,
-            String amount,
-            String description,
-            String notes)
-            throws Exception {
-
-        File folder =
-                new File(
-                        getCacheDir(),
-                        "quotes"
-                );
-
-        if (!folder.exists()) {
-            folder.mkdirs();
-        }
-
-        File[] oldQuoteFiles =
-                folder.listFiles();
-
-        if (oldQuoteFiles != null) {
-
-            for (File oldFile : oldQuoteFiles) {
-
-                if (
-                        oldFile != null
-                                &&
-                        oldFile.isFile()
-                ) {
-
-                    oldFile.delete();
-                }
-            }
-        }
-
-        File file =
-                new File(
-                        folder,
-                        "PureClean-Quote-Q"
-                                +
-                                quoteNumber
-                                +
-                                "-"
-                                +
-                                System.currentTimeMillis()
-                                +
-                                ".pdf"
-                );
-
-        PdfDocument document =
-                new PdfDocument();
-
-        PdfDocument.PageInfo pageInfo =
-                new PdfDocument.PageInfo.Builder(
-                        595,
-                        842,
-                        1
-                ).create();
-
-        PdfDocument.Page page =
-                document.startPage(
-                        pageInfo
-                );
-
-        Canvas canvas =
-                page.getCanvas();
-
-        Paint paint =
-                new Paint(
-                        Paint.ANTI_ALIAS_FLAG
-                );
-
-        int black =
-                Color.rgb(
-                        12,
-                        12,
-                        12
-                );
-
-        int lime =
-                Color.rgb(
-                        155,
-                        214,
-                        0
-                );
-
-        int dark =
-                Color.rgb(
-                        28,
-                        28,
-                        28
-                );
-
-        int grey =
-                Color.rgb(
-                        100,
-                        100,
-                        100
-                );
-
-        int light =
-                Color.rgb(
-                        245,
-                        245,
-                        245
-                );
-
-        int border =
-                Color.rgb(
-                        220,
-                        220,
-                        220
-                );
-
-        canvas.drawColor(
-                Color.WHITE
-        );
-
-        paint.setColor(
-                black
-        );
-
-        canvas.drawRect(
-                0,
-                0,
-                595,
-                155,
-                paint
-        );
-
-        paint.setColor(
-                lime
-        );
-
-        canvas.drawRect(
-                0,
-                151,
-                595,
-                155,
-                paint
-        );
-
-        try {
-
-            InputStream input =
-                    getAssets()
-                            .open(
-                                    "logo.jpg"
-                            );
-
-            Bitmap logo =
-                    BitmapFactory.decodeStream(
-                            input
-                    );
-
-            if (logo != null) {
-
-                RectF logoRect =
-                        new RectF(
-                                28,
-                                22,
-                                123,
-                                117
-                        );
-
-                canvas.drawBitmap(
-                        logo,
-                        null,
-                        logoRect,
-                        paint
-                );
-
-                logo.recycle();
-            }
-
-            input.close();
-
-        } catch (Exception ignored) {
-        }
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setColor(
-                lime
-        );
-
-        paint.setTextSize(
-                22
-        );
-
-        canvas.drawText(
-                "Steven's Pure Clean Exteriors",
-                145,
-                55,
-                paint
-        );
-
-        paint.setFakeBoldText(
-                false
-        );
-
-        paint.setColor(
-                Color.WHITE
-        );
-
-        paint.setTextSize(
-                12
-        );
-
-        canvas.drawText(
-                "Pure Results • Clean Exteriors",
-                145,
-                80,
-                paint
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setTextSize(
-                31
-        );
-
-        paint.setTextAlign(
-                Paint.Align.RIGHT
-        );
-
-        canvas.drawText(
-                "QUOTE",
-                558,
-                113,
-                paint
-        );
-
-        paint.setTextAlign(
-                Paint.Align.LEFT
-        );
-
-        float infoTop =
-                185;
-
-        paint.setColor(
-                dark
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setTextSize(
-                11
-        );
-
-        canvas.drawText(
-                "QUOTE NUMBER",
-                45,
-                infoTop,
-                paint
-        );
-
-        canvas.drawText(
-                "QUOTE DATE",
-                225,
-                infoTop,
-                paint
-        );
-
-        canvas.drawText(
-                "VALID FOR",
-                410,
-                infoTop,
-                paint
-        );
-
-        paint.setFakeBoldText(
-                false
-        );
-
-        paint.setColor(
-                grey
-        );
-
-        paint.setTextSize(
-                13
-        );
-
-        canvas.drawText(
-                "Q"
-                        +
-                        quoteNumber,
-                45,
-                infoTop + 25,
-                paint
-        );
-
-        canvas.drawText(
-                quoteDate == null
-                        ?
-                        ""
-                        :
-                        quoteDate,
-                225,
-                infoTop + 25,
-                paint
-        );
-
-        canvas.drawText(
-                "30 days",
-                410,
-                infoTop + 25,
-                paint
-        );
-
-        paint.setColor(
-                border
-        );
-
-        canvas.drawRect(
-                35,
-                232,
-                560,
-                234,
-                paint
-        );
-
-        paint.setColor(
-                dark
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setTextSize(
-                15
-        );
-
-        canvas.drawText(
-                "QUOTE FOR",
-                45,
-                270,
-                paint
-        );
-
-        paint.setFakeBoldText(
-                false
-        );
-
-        paint.setTextSize(
-                16
-        );
-
-        canvas.drawText(
-                customerName == null
-                        ?
-                        ""
-                        :
-                        customerName,
-                45,
-                298,
-                paint
-        );
-
-        paint.setColor(
-                grey
-        );
-
-        paint.setTextSize(
-                12
-        );
-
-        if (
-                customerAddress != null
-                        &&
-                !customerAddress.trim().isEmpty()
-        ) {
-
-            canvas.drawText(
-                    customerAddress.trim(),
-                    45,
-                    320,
-                    paint
-            );
-        }
-
-        if (
-                customerPostcode != null
-                        &&
-                !customerPostcode.trim().isEmpty()
-        ) {
-
-            canvas.drawText(
-                    customerPostcode.trim(),
-                    45,
-                    340,
-                    paint
-            );
-        }
-
-        paint.setColor(
-                light
-        );
-
-        RectF serviceBox =
-                new RectF(
-                        35,
-                        370,
-                        560,
-                        565
-                );
-
-        canvas.drawRoundRect(
-                serviceBox,
-                14,
-                14,
-                paint
-        );
-
-        paint.setColor(
-                dark
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setTextSize(
-                13
-        );
-
-        canvas.drawText(
-                "SERVICE",
-                55,
-                400,
-                paint
-        );
-
-        paint.setTextAlign(
-                Paint.Align.RIGHT
-        );
-
-        canvas.drawText(
-                "PRICE",
-                535,
-                400,
-                paint
-        );
-
-        paint.setTextAlign(
-                Paint.Align.LEFT
-        );
-
-        paint.setFakeBoldText(
-                false
-        );
-
-        String cleanDescription =
-                description == null
-                        ?
-                        ""
-                        :
-                        description.trim();
-
-        String[] lines =
-                cleanDescription.isEmpty()
-                        ?
-                        new String[]{
-                                "Exterior cleaning service"
-                        }
-                        :
-                        cleanDescription.split(
-                                "\\n"
-                        );
-
-        /*
-         * QUOTE SERVICE FIX
-         *
-         * The rows are slightly closer together so all six
-         * possible services fit on the same quote PDF.
-         */
-        float lineY =
-                428;
-
-        for (String line : lines) {
-
-            if (
-                    line == null
-                            ||
-                    line.trim().isEmpty()
-            ) {
-                continue;
-            }
-
-            String cleanLine =
-                    line.trim();
-
-            String service =
-                    cleanLine;
-
-            String price =
-                    "";
-
-            int split =
-                    cleanLine.lastIndexOf(
-                            " - "
-                    );
-
-            if (split >= 0) {
-
-                service =
-                        cleanLine.substring(
-                                0,
-                                split
-                        ).trim();
-
-                price =
-                        cleanLine.substring(
-                                split + 3
-                        ).trim();
-            }
-
-            price =
-                    price.replace(
-                            "£",
-                            ""
-                    ).trim();
-
-            paint.setColor(
-                    dark
-            );
-
-            paint.setTextSize(
-                    13
-            );
-
-            canvas.drawText(
-                    service,
-                    55,
-                    lineY,
-                    paint
-            );
-
-            if (!price.isEmpty()) {
-
-                paint.setTextAlign(
-                        Paint.Align.RIGHT
-                );
-
-                canvas.drawText(
-                        "£"
-                                +
-                                price,
-                        535,
-                        lineY,
-                        paint
-                );
-
-                paint.setTextAlign(
-                        Paint.Align.LEFT
-                );
-            }
-
-            lineY +=
-                    22;
-
-            if (lineY > 555) {
-                break;
-            }
-        }
-
-        String cleanAmount =
-                amount == null
-                        ?
-                        "0.00"
-                        :
-                        amount.replace(
-                                "£",
-                                ""
-                        ).trim();
-
-        paint.setColor(
-                black
-        );
-
-        RectF amountBox =
-                new RectF(
-                        315,
-                        590,
-                        560,
-                        680
-                );
-
-        canvas.drawRoundRect(
-                amountBox,
-                14,
-                14,
-                paint
-        );
-
-        paint.setColor(
-                Color.WHITE
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setTextSize(
-                12
-        );
-
-        canvas.drawText(
-                "QUOTE TOTAL",
-                338,
-                620,
-                paint
-        );
-
-        paint.setColor(
-                lime
-        );
-
-        paint.setTextSize(
-                31
-        );
-
-        canvas.drawText(
-                "£"
-                        +
-                        cleanAmount,
-                338,
-                660,
-                paint
-        );
-
-        paint.setColor(
-                dark
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setTextSize(
-                14
-        );
-
-        canvas.drawText(
-                "NOTES",
-                45,
-                710,
-                paint
-        );
-
-        paint.setFakeBoldText(
-                false
-        );
-
-        paint.setColor(
-                grey
-        );
-
-        paint.setTextSize(
-                11
-        );
-
-        String cleanNotes =
-                notes == null
-                        ?
-                        ""
-                        :
-                        notes.trim();
-
-        if (cleanNotes.isEmpty()) {
-
-            cleanNotes =
-                    "Please get in touch if you would like to proceed with this quotation.";
-        }
-
-        if (
-                cleanNotes.length() > 95
-        ) {
-
-            cleanNotes =
-                    cleanNotes.substring(
-                            0,
-                            95
-                    )
-                            +
-                            "...";
-        }
-
-        canvas.drawText(
-                cleanNotes,
-                45,
-                735,
-                paint
-        );
-
-        paint.setColor(
-                border
-        );
-
-        canvas.drawRect(
-                35,
-                792,
-                560,
-                794,
-                paint
-        );
-
-        paint.setColor(
-                grey
-        );
-
-        paint.setTextSize(
-                11
-        );
-
-        paint.setTextAlign(
-                Paint.Align.LEFT
-        );
-
-        canvas.drawText(
-                "Thank you for the opportunity to provide this quotation.",
-                35,
-                818,
-                paint
-        );
-
-        paint.setTextAlign(
-                Paint.Align.RIGHT
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        canvas.drawText(
-                "Steven's Pure Clean Exteriors",
-                560,
-                818,
-                paint
-        );
-
-        paint.setTextAlign(
-                Paint.Align.LEFT
-        );
-
-        document.finishPage(
-                page
-        );
-
-        FileOutputStream output =
-                new FileOutputStream(
-                        file
-                );
-
-        document.writeTo(
-                output
-        );
-
-        output.close();
-
-        document.close();
-
-        return file;
-    }
-
-    /*
-     * =========================================================
-     * INVOICE EMAIL
-     * =========================================================
-     */
-
-    private void emailInvoice(
-            String email,
-            String customerName,
-            String customerAddress,
-            String customerPostcode,
-            String invoiceNumber,
-            String invoiceDate,
-            String dueDate,
-            String amount,
-            String description) {
-
-        if (!validEmail(email)) {
-
-            Toast.makeText(
-                    this,
-                    "The invoice email address is not valid.",
-                    Toast.LENGTH_LONG
-            ).show();
-
-            return;
-        }
-
-        try {
-
-            File pdf =
-                    createInvoicePdf(
-                            customerName,
-                            customerAddress,
-                            customerPostcode,
-                            invoiceNumber,
-                            invoiceDate,
-                            dueDate,
-                            amount,
-                            description
-                    );
-
-            Uri pdfUri =
-                    FileProvider.getUriForFile(
-                            this,
-                            getPackageName()
-                                    +
-                                    ".fileprovider",
-                            pdf
-                    );
-
-            Intent intent =
-                    new Intent(
-                            Intent.ACTION_SEND
-                    );
-
-            intent.setType(
-                    "application/pdf"
-            );
-
-            intent.putExtra(
-                    Intent.EXTRA_EMAIL,
-                    new String[]{
-                            email.trim()
-                    }
-            );
-
-            intent.putExtra(
-                    Intent.EXTRA_SUBJECT,
-                    "Invoice #"
-                            +
-                            invoiceNumber
-                            +
-                            " - Steven's Pure Clean Exteriors"
-            );
-
-            String cleanAmount =
-                    amount == null
-                            ?
-                            "0.00"
-                            :
-                            amount
-                                    .replace(
-                                            "£",
-                                            ""
-                                    )
-                                    .trim();
-
-            intent.putExtra(
-                    Intent.EXTRA_TEXT,
-                    "Hi "
-                            +
-                            customerName
-                            +
-                            ",\n\nPlease find attached invoice #"
-                            +
-                            invoiceNumber
-                            +
-                            " from Steven's Pure Clean Exteriors."
-                            +
-                            "\n\nAmount due: £"
-                            +
-                            cleanAmount
-                            +
-                            "\nDue date: "
-                            +
-                            dueDate
-                            +
-                            "\n\nPlease make payment within 7 days."
-                            +
-                            "\n\nMany thanks,\nSteven"
-                            +
-                            "\nSteven's Pure Clean Exteriors"
-            );
-
-            intent.putExtra(
-                    Intent.EXTRA_STREAM,
-                    pdfUri
-            );
-
-            intent.setClipData(
-                    ClipData.newRawUri(
-                            "Invoice PDF",
-                            pdfUri
-                    )
-            );
-
-            intent.addFlags(
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-            );
-
-            try {
-
-                intent.setPackage(
-                        "com.google.android.gm"
-                );
-
-                startActivity(
-                        intent
-                );
-
-            } catch (Exception e) {
-
-                intent.setPackage(
-                        null
-                );
-
-                startActivity(
-                        Intent.createChooser(
-                                intent,
-                                "Email Invoice"
-                        )
-                );
-            }
-
-        } catch (Exception e) {
-
-            Toast.makeText(
-                    this,
-                    "Could not create invoice email.",
-                    Toast.LENGTH_LONG
-            ).show();
-        }
-    }
-
-    private void reminderEmail(
-            String email,
-            String customerName,
-            String invoiceNumber,
-            String invoiceDate,
-            String dueDate,
-            String amount,
-            String description,
-            boolean overdue) {
-
-        if (!validEmail(email)) {
-            return;
-        }
-
-        String subject =
-                overdue
-                        ?
-                        "Overdue Invoice #"
-                                +
-                                invoiceNumber
-                        :
-                        "Invoice Reminder #"
-                                +
-                                invoiceNumber;
-
-        String message =
-                "Hi "
-                        +
-                        customerName
-                        +
-                        ",\n\n"
-                        +
-                        "This is a friendly reminder regarding invoice #"
-                        +
-                        invoiceNumber
-                        +
-                        ".\n\nAmount due: £"
-                        +
-                        amount
-                                .replace(
-                                        "£",
-                                        ""
-                                )
-                        +
-                        "\nDue date: "
-                        +
-                        dueDate
-                        +
-                        "\n\nThank you,\n"
-                        +
-                        "Steven's Pure Clean Exteriors";
-
-        try {
-
-            Intent intent =
-                    new Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.parse(
-                                    "mailto:"
-                                            +
-                                            email.trim()
-                                            +
-                                            "?subject="
-                                            +
-                                            Uri.encode(
-                                                    subject
-                                            )
-                                            +
-                                            "&body="
-                                            +
-                                            Uri.encode(
-                                                    message
-                                            )
-                            )
-                    );
-
-            startActivity(
-                    intent
-            );
-
-        } catch (Exception e) {
-
-            Toast.makeText(
-                    this,
-                    "Could not open email.",
-                    Toast.LENGTH_SHORT
-            ).show();
-        }
-    }
-
-    /*
-     * =========================================================
-     * INVOICE PDF
-     * =========================================================
-     */
-
-    private File createInvoicePdf(
-            String customerName,
-            String customerAddress,
-            String customerPostcode,
-            String invoiceNumber,
-            String invoiceDate,
-            String dueDate,
-            String amount,
-            String description)
-            throws Exception {
-
-        File folder =
-                new File(
-                        getCacheDir(),
-                        "invoices"
-                );
-
-        if (!folder.exists()) {
-            folder.mkdirs();
-        }
-
-        File file =
-                new File(
-                        folder,
-                        "PureClean-Invoice-"
-                                +
-                                invoiceNumber
-                                +
-                                "-"
-                                +
-                                System.currentTimeMillis()
-                                +
-                                ".pdf"
-                );
-
-        PdfDocument document =
-                new PdfDocument();
-
-        PdfDocument.PageInfo pageInfo =
-                new PdfDocument.PageInfo.Builder(
-                        595,
-                        842,
-                        1
-                ).create();
-
-        PdfDocument.Page page =
-                document.startPage(
-                        pageInfo
-                );
-
-        Canvas canvas =
-                page.getCanvas();
-
-        Paint paint =
-                new Paint(
-                        Paint.ANTI_ALIAS_FLAG
-                );
-
-        int black =
-                Color.rgb(
-                        12,
-                        12,
-                        12
-                );
-
-        int lime =
-                Color.rgb(
-                        155,
-                        214,
-                        0
-                );
-
-        int dark =
-                Color.rgb(
-                        28,
-                        28,
-                        28
-                );
-
-        int grey =
-                Color.rgb(
-                        100,
-                        100,
-                        100
-                );
-
-        int light =
-                Color.rgb(
-                        245,
-                        245,
-                        245
-                );
-
-        int border =
-                Color.rgb(
-                        220,
-                        220,
-                        220
-                );
-
-        canvas.drawColor(
-                Color.WHITE
-        );
-
-        paint.setColor(
-                black
-        );
-
-        canvas.drawRect(
-                0,
-                0,
-                595,
-                155,
-                paint
-        );
-
-        paint.setColor(
-                lime
-        );
-
-        canvas.drawRect(
-                0,
-                151,
-                595,
-                155,
-                paint
-        );
-
-        try {
-
-            InputStream input =
-                    getAssets()
-                            .open(
-                                    "logo.jpg"
-                            );
-
-            Bitmap logo =
-                    BitmapFactory.decodeStream(
-                            input
-                    );
-
-            if (logo != null) {
-
-                RectF logoRect =
-                        new RectF(
-                                28,
-                                22,
-                                123,
-                                117
-                        );
-
-                canvas.drawBitmap(
-                        logo,
-                        null,
-                        logoRect,
-                        paint
-                );
-
-                logo.recycle();
-            }
-
-            input.close();
-
-        } catch (Exception ignored) {
-        }
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setColor(
-                lime
-        );
-
-        paint.setTextSize(
-                22
-        );
-
-        canvas.drawText(
-                "Steven's Pure Clean Exteriors",
-                145,
-                55,
-                paint
-        );
-
-        paint.setFakeBoldText(
-                false
-        );
-
-        paint.setColor(
-                Color.WHITE
-        );
-
-        paint.setTextSize(
-                12
-        );
-
-        canvas.drawText(
-                "Pure Results • Clean Exteriors",
-                145,
-                80,
-                paint
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setTextSize(
-                30
-        );
-
-        paint.setTextAlign(
-                Paint.Align.RIGHT
-        );
-
-        canvas.drawText(
-                "INVOICE",
-                558,
-                113,
-                paint
-        );
-
-        paint.setTextAlign(
-                Paint.Align.LEFT
-        );
-
-        paint.setColor(
-                dark
-        );
-
-        paint.setTextSize(
-                11
-        );
-
-        canvas.drawText(
-                "INVOICE NUMBER",
-                45,
-                185,
-                paint
-        );
-
-        canvas.drawText(
-                "INVOICE DATE",
-                220,
-                185,
-                paint
-        );
-
-        canvas.drawText(
-                "DUE DATE",
-                400,
-                185,
-                paint
-        );
-
-        paint.setFakeBoldText(
-                false
-        );
-
-        paint.setColor(
-                grey
-        );
-
-        paint.setTextSize(
-                13
-        );
-
-        canvas.drawText(
-                invoiceNumber == null
-                        ?
-                        ""
-                        :
-                        invoiceNumber,
-                45,
-                210,
-                paint
-        );
-
-        canvas.drawText(
-                invoiceDate == null
-                        ?
-                        ""
-                        :
-                        invoiceDate,
-                220,
-                210,
-                paint
-        );
-
-        canvas.drawText(
-                dueDate == null
-                        ?
-                        ""
-                        :
-                        dueDate,
-                400,
-                210,
-                paint
-        );
-
-        paint.setColor(
-                border
-        );
-
-        canvas.drawRect(
-                35,
-                232,
-                560,
-                234,
-                paint
-        );
-
-        paint.setColor(
-                dark
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setTextSize(
-                15
-        );
-
-        canvas.drawText(
-                "INVOICE TO",
-                45,
-                270,
-                paint
-        );
-
-        paint.setFakeBoldText(
-                false
-        );
-
-        paint.setTextSize(
-                16
-        );
-
-        canvas.drawText(
-                customerName == null
-                        ?
-                        ""
-                        :
-                        customerName,
-                45,
-                298,
-                paint
-        );
-
-        paint.setColor(
-                grey
-        );
-
-        paint.setTextSize(
-                12
-        );
-
-        if (
-                customerAddress != null
-                        &&
-                !customerAddress.trim().isEmpty()
-        ) {
-
-            canvas.drawText(
-                    customerAddress.trim(),
-                    45,
-                    320,
-                    paint
-            );
-        }
-
-        if (
-                customerPostcode != null
-                        &&
-                !customerPostcode.trim().isEmpty()
-        ) {
-
-            canvas.drawText(
-                    customerPostcode.trim(),
-                    45,
-                    340,
-                    paint
-            );
-        }
-
-        paint.setColor(
-                light
-        );
-
-        RectF serviceBox =
-                new RectF(
-                        35,
-                        370,
-                        560,
-                        525
-                );
-
-        canvas.drawRoundRect(
-                serviceBox,
-                14,
-                14,
-                paint
-        );
-
-        paint.setColor(
-                dark
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setTextSize(
-                13
-        );
-
-        canvas.drawText(
-                "DESCRIPTION",
-                55,
-                405,
-                paint
-        );
-
-        paint.setFakeBoldText(
-                false
-        );
-
-        String cleanDescription =
-                description == null
-                        ||
-                description.trim().isEmpty()
-                        ?
-                        "Exterior cleaning service"
-                        :
-                        description.trim();
-
-        if (
-                cleanDescription.length() > 90
-        ) {
-
-            cleanDescription =
-                    cleanDescription.substring(
-                            0,
-                            90
-                    )
-                            +
-                            "...";
-        }
-
-        paint.setTextSize(
-                13
-        );
-
-        canvas.drawText(
-                cleanDescription,
-                55,
-                445,
-                paint
-        );
-
-        String cleanAmount =
-                amount == null
-                        ?
-                        "0.00"
-                        :
-                        amount.replace(
-                                "£",
-                                ""
-                        ).trim();
-
-        paint.setColor(
-                black
-        );
-
-        RectF amountBox =
-                new RectF(
-                        315,
-                        565,
-                        560,
-                        655
-                );
-
-        canvas.drawRoundRect(
-                amountBox,
-                14,
-                14,
-                paint
-        );
-
-        paint.setColor(
-                Color.WHITE
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setTextSize(
-                12
-        );
-
-        canvas.drawText(
-                "AMOUNT DUE",
-                338,
-                595,
-                paint
-        );
-
-        paint.setColor(
-                lime
-        );
-
-        paint.setTextSize(
-                31
-        );
-
-        canvas.drawText(
-                "£"
-                        +
-                        cleanAmount,
-                338,
-                635,
-                paint
-        );
-
-        paint.setColor(
-                dark
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        paint.setTextSize(
-                14
-        );
-
-        canvas.drawText(
-                "PAYMENT TERMS",
-                45,
-                705,
-                paint
-        );
-
-        paint.setFakeBoldText(
-                false
-        );
-
-        paint.setColor(
-                grey
-        );
-
-        paint.setTextSize(
-                12
-        );
-
-        canvas.drawText(
-                "Please make payment within 7 days.",
-                45,
-                732,
-                paint
-        );
-
-        paint.setColor(
-                border
-        );
-
-        canvas.drawRect(
-                35,
-                792,
-                560,
-                794,
-                paint
-        );
-
-        paint.setColor(
-                grey
-        );
-
-        paint.setTextSize(
-                11
-        );
-
-        paint.setTextAlign(
-                Paint.Align.LEFT
-        );
-
-        canvas.drawText(
-                "Thank you for your business.",
-                35,
-                818,
-                paint
-        );
-
-        paint.setTextAlign(
-                Paint.Align.RIGHT
-        );
-
-        paint.setFakeBoldText(
-                true
-        );
-
-        canvas.drawText(
-                "Steven's Pure Clean Exteriors",
-                560,
-                818,
-                paint
-        );
-
-        paint.setTextAlign(
-                Paint.Align.LEFT
-        );
-
-        document.finishPage(
-                page
-        );
-
-        FileOutputStream output =
-                new FileOutputStream(
-                        file
-                );
-
-        document.writeTo(
-                output
-        );
-
-        output.close();
-
-        document.close();
-
-        return file;
-    }
-        }
+                                }
