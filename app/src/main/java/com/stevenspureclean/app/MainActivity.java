@@ -798,7 +798,7 @@ public class MainActivity extends Activity {
         );
 
         imageView.setImageBitmap(
-                            bitmap
+                bitmap
         );
 
         AlertDialog dialog =
@@ -1457,8 +1457,7 @@ public class MainActivity extends Activity {
                 null
         );
     }
-
-    /*
+        /*
      * =========================================================
      * PHONE / TEXT
      * =========================================================
@@ -3021,11 +3020,6 @@ public class MainActivity extends Activity {
             folder.mkdirs();
         }
 
-        /*
-         * Remove previous temporary quote PDFs.
-         * This stops Samsung/Gmail/PDF viewers displaying an old
-         * attachment when a quote number has been reused or edited.
-         */
         File[] oldQuoteFiles =
                 folder.listFiles();
 
@@ -3044,10 +3038,6 @@ public class MainActivity extends Activity {
             }
         }
 
-        /*
-         * IMPORTANT FIX:
-         * Each generated quote now has a unique physical filename.
-         */
         File file =
                 new File(
                         folder,
@@ -3490,8 +3480,14 @@ public class MainActivity extends Activity {
                                 "\\n"
                         );
 
+        /*
+         * QUOTE SERVICE FIX
+         *
+         * The rows are slightly closer together so all six
+         * possible services fit on the same quote PDF.
+         */
         float lineY =
-                432;
+                428;
 
         for (String line : lines) {
 
@@ -3512,12 +3508,6 @@ public class MainActivity extends Activity {
             String price =
                     "";
 
-            /*
-             * Accepts BOTH:
-             * Window Cleaning - £25.00
-             * and
-             * Window Cleaning - 25.00
-             */
             int split =
                     cleanLine.lastIndexOf(
                             " - "
@@ -3537,10 +3527,6 @@ public class MainActivity extends Activity {
                         ).trim();
             }
 
-            /*
-             * Remove any existing pound signs.
-             * PDF adds exactly one below.
-             */
             price =
                     price.replace(
                             "£",
@@ -3583,9 +3569,9 @@ public class MainActivity extends Activity {
             }
 
             lineY +=
-                    27;
+                    22;
 
-            if (lineY > 530) {
+            if (lineY > 555) {
                 break;
             }
         }
@@ -4684,4 +4670,4 @@ public class MainActivity extends Activity {
 
         return file;
     }
-                    }
+        }
