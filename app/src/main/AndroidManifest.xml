@@ -4,7 +4,9 @@
 
     <application
         android:allowBackup="true"
-        android:label="Steven's Pure Clean Exteriors">
+        android:label="Steven's Pure Clean Exteriors"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round">
 
         <provider
             android:name="androidx.core.content.FileProvider"
