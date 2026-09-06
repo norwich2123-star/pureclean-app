@@ -826,6 +826,31 @@ border-color:#526d1d;
 background:linear-gradient(135deg,#182008,#0d1205);
 }
 
+.backup-status{
+margin-top:10px;
+padding:10px 12px;
+background:#0d1208;
+border:1px solid #3e521b;
+border-radius:11px;
+color:#c5dc86;
+font-size:12px;
+line-height:1.5;
+}
+
+.backup-reminder-modal{
+width:100%;
+max-width:420px;
+background:#111;
+border:1px solid #526d1d;
+border-radius:18px;
+padding:18px;
+}
+
+.backup-reminder-modal h3{
+margin:0;
+color:var(--lime);
+}
+
 .profit-section-title{
 color:var(--lime);
 margin:18px 0 0;
@@ -1054,8 +1079,13 @@ oninput="pinConfirmInput.value=pinConfirmInput.value.replace(/\D/g,'').slice(0,4
 
 <div class="card full-backup-box">
 <h3 style="color:#9bd600;margin:0">📦 Full Business Backup</h3>
+
 <div class="muted" style="margin-top:7px">
 Backs up your customers, invoices, quotes, expenses and all saved receipt photos together in one file.
+</div>
+
+<div id="lastBackupStatus" class="backup-status">
+Last backup: checking...
 </div>
 
 <button class="action" onclick="backupBusinessDataWithPhotos()">
@@ -2316,6 +2346,40 @@ Close
 
 </div>
 
+<div id="backupReminderOverlay" class="modalOverlay">
+
+<div class="backup-reminder-modal">
+
+<h3>
+📦 Backup Recommended
+</h3>
+
+<div id="backupReminderMessage" class="queue-message">
+It has been 7 days since your last backup.
+</div>
+
+<button
+class="action"
+onclick="backupNowFromReminder()">
+📦 Backup Now
+</button>
+
+<button
+class="action secondary"
+onclick="remindBackupTomorrow()">
+Remind Me Tomorrow
+</button>
+
+<button
+class="action secondary"
+onclick="closeBackupReminder()">
+Close
+</button>
+
+</div>
+
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
@@ -2631,6 +2695,10 @@ try{
 renderExpenseTotals();
 }catch(e){}
 
+try{
+updateBackupStatus();
+}catch(e){}
+
 }
 
 /* PAGE NAV */
@@ -2939,6 +3007,11 @@ hidePinScreen();
 
 updateSecurityStatus();
 
+setTimeout(
+checkBackupReminder,
+300
+);
+
 return;
 
 }
@@ -2948,6 +3021,11 @@ pin===currentPin()
 ){
 
 hidePinScreen();
+
+setTimeout(
+checkBackupReminder,
+300
+);
 
 }else{
 
@@ -2982,6 +3060,13 @@ pinLockEnabled()
 
 showPinScreen(
 "unlock"
+);
+
+}else{
+
+setTimeout(
+checkBackupReminder,
+300
 );
 
 }
@@ -3239,6 +3324,273 @@ highest+1,
 
 }
 
+/* BACKUP REMINDER */
+
+function backupLastDate(){
+
+return localStorage.getItem(
+"pcLastBackupDate"
+)
+||
+"";
+
+}
+
+function backupReminderStartDate(){
+
+let started=
+localStorage.getItem(
+"pcBackupReminderStarted"
+);
+
+if(
+!started
+){
+
+started=
+today();
+
+localStorage.setItem(
+"pcBackupReminderStarted",
+started
+);
+
+}
+
+return started;
+
+}
+
+function daysBetweenDates(
+fromDate,
+toDate
+){
+
+let from=
+new Date(
+fromDate+
+"T12:00:00"
+);
+
+let to=
+new Date(
+toDate+
+"T12:00:00"
+);
+
+if(
+Number.isNaN(
+from.getTime()
+)
+||
+Number.isNaN(
+to.getTime()
+)
+){
+
+return 0;
+
+}
+
+return Math.floor(
+(
+to-from
+)
+/
+86400000
+);
+
+}
+
+function updateBackupStatus(){
+
+let box=
+document.getElementById(
+"lastBackupStatus"
+);
+
+if(!box){
+
+return;
+
+}
+
+let last=
+backupLastDate();
+
+if(last){
+
+let days=
+daysBetweenDates(
+last,
+today()
+);
+
+box.innerHTML=
+"<strong>Last backup:</strong> "
++
+formatDate(
+last
+)
++
+(
+days===0
+?
+" • Today"
+:
+" • "+
+days+
+" day"+
+(
+days===1
+?
+""
+:
+"s"
+)
++
+" ago"
+);
+
+}else{
+
+box.innerHTML=
+"<strong>Last backup:</strong> No backup recorded yet";
+
+}
+
+}
+
+function markBackupCompleted(){
+
+localStorage.setItem(
+"pcLastBackupDate",
+today()
+);
+
+localStorage.removeItem(
+"pcBackupReminderSnoozeUntil"
+);
+
+updateBackupStatus();
+
+}
+
+function closeBackupReminder(){
+
+let overlay=
+document.getElementById(
+"backupReminderOverlay"
+);
+
+if(overlay){
+
+overlay.classList.remove(
+"show"
+);
+
+}
+
+}
+
+function remindBackupTomorrow(){
+
+localStorage.setItem(
+"pcBackupReminderSnoozeUntil",
+addDays(
+today(),
+1
+)
+);
+
+closeBackupReminder();
+
+}
+
+function backupNowFromReminder(){
+
+closeBackupReminder();
+
+backupBusinessDataWithPhotos();
+
+}
+
+function checkBackupReminder(){
+
+updateBackupStatus();
+
+let snoozeUntil=
+localStorage.getItem(
+"pcBackupReminderSnoozeUntil"
+)
+||
+"";
+
+if(
+snoozeUntil
+&&
+today()<snoozeUntil
+){
+
+return;
+
+}
+
+let last=
+backupLastDate();
+
+let referenceDate=
+last
+||
+backupReminderStartDate();
+
+let days=
+daysBetweenDates(
+referenceDate,
+today()
+);
+
+if(
+days<7
+){
+
+return;
+
+}
+
+let overlay=
+document.getElementById(
+"backupReminderOverlay"
+);
+
+let message=
+document.getElementById(
+"backupReminderMessage"
+);
+
+if(message){
+
+message.innerText=
+last
+?
+"It has been "+
+days+
+" days since your last backup.\n\nBacking up now will protect your customers, invoices, quotes, expenses and receipt photos."
+:
+"It has been 7 days since backup reminders were switched on.\n\nIt is a good time to make your first recorded backup.";
+
+}
+
+if(overlay){
+
+overlay.classList.add(
+"show"
+);
+
+}
+
+}
+
 function buildBackup(){
 
 return{
@@ -3301,6 +3653,8 @@ null,
 2
 )
 );
+
+markBackupCompleted();
 
 }else{
 
@@ -3427,6 +3781,8 @@ renderInvoices();
 renderQuotes();
 renderExpenses();
 renderOwes();
+
+updateBackupStatus();
 
 alert(
 "Business data restored successfully."
@@ -3609,8 +3965,7 @@ difference
 );
 
 }
-
-/* CUSTOMERS */
+  /* CUSTOMERS */
 
 function setCustomerFilter(filter,button){
 
@@ -5509,7 +5864,8 @@ tomorrowTextQueue=[];
 tomorrowTextIndex=0;
 
 }
-  /* QUOTES */
+
+/* QUOTES */
 
 function getNextQuoteNumber(){
 
@@ -6781,9 +7137,8 @@ alert(
 "The Quote is saved correctly.\n\nWe just need to add the Quote PDF email function to MainActivity.java."
 );
 
-}
-
-/* INVOICES */
+  }
+  /* INVOICES */
 
 function getNextInvoiceNumber(){
 
@@ -9075,8 +9430,9 @@ Delete
 )
 .join("");
 
-  }
-  /* EXPENSE EXPORT */
+}
+
+/* EXPENSE EXPORT */
 
 function updateExpenseExportDates(){
 
@@ -9779,6 +10135,8 @@ i.amount || 0
 )
 :
 "No unpaid invoices";
+
+updateBackupStatus();
 
 }
 
@@ -10581,15 +10939,6 @@ exp.vat || 0
 
 /*
 NUMBERING SAFETY
-
-This checks the numbers already saved in the app every time it
-starts. If the saved "next number" is ever lower than an invoice
-or quote that already exists, it automatically moves it forward.
-
-Example:
-Highest invoice already saved = 1025
-Saved next number = 1018
-New corrected next number = 1026
 */
 
 let correctedNextInvoiceNumber=
@@ -10658,6 +11007,10 @@ updateDashboard();
 updateEarnings();
 
 updateSecurityStatus();
+
+updateBackupStatus();
+
+backupReminderStartDate();
 
 setTimeout(
 
