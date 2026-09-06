@@ -979,9 +979,11 @@ text-align:center;
 @media(max-width:420px){
 nav{grid-template-columns:repeat(4,1fr)}
 .three{grid-template-columns:1fr}
+
 .quote-service-row{
 align-items:flex-start;
 }
+
 .quote-price-box{
 width:105px;
 }
@@ -993,45 +995,110 @@ width:105px;
 
 <div id="pinLock" class="pin-lock">
 <div class="pin-box">
+
 <img src="logo.jpg" class="pin-logo">
-<h2 id="pinTitle">Enter PIN</h2>
-<p id="pinMessage" class="muted">Enter your 4-digit PIN to open the app.</p>
-<input id="pinInput" class="pin-input" type="password" inputmode="numeric" maxlength="4"
+
+<h2 id="pinTitle">
+Enter PIN
+</h2>
+
+<p id="pinMessage" class="muted">
+Enter your 4-digit PIN to open the app.
+</p>
+
+<input
+id="pinInput"
+class="pin-input"
+type="password"
+inputmode="numeric"
+maxlength="4"
 oninput="pinInput.value=pinInput.value.replace(/\D/g,'').slice(0,4)">
+
 <div id="pinConfirmWrap" style="display:none">
-<input id="pinConfirmInput" class="pin-input" type="password" inputmode="numeric" maxlength="4"
+
+<input
+id="pinConfirmInput"
+class="pin-input"
+type="password"
+inputmode="numeric"
+maxlength="4"
 oninput="pinConfirmInput.value=pinConfirmInput.value.replace(/\D/g,'').slice(0,4)">
+
 </div>
+
 <div id="pinError" class="pin-error"></div>
-<button class="action" onclick="submitPin()">Continue</button>
+
+<button class="action" onclick="submitPin()">
+Continue
+</button>
+
 </div>
 </div>
 
 <header>
+
 <img src="logo.jpg" class="logo">
+
 <div class="brand">
-<h1>Steven's Pure Clean Exteriors</h1>
-<p>Pure Results • Clean Exteriors</p>
+
+<h1>
+Steven's Pure Clean Exteriors
+</h1>
+
+<p>
+Pure Results • Clean Exteriors
+</p>
+
 </div>
+
 </header>
 
 <nav>
-<button class="active" onclick="openPage('dashboard',this)">Dashboard</button>
-<button onclick="openPage('customers',this)">Customers</button>
-<button onclick="openPage('planner',this)">Planner</button>
-<button onclick="openPage('invoices',this)">Invoices</button>
-<button onclick="openPage('quotes',this)">Quotes</button>
-<button onclick="openPage('earnings',this)">Profit</button>
-<button onclick="openPage('expenses',this)">Expenses</button>
-<button onclick="openPage('map',this)">Map</button>
+
+<button class="active" onclick="openPage('dashboard',this)">
+Dashboard
+</button>
+
+<button onclick="openPage('customers',this)">
+Customers
+</button>
+
+<button onclick="openPage('planner',this)">
+Planner
+</button>
+
+<button onclick="openPage('invoices',this)">
+Invoices
+</button>
+
+<button onclick="openPage('quotes',this)">
+Quotes
+</button>
+
+<button onclick="openPage('earnings',this)">
+Profit
+</button>
+
+<button onclick="openPage('expenses',this)">
+Expenses
+</button>
+
+<button onclick="openPage('map',this)">
+Map
+</button>
+
 </nav>
 
 <main>
 
 <section id="dashboard" class="screen active">
-<h2>Dashboard</h2>
+
+<h2>
+Dashboard
+</h2>
 
 <div class="grid">
+
 <div class="card stat">
 <div class="label">ACTIVE CUSTOMERS</div>
 <div class="value" id="dashCustomers">0</div>
@@ -1051,34 +1118,64 @@ oninput="pinConfirmInput.value=pinConfirmInput.value.replace(/\D/g,'').slice(0,4
 <div class="label">EXPENSES THIS MONTH</div>
 <div class="value red" id="dashExpenses">£0.00</div>
 </div>
+
 </div>
 
 <div class="card">
+
 <div class="row">
-<h3 style="color:#9bd600;margin:0">Today's Round</h3>
-<button class="action small secondary" onclick="openPlannerToday()">View all</button>
+
+<h3 style="color:#9bd600;margin:0">
+Today's Round
+</h3>
+
+<button class="action small secondary" onclick="openPlannerToday()">
+View all
+</button>
+
 </div>
+
 <div id="todayJobs" class="muted" style="margin-top:8px"></div>
+
 </div>
 
 <div class="card">
-<h3 style="color:#9bd600;margin:0">Tomorrow</h3>
+
+<h3 style="color:#9bd600;margin:0">
+Tomorrow
+</h3>
+
 <div id="tomorrowSummary" class="muted" style="margin-top:8px"></div>
+
 <button class="action tomorrowbtn" onclick="startTomorrowTextQueue()">
 📱 Text Tomorrow's Customers
 </button>
+
 </div>
 
 <div class="card">
+
 <div class="row">
-<h3 style="color:#9bd600;margin:0">Unpaid Invoices</h3>
-<button class="action small owesbtn" onclick="openOwesPage()">Money Owed</button>
+
+<h3 style="color:#9bd600;margin:0">
+Unpaid Invoices
+</h3>
+
+<button class="action small owesbtn" onclick="openOwesPage()">
+Money Owed
+</button>
+
 </div>
+
 <div id="dashInvoices" class="muted" style="margin-top:8px"></div>
+
 </div>
 
 <div class="card full-backup-box">
-<h3 style="color:#9bd600;margin:0">📦 Full Business Backup</h3>
+
+<h3 style="color:#9bd600;margin:0">
+📦 Full Business Backup
+</h3>
 
 <div class="muted" style="margin-top:7px">
 Backs up your customers, invoices, quotes, expenses and all saved receipt photos together in one file.
@@ -1095,25 +1192,45 @@ Last backup: checking...
 <button class="action secondary" onclick="restoreBusinessDataWithPhotos()">
 Restore Backup
 </button>
+
 </div>
 
 <div class="card">
-<h3 style="color:#9bd600;margin:0">🔒 App Security</h3>
-<div id="pinStatusText" style="margin-top:10px;color:#63e99d;font-weight:bold">
+
+<h3 style="color:#9bd600;margin:0">
+🔒 App Security
+</h3>
+
+<div
+id="pinStatusText"
+style="margin-top:10px;color:#63e99d;font-weight:bold">
 Enabled
 </div>
-<button class="action secondary" onclick="lockAppNow()">Lock Now</button>
-<button class="action secondary" onclick="changePin()">Change PIN</button>
-<button id="togglePinButton" class="action secondary" onclick="togglePinLock()">
+
+<button class="action secondary" onclick="lockAppNow()">
+Lock Now
+</button>
+
+<button class="action secondary" onclick="changePin()">
+Change PIN
+</button>
+
+<button
+id="togglePinButton"
+class="action secondary"
+onclick="togglePinLock()">
 Turn PIN Lock Off
 </button>
+
 </div>
 
 </section>
 
 <section id="customers" class="screen">
 
-<h2>Customers</h2>
+<h2>
+Customers
+</h2>
 
 <input
 id="customerSearch"
@@ -1167,14 +1284,39 @@ Add Customer
 <label>Preferred Cleaning Day</label>
 
 <select id="customerPreferredDay">
-<option value="">No Preference</option>
-<option value="1">Monday</option>
-<option value="2">Tuesday</option>
-<option value="3">Wednesday</option>
-<option value="4">Thursday</option>
-<option value="5">Friday</option>
-<option value="6">Saturday</option>
-<option value="0">Sunday</option>
+
+<option value="">
+No Preference
+</option>
+
+<option value="1">
+Monday
+</option>
+
+<option value="2">
+Tuesday
+</option>
+
+<option value="3">
+Wednesday
+</option>
+
+<option value="4">
+Thursday
+</option>
+
+<option value="5">
+Friday
+</option>
+
+<option value="6">
+Saturday
+</option>
+
+<option value="0">
+Sunday
+</option>
+
 </select>
 
 <label>Phone</label>
@@ -1186,36 +1328,82 @@ Add Customer
 <div class="two">
 
 <div>
-<label>Price £</label>
-<input id="customerPrice" type="number" step="0.01">
+
+<label>
+Price £
+</label>
+
+<input
+id="customerPrice"
+type="number"
+step="0.01">
+
 </div>
 
 <div>
 
-<label>Frequency</label>
+<label>
+Frequency
+</label>
 
 <select id="customerFrequency">
-<option value="0">One-off</option>
-<option value="1">Weekly</option>
-<option value="2">2 Weekly</option>
-<option value="4">4 Weekly</option>
-<option value="6">6 Weekly</option>
-<option value="8">8 Weekly</option>
-<option value="10">10 Weekly</option>
-<option value="12">12 Weekly</option>
+
+<option value="0">
+One-off
+</option>
+
+<option value="1">
+Weekly
+</option>
+
+<option value="2">
+2 Weekly
+</option>
+
+<option value="4">
+4 Weekly
+</option>
+
+<option value="6">
+6 Weekly
+</option>
+
+<option value="8">
+8 Weekly
+</option>
+
+<option value="10">
+10 Weekly
+</option>
+
+<option value="12">
+12 Weekly
+</option>
+
 </select>
 
 </div>
 
 </div>
 
-<label>Next Clean</label>
-<input type="date" id="customerNextClean">
+<label>
+Next Clean
+</label>
 
-<label>Services</label>
+<input
+type="date"
+id="customerNextClean">
+
+<label>
+Services
+</label>
+
 <input id="customerServices">
 
-<label>Access Notes</label>
+<label>
+Access Notes
+</label>
+
 <textarea id="customerNotes"></textarea>
 
 <button class="action" onclick="saveCustomer()">
@@ -1234,7 +1422,9 @@ Cancel
 
 <section id="planner" class="screen">
 
-<h2>Daily Planner</h2>
+<h2>
+Daily Planner
+</h2>
 
 <div class="planner-date-card">
 
@@ -1255,9 +1445,13 @@ Today
 </div>
 
 <div id="plannerDateTitle" class="planner-date-title"></div>
+
 <div id="plannerDateSubtitle" class="planner-date-subtitle"></div>
 
-<input id="plannerDate" type="date" style="display:none">
+<input
+id="plannerDate"
+type="date"
+style="display:none">
 
 </div>
 
@@ -1265,22 +1459,42 @@ Today
 📱 Text Tomorrow's Customers
 </button>
 
-<label>Round Area</label>
+<label>
+Round Area
+</label>
 
 <select id="plannerArea" onchange="renderPlanner()">
-<option value="all">All Areas</option>
+
+<option value="all">
+All Areas
+</option>
+
 </select>
 
 <div class="planner-summary">
 
 <div class="mini-stat">
-<div class="label">JOBS</div>
-<div id="plannerJobCount" class="num">0</div>
+
+<div class="label">
+JOBS
+</div>
+
+<div id="plannerJobCount" class="num">
+0
+</div>
+
 </div>
 
 <div class="mini-stat">
-<div class="label">ROUND VALUE</div>
-<div id="plannerRoundTotal" class="num green">£0.00</div>
+
+<div class="label">
+ROUND VALUE
+</div>
+
+<div id="plannerRoundTotal" class="num green">
+£0.00
+</div>
+
 </div>
 
 </div>
@@ -1305,7 +1519,9 @@ Tap any day to open it in your Daily Planner.
 
 <section id="quotes" class="screen">
 
-<h2>Quotes</h2>
+<h2>
+Quotes
+</h2>
 
 <input
 id="quoteSearch"
@@ -1353,28 +1569,43 @@ New Quote
 
 <input type="hidden" id="quoteId">
 
-<label>Customer Name</label>
+<label>
+Customer Name
+</label>
+
 <input
 id="quoteCustomerName"
 placeholder="Customer name">
 
-<label>Address</label>
+<label>
+Address
+</label>
+
 <input
 id="quoteAddress"
 placeholder="Address">
 
-<label>Postcode</label>
+<label>
+Postcode
+</label>
+
 <input
 id="quotePostcode"
 placeholder="Postcode">
 
-<label>Email</label>
+<label>
+Email
+</label>
+
 <input
 id="quoteEmail"
 type="email"
 placeholder="Customer email">
 
-<label>Phone</label>
+<label>
+Phone
+</label>
+
 <input
 id="quotePhone"
 type="tel"
@@ -1389,16 +1620,21 @@ Services
 <div class="quote-service-row">
 
 <label class="quote-check-label">
+
 <input
 type="checkbox"
 id="quoteWindowCheck"
 onchange="updateQuoteTotal()">
 
 Window Cleaning
+
 </label>
 
 <div class="quote-price-box">
-<span>£</span>
+
+<span>
+£
+</span>
 
 <input
 id="quoteWindowPrice"
@@ -1421,11 +1657,14 @@ id="quoteGutterCheck"
 onchange="updateQuoteTotal()">
 
 Gutter Clearance
+
 </label>
 
 <div class="quote-price-box">
 
-<span>£</span>
+<span>
+£
+</span>
 
 <input
 id="quoteGutterPrice"
@@ -1448,11 +1687,14 @@ id="quoteFasciaCheck"
 onchange="updateQuoteTotal()">
 
 Fascia &amp; Soffits
+
 </label>
 
 <div class="quote-price-box">
 
-<span>£</span>
+<span>
+£
+</span>
 
 <input
 id="quoteFasciaPrice"
@@ -1475,11 +1717,14 @@ id="quoteConservatoryCheck"
 onchange="updateQuoteTotal()">
 
 Conservatory
+
 </label>
 
 <div class="quote-price-box">
 
-<span>£</span>
+<span>
+£
+</span>
 
 <input
 id="quoteConservatoryPrice"
@@ -1502,11 +1747,14 @@ id="quoteRoofCheck"
 onchange="updateQuoteTotal()">
 
 Roof Cleaning
+
 </label>
 
 <div class="quote-price-box">
 
-<span>£</span>
+<span>
+£
+</span>
 
 <input
 id="quoteRoofPrice"
@@ -1527,13 +1775,17 @@ oninput="updateQuoteTotal()">
 Custom Item
 </h3>
 
-<label>Description</label>
+<label>
+Description
+</label>
 
 <input
 id="quoteCustomDescription"
 placeholder="Example: Patio cleaning">
 
-<label>Price £</label>
+<label>
+Price £
+</label>
 
 <input
 id="quoteCustomPrice"
@@ -1544,7 +1796,9 @@ oninput="updateQuoteTotal()">
 
 </div>
 
-<label>Notes</label>
+<label>
+Notes
+</label>
 
 <textarea
 id="quoteNotes"
@@ -1552,7 +1806,9 @@ placeholder="Access details, property information or anything else..."></textare
 
 <div class="quote-total-box">
 
-<span>Total Quote</span>
+<span>
+Total Quote
+</span>
 
 <strong id="quoteTotal">
 £0.00
@@ -1576,7 +1832,9 @@ Cancel
 
 <section id="invoices" class="screen">
 
-<h2>Invoices</h2>
+<h2>
+Invoices
+</h2>
 
 <button class="action owesbtn" onclick="openOwesPage()">
 £ Money Owed
@@ -1592,18 +1850,24 @@ Cancel
 Create Invoice
 </h3>
 
-<label>Customer</label>
+<label>
+Customer
+</label>
 
 <select id="invoiceCustomer"></select>
 
-<label>Amount £</label>
+<label>
+Amount £
+</label>
 
 <input
 id="invoiceAmount"
 type="number"
 step="0.01">
 
-<label>Description</label>
+<label>
+Description
+</label>
 
 <textarea id="invoiceDescription"></textarea>
 
@@ -1698,7 +1962,9 @@ Accountant Invoice CSV
 
 <section id="owes" class="screen">
 
-<h2>Money Owed</h2>
+<h2>
+Money Owed
+</h2>
 
 <button
 class="action secondary"
@@ -1745,7 +2011,9 @@ oninput="renderOwes()">
 
 <section id="earnings" class="screen">
 
-<h2>Profit</h2>
+<h2>
+Profit
+</h2>
 
 <h3 class="profit-section-title">
 This Month
@@ -1923,7 +2191,9 @@ NEXT 7 DAYS
 
 <section id="expenses" class="screen">
 
-<h2>Expenses</h2>
+<h2>
+Expenses
+</h2>
 
 <div class="expense-summary">
 
@@ -2017,19 +2287,25 @@ Add Expense
 
 <input type="hidden" id="expenseId">
 
-<label>Date</label>
+<label>
+Date
+</label>
 
 <input
 type="date"
 id="expenseDate">
 
-<label>Supplier / Shop</label>
+<label>
+Supplier / Shop
+</label>
 
 <input
 id="expenseSupplier"
 placeholder="e.g. Shell, Screwfix, Gardiner">
 
-<label>Category</label>
+<label>
+Category
+</label>
 
 <select id="expenseCategory">
 
@@ -2047,7 +2323,9 @@ placeholder="e.g. Shell, Screwfix, Gardiner">
 
 </select>
 
-<label>Description</label>
+<label>
+Description
+</label>
 
 <input id="expenseDescription">
 
@@ -2098,7 +2376,9 @@ readonly>
 
 </div>
 
-<label>Payment Method</label>
+<label>
+Payment Method
+</label>
 
 <select id="expensePaymentMethod">
 
@@ -2109,7 +2389,9 @@ readonly>
 
 </select>
 
-<label>Notes</label>
+<label>
+Notes
+</label>
 
 <textarea id="expenseNotes"></textarea>
 
@@ -2161,16 +2443,29 @@ Cancel
 Accountant Expenses Export
 </h3>
 
-<label>Date Range</label>
+<label>
+Date Range
+</label>
 
 <select
 id="expenseExportRange"
 onchange="updateExpenseExportDates()">
 
-<option value="all">All Time</option>
-<option value="month">This Month</option>
-<option value="taxyear">Current UK Tax Year</option>
-<option value="custom">Custom Dates</option>
+<option value="all">
+All Time
+</option>
+
+<option value="month">
+This Month
+</option>
+
+<option value="taxyear">
+Current UK Tax Year
+</option>
+
+<option value="custom">
+Custom Dates
+</option>
 
 </select>
 
@@ -2205,7 +2500,9 @@ id="expenseExportTo">
 
 </div>
 
-<label>Category</label>
+<label>
+Category
+</label>
 
 <select id="expenseExportCategory">
 
@@ -2247,7 +2544,9 @@ oninput="renderExpenses()">
 
 <section id="map" class="screen">
 
-<h2>Customer Map</h2>
+<h2>
+Customer Map
+</h2>
 
 <div id="mapStatus" class="muted"></div>
 
@@ -2354,7 +2653,9 @@ Close
 📦 Backup Recommended
 </h3>
 
-<div id="backupReminderMessage" class="queue-message">
+<div
+id="backupReminderMessage"
+class="queue-message">
 It has been 7 days since your last backup.
 </div>
 
@@ -2428,6 +2729,23 @@ let removedExpenseReceipts=[];
 
 let map=null;
 let mapMarkers=[];
+
+/* BUG FIX:
+   Cache postcode coordinates so refreshing the map
+   does not repeatedly look up every postcode.
+*/
+let postcodeCache=
+JSON.parse(
+localStorage.getItem("pcPostcodeCache")
+||
+"{}"
+);
+
+/* BUG FIX:
+   Hold a reminder until Android tells us
+   that the email app was successfully opened.
+*/
+let pendingReminderInvoiceId="";
 
 let pinMode="unlock";
 
@@ -2565,11 +2883,21 @@ String(value).slice(
 
 }
 
+/* BUG FIX:
+   Completed one-off customers with no future clean date
+   are no longer counted as active.
+*/
 function activeCustomers(){
 
 return customers.filter(
 c=>
 c.archived!==true
+&&
+!(
+customerFrequencyNumber(c)===0
+&&
+!c.nextClean
+)
 );
 
 }
@@ -2579,6 +2907,14 @@ function archivedCustomers(){
 return customers.filter(
 c=>
 c.archived===true
+||
+(
+c.archived!==true
+&&
+customerFrequencyNumber(c)===0
+&&
+!c.nextClean
+)
 );
 
 }
@@ -3323,8 +3659,7 @@ highest+1,
 );
 
 }
-
-/* BACKUP REMINDER */
+  /* BACKUP REMINDER */
 
 function backupLastDate(){
 
@@ -3473,6 +3808,19 @@ localStorage.removeItem(
 );
 
 updateBackupStatus();
+
+}
+
+/*
+BUG FIX:
+Android calls this only AFTER the backup file
+has really been written successfully.
+*/
+function backupCompletedFromAndroid(){
+
+markBackupCompleted();
+
+closeBackupReminder();
 
 }
 
@@ -3654,7 +4002,12 @@ null,
 )
 );
 
-markBackupCompleted();
+/*
+BUG FIX:
+Do NOT mark the backup complete here.
+Android will call backupCompletedFromAndroid()
+after it has actually saved the ZIP.
+*/
 
 }else{
 
@@ -3739,13 +4092,9 @@ backup.quotes
 
 let next=
 safeNextNumber(
-
 invoices,
-
 "invoiceNumber",
-
 backup.nextInvoiceNumber
-
 );
 
 localStorage.setItem(
@@ -3757,13 +4106,9 @@ next
 
 let nextQuote=
 safeNextNumber(
-
 quotes,
-
 "quoteNumber",
-
 backup.nextQuoteNumber
-
 );
 
 localStorage.setItem(
@@ -3965,15 +4310,23 @@ difference
 );
 
 }
-  /* CUSTOMERS */
 
-function setCustomerFilter(filter,button){
+/* CUSTOMERS */
 
-customerFilter=filter;
+function setCustomerFilter(
+filter,
+button
+){
+
+customerFilter=
+filter;
 
 document
-.querySelectorAll("#customers .filterbar button")
-.forEach(b=>{
+.querySelectorAll(
+"#customers .filterbar button"
+)
+.forEach(
+b=>{
 
 b.classList.remove(
 "selected"
@@ -3983,7 +4336,8 @@ b.classList.add(
 "secondary"
 );
 
-});
+}
+);
 
 button.classList.add(
 "selected"
@@ -4023,10 +4377,8 @@ customerNotes.value="";
 setTimeout(()=>{
 
 customerForm.scrollIntoView({
-
 behavior:"smooth",
 block:"start"
-
 });
 
 },100);
@@ -4101,7 +4453,6 @@ c=>c.id===id
 
 let frequency=
 customerFrequency.value===""
-
 ?
 4
 :
@@ -4198,9 +4549,7 @@ closeCustomerForm();
 renderCustomers();
 
 try{
-
 renderPlanner();
-
 }catch(e){}
 
 alert(
@@ -4293,10 +4642,8 @@ c.notes || "";
 setTimeout(()=>{
 
 customerForm.scrollIntoView({
-
 behavior:"smooth",
 block:"start"
-
 });
 
 customerName.focus();
@@ -4351,6 +4698,12 @@ renderCustomers();
 
 }
 
+/*
+BUG FIX:
+If a converted customer is permanently deleted,
+remove the old quote link so the quote can be
+converted again later.
+*/
 function deleteCustomerPermanently(id){
 
 let c=
@@ -4404,9 +4757,24 @@ customers.filter(
 x=>x.id!==id
 );
 
+quotes.forEach(
+q=>{
+
+if(
+q.convertedCustomerId===id
+){
+
+q.convertedCustomerId="";
+
+}
+
+}
+);
+
 saveData();
 
 renderCustomers();
+renderQuotes();
 
 }
 
@@ -4891,10 +5259,8 @@ date;
 renderPlanner();
 
 window.scrollTo({
-
 top:0,
 behavior:"smooth"
-
 });
 
 }
@@ -5144,14 +5510,11 @@ Android.textPhoneWithMessage
 ){
 
 Android.textPhoneWithMessage(
-
 c.phone,
-
 makePreCleanMessage(
 c,
 plannerMessageDate()
 )
-
 );
 
 }
@@ -5459,6 +5822,10 @@ null;
 
 }
 
+/*
+BUG FIX:
+Use the planner date being viewed as the invoice/job date.
+*/
 function finishCompletedJob(method){
 
 let c=
@@ -5472,6 +5839,8 @@ let paid=
 method!=="Unpaid";
 
 let date=
+plannerDate.value
+||
 today();
 
 invoices.push({
@@ -5533,7 +5902,7 @@ reminderCount:
 c.nextClean=
 nextRecurringDate(
 c,
-c.nextClean || today()
+c.nextClean || date
 );
 
 closePaymentModal();
@@ -5541,9 +5910,7 @@ closePaymentModal();
 saveData();
 
 renderPlanner();
-
 renderInvoices();
-
 renderCustomers();
 
 }
@@ -5557,7 +5924,6 @@ x=>x.id===id
 
 if(!c)return;
 
-/* One-off jobs must not disappear when Skip is pressed */
 if(
 customerFrequencyNumber(
 c
@@ -5608,7 +5974,7 @@ return;
 c.nextClean=
 nextRecurringDate(
 c,
-c.nextClean || today()
+c.nextClean || plannerDate.value || today()
 );
 
 saveData();
@@ -5819,14 +6185,11 @@ Android.textPhoneWithMessage
 ){
 
 Android.textPhoneWithMessage(
-
 c.phone,
-
 makePreCleanMessage(
 c,
 tomorrowDateText()
 )
-
 );
 
 }
@@ -5923,13 +6286,8 @@ price>0
 ){
 
 items.push({
-
-name:
-name,
-
-price:
-price
-
+name:name,
+price:price
 });
 
 }
@@ -5983,13 +6341,8 @@ customPrice>0
 ){
 
 items.push({
-
-name:
-customName,
-
-price:
-customPrice
-
+name:customName,
+price:customPrice
 });
 
 }
@@ -6063,10 +6416,8 @@ clearQuoteServices();
 setTimeout(()=>{
 
 quoteForm.scrollIntoView({
-
 behavior:"smooth",
 block:"start"
-
 });
 
 },100);
@@ -6434,10 +6785,8 @@ updateQuoteTotal();
 setTimeout(()=>{
 
 quoteForm.scrollIntoView({
-
 behavior:"smooth",
 block:"start"
-
 });
 
 },100);
@@ -6575,7 +6924,6 @@ return false;
 
 let text=
 [
-
 q.customerName,
 q.address,
 q.postcode,
@@ -6593,7 +6941,6 @@ x=>x.name
 )
 :
 [])
-
 ]
 .join(
 " "
@@ -6889,6 +7236,129 @@ x=>x.name
 
 }
 
+/*
+BUG FIX:
+Better duplicate checking:
+1. Email
+2. Phone
+3. Name + postcode
+*/
+function findExistingCustomerForQuote(q){
+
+let quoteEmail=
+String(
+q.email || ""
+)
+.trim()
+.toLowerCase();
+
+let quotePhone=
+String(
+q.phone || ""
+)
+.replace(
+/\D/g,
+""
+);
+
+let quoteName=
+String(
+q.customerName || ""
+)
+.trim()
+.toLowerCase();
+
+let quotePostcode=
+String(
+q.postcode || ""
+)
+.replace(
+/\s+/g,
+""
+)
+.toUpperCase();
+
+return customers.find(
+c=>{
+
+let customerEmail=
+String(
+c.email || ""
+)
+.trim()
+.toLowerCase();
+
+if(
+quoteEmail
+&&
+customerEmail
+&&
+quoteEmail===customerEmail
+){
+
+return true;
+
+}
+
+let customerPhone=
+String(
+c.phone || ""
+)
+.replace(
+/\D/g,
+""
+);
+
+if(
+quotePhone
+&&
+customerPhone
+&&
+quotePhone===customerPhone
+){
+
+return true;
+
+}
+
+let customerName=
+String(
+c.name || ""
+)
+.trim()
+.toLowerCase();
+
+let customerPostcode=
+String(
+c.postcode || ""
+)
+.replace(
+/\s+/g,
+""
+)
+.toUpperCase();
+
+if(
+quoteName
+&&
+quotePostcode
+&&
+customerName===quoteName
+&&
+customerPostcode===quotePostcode
+){
+
+return true;
+
+}
+
+return false;
+
+}
+);
+
+}
+
 function convertQuoteToCustomer(id){
 
 let q=
@@ -6902,6 +7372,13 @@ if(
 q.convertedCustomerId
 ){
 
+let converted=
+customers.find(
+c=>c.id===q.convertedCustomerId
+);
+
+if(converted){
+
 alert(
 "This quote has already been added as a customer."
 );
@@ -6910,18 +7387,17 @@ return;
 
 }
 
+/*
+If the old customer was deleted,
+clear the broken quote link.
+*/
+q.convertedCustomerId="";
+
+}
+
 let existing=
-customers.find(
-c=>
-(c.email || "")
-&&
-q.email
-&&
-(c.email || "")
-.toLowerCase()
-===
-(q.email || "")
-.toLowerCase()
+findExistingCustomerForQuote(
+q
 );
 
 if(existing){
@@ -6934,7 +7410,8 @@ saveData();
 renderQuotes();
 
 alert(
-"That email address is already saved as a customer."
+existing.name+
+" is already saved as a customer."
 );
 
 return;
@@ -7137,8 +7614,9 @@ alert(
 "The Quote is saved correctly.\n\nWe just need to add the Quote PDF email function to MainActivity.java."
 );
 
-  }
-  /* INVOICES */
+}
+
+/* INVOICES */
 
 function getNextInvoiceNumber(){
 
@@ -7593,9 +8071,8 @@ Delete Invoice
 )
 .join("");
 
-}
-
-function deleteInvoice(id){
+  }
+  function deleteInvoice(id){
 
 let inv=
 invoices.find(
@@ -7831,6 +8308,16 @@ inv.description || ""
 
 }
 
+/*
+BUG FIX:
+The reminder is no longer counted immediately.
+
+MainActivity.java will open the email, wait until you
+return to the app, then ask whether you actually sent it.
+
+Only when you press Yes will Android call
+reminderConfirmedFromAndroid().
+*/
 function sendReminder(id){
 
 let inv=
@@ -7862,10 +8349,15 @@ return;
 if(
 typeof Android!=="undefined"
 &&
-Android.sendReminder
+Android.sendReminderWithId
 ){
 
-Android.sendReminder(
+pendingReminderInvoiceId=
+id;
+
+Android.sendReminderWithId(
+
+id,
 
 c.email,
 
@@ -7894,6 +8386,29 @@ invoiceStatus(inv)==="overdue"
 
 );
 
+return;
+
+}
+
+alert(
+"Reminder sending is not available in this version of the app."
+);
+
+}
+
+function reminderConfirmedFromAndroid(id){
+
+let inv=
+invoices.find(
+x=>x.id===id
+);
+
+if(!inv){
+
+pendingReminderInvoiceId="";
+
+return;
+
 }
 
 inv.lastReminderDate=
@@ -7906,9 +8421,27 @@ inv.reminderCount || 0
 +
 1;
 
+pendingReminderInvoiceId="";
+
 saveData();
 
 renderInvoices();
+
+alert(
+"Reminder recorded as sent."
+);
+
+}
+
+function reminderCancelledFromAndroid(id){
+
+if(
+pendingReminderInvoiceId===id
+){
+
+pendingReminderInvoiceId="";
+
+}
 
 }
 
@@ -8249,10 +8782,8 @@ renderExpenseReceiptPreviews();
 setTimeout(()=>{
 
 expenseForm.scrollIntoView({
-
 behavior:"smooth",
 block:"start"
-
 });
 
 },100);
@@ -9265,13 +9796,11 @@ exp=>{
 
 let text=
 [
-
 exp.supplier,
 exp.category,
 exp.description,
 exp.paymentMethod,
 exp.notes
-
 ]
 .join(
 " "
@@ -9514,10 +10043,8 @@ range==="all"
 ){
 
 return{
-
 from:"",
 to:""
-
 };
 
 }
@@ -9610,22 +10137,15 @@ return null;
 }
 
 return{
-
-from:
-from,
-
-to:
-to
-
+from:from,
+to:to
 };
 
 }
 
 return{
-
 from:"",
 to:""
-
 };
 
 }
@@ -9742,7 +10262,6 @@ receipts.push(
 csv.push(
 
 [
-
 formatDate(
 exp.date
 ),
@@ -9775,7 +10294,6 @@ exp.notes || "",
 files.join(
 " | "
 )
-
 ]
 .map(
 csvCell
@@ -9863,7 +10381,6 @@ inv=>{
 csv.push(
 
 [
-
 invoiceNumber(
 inv
 ),
@@ -9901,7 +10418,6 @@ inv.paidDate
 )
 :
 ""
-
 ]
 .map(
 csvCell
@@ -10150,10 +10666,8 @@ value
 if(!element)return;
 
 element.classList.remove(
-
 "profit-positive",
 "profit-negative"
-
 );
 
 if(
@@ -10483,11 +10997,14 @@ next7.toFixed(2);
 
 /* MAP */
 
+/*
+BUG FIX:
+Postcodes are cached in localStorage after the first
+successful lookup, so future map refreshes are much faster.
+*/
 async function postcodeCoordinates(
 postcode
 ){
-
-try{
 
 let cleaned=
 String(
@@ -10496,7 +11013,58 @@ postcode || ""
 .replace(
 /\s+/g,
 ""
-);
+)
+.toUpperCase();
+
+if(!cleaned){
+
+return null;
+
+}
+
+if(
+postcodeCache[
+cleaned
+]
+&&
+Number.isFinite(
+Number(
+postcodeCache[
+cleaned
+].lat
+)
+)
+&&
+Number.isFinite(
+Number(
+postcodeCache[
+cleaned
+].lng
+)
+)
+){
+
+return{
+
+lat:
+Number(
+postcodeCache[
+cleaned
+].lat
+),
+
+lng:
+Number(
+postcodeCache[
+cleaned
+].lng
+)
+
+};
+
+}
+
+try{
 
 let response=
 await fetch(
@@ -10514,17 +11082,37 @@ await response.json();
 
 if(
 data.status===200
+&&
+data.result
 ){
 
-return{
+let coords={
 
 lat:
-data.result.latitude,
+Number(
+data.result.latitude
+),
 
 lng:
+Number(
 data.result.longitude
+)
 
 };
+
+postcodeCache[
+cleaned
+]=
+coords;
+
+localStorage.setItem(
+"pcPostcodeCache",
+JSON.stringify(
+postcodeCache
+)
+);
+
+return coords;
 
 }
 
@@ -10579,6 +11167,9 @@ initialiseMap();
 
 if(!map)return;
 
+mapStatus.innerText=
+"Loading customer locations...";
+
 mapMarkers.forEach(
 m=>
 map.removeLayer(
@@ -10590,13 +11181,16 @@ mapMarkers=[];
 
 let bounds=[];
 
-for(
-let c
-of
+let mapCustomers=
 activeCustomers()
 .filter(
 c=>c.postcode
-)
+);
+
+for(
+let c
+of
+mapCustomers
 ){
 
 let coords=
@@ -10683,10 +11277,38 @@ bounds.length===1
 "s"
 )
 +
-" shown.";
+" shown."
++
+(
+mapCustomers.length!==bounds.length
+?
+" "
++
+(
+mapCustomers.length-bounds.length
+)
++
+" postcode"
++
+(
+mapCustomers.length-bounds.length===1
+?
+" could not be found."
+:
+"s could not be found."
+)
+:
+""
+);
 
 }
 
+/*
+BUG FIX:
+Directions are handed directly to Android.
+MainActivity will try a maps app first and fall back
+to the browser if needed.
+*/
 function openCustomerMap(id){
 
 let c=
@@ -10708,8 +11330,31 @@ Boolean
 " "
 );
 
-window.location.href=
+if(!query){
 
+alert(
+"No address or postcode is saved for this customer."
+);
+
+return;
+
+}
+
+if(
+typeof Android!=="undefined"
+&&
+Android.openMapDirections
+){
+
+Android.openMapDirections(
+query
+);
+
+return;
+
+}
+
+window.location.href=
 "https://www.google.com/maps/search/?api=1&query="
 +
 encodeURIComponent(
@@ -10881,6 +11526,23 @@ q.convertedCustomerId="";
 
 }
 
+/*
+BUG FIX:
+Repair old converted quote links if the linked customer
+has since been permanently deleted.
+*/
+if(
+q.convertedCustomerId
+&&
+!customers.some(
+c=>c.id===q.convertedCustomerId
+)
+){
+
+q.convertedCustomerId="";
+
+}
+
 }
 );
 
@@ -10937,9 +11599,7 @@ exp.vat || 0
 }
 );
 
-/*
-NUMBERING SAFETY
-*/
+/* NUMBERING SAFETY */
 
 let correctedNextInvoiceNumber=
 safeNextNumber(
@@ -11013,11 +11673,8 @@ updateBackupStatus();
 backupReminderStartDate();
 
 setTimeout(
-
 initialisePinSecurity,
-
 150
-
 );
 
 </script>
