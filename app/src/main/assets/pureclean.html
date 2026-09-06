@@ -2188,7 +2188,6 @@ NEXT 7 DAYS
 </div>
 
 </section>
-
 <section id="expenses" class="screen">
 
 <h2>
@@ -2730,10 +2729,6 @@ let removedExpenseReceipts=[];
 let map=null;
 let mapMarkers=[];
 
-/* BUG FIX:
-   Cache postcode coordinates so refreshing the map
-   does not repeatedly look up every postcode.
-*/
 let postcodeCache=
 JSON.parse(
 localStorage.getItem("pcPostcodeCache")
@@ -2741,10 +2736,6 @@ localStorage.getItem("pcPostcodeCache")
 "{}"
 );
 
-/* BUG FIX:
-   Hold a reminder until Android tells us
-   that the email app was successfully opened.
-*/
 let pendingReminderInvoiceId="";
 
 let pinMode="unlock";
@@ -2883,10 +2874,6 @@ String(value).slice(
 
 }
 
-/* BUG FIX:
-   Completed one-off customers with no future clean date
-   are no longer counted as active.
-*/
 function activeCustomers(){
 
 return customers.filter(
@@ -3251,37 +3238,37 @@ function showPinScreen(mode){
 
 pinMode=mode;
 
-pinInput.value="";
-pinConfirmInput.value="";
-pinError.innerText="";
+document.getElementById("pinInput").value="";
+document.getElementById("pinConfirmInput").value="";
+document.getElementById("pinError").innerText="";
 
 if(
 mode==="setup"
 ){
 
-pinTitle.innerText=
+document.getElementById("pinTitle").innerText=
 "Create Your PIN";
 
-pinMessage.innerText=
+document.getElementById("pinMessage").innerText=
 "Choose a 4-digit PIN.";
 
-pinConfirmWrap.style.display=
+document.getElementById("pinConfirmWrap").style.display=
 "block";
 
 }else{
 
-pinTitle.innerText=
+document.getElementById("pinTitle").innerText=
 "App Locked";
 
-pinMessage.innerText=
+document.getElementById("pinMessage").innerText=
 "Enter your PIN.";
 
-pinConfirmWrap.style.display=
+document.getElementById("pinConfirmWrap").style.display=
 "none";
 
 }
 
-pinLock.classList.add(
+document.getElementById("pinLock").classList.add(
 "show"
 );
 
@@ -3289,7 +3276,7 @@ pinLock.classList.add(
 
 function hidePinScreen(){
 
-pinLock.classList.remove(
+document.getElementById("pinLock").classList.remove(
 "show"
 );
 
@@ -3298,7 +3285,7 @@ pinLock.classList.remove(
 function submitPin(){
 
 let pin=
-pinInput.value.trim();
+document.getElementById("pinInput").value.trim();
 
 if(
 !validPin(
@@ -3306,7 +3293,7 @@ pin
 )
 ){
 
-pinError.innerText=
+document.getElementById("pinError").innerText=
 "Enter exactly 4 numbers.";
 
 return;
@@ -3319,10 +3306,10 @@ pinMode==="setup"
 
 if(
 pin!==
-pinConfirmInput.value.trim()
+document.getElementById("pinConfirmInput").value.trim()
 ){
 
-pinError.innerText=
+document.getElementById("pinError").innerText=
 "PIN numbers do not match.";
 
 return;
@@ -3365,7 +3352,7 @@ checkBackupReminder,
 
 }else{
 
-pinError.innerText=
+document.getElementById("pinError").innerText=
 "Incorrect PIN.";
 
 }
@@ -3433,10 +3420,20 @@ showPinScreen(
 
 function updateSecurityStatus(){
 
-if(
-!document.getElementById(
+let status=
+document.getElementById(
 "pinStatusText"
-)
+);
+
+let toggle=
+document.getElementById(
+"togglePinButton"
+);
+
+if(
+!status
+||
+!toggle
 ){
 
 return;
@@ -3447,24 +3444,24 @@ if(
 pinLockEnabled()
 ){
 
-pinStatusText.innerText=
+status.innerText=
 "Enabled";
 
-pinStatusText.style.color=
+status.style.color=
 "#63e99d";
 
-togglePinButton.innerText=
+toggle.innerText=
 "Turn PIN Lock Off";
 
 }else{
 
-pinStatusText.innerText=
+status.innerText=
 "Disabled";
 
-pinStatusText.style.color=
+status.style.color=
 "#ffc45e";
 
-togglePinButton.innerText=
+toggle.innerText=
 "Turn PIN Lock On";
 
 }
@@ -3659,7 +3656,8 @@ highest+1,
 );
 
 }
-  /* BACKUP REMINDER */
+
+/* BACKUP REMINDER */
 
 function backupLastDate(){
 
@@ -3811,11 +3809,6 @@ updateBackupStatus();
 
 }
 
-/*
-BUG FIX:
-Android calls this only AFTER the backup file
-has really been written successfully.
-*/
 function backupCompletedFromAndroid(){
 
 markBackupCompleted();
@@ -4002,13 +3995,6 @@ null,
 )
 );
 
-/*
-BUG FIX:
-Do NOT mark the backup complete here.
-Android will call backupCompletedFromAndroid()
-after it has actually saved the ZIP.
-*/
-
 }else{
 
 alert(
@@ -4168,13 +4154,14 @@ function refreshRoundAreas(){
 let areas=
 getRoundAreas();
 
-if(
+let suggestions=
 document.getElementById(
 "roundAreaSuggestions"
-)
-){
+);
 
-roundAreaSuggestions.innerHTML=
+if(suggestions){
+
+suggestions.innerHTML=
 areas
 .map(
 a=>
@@ -4184,22 +4171,23 @@ a=>
 
 }
 
-if(
-!document.getElementById(
+let areaSelect=
+document.getElementById(
 "plannerArea"
-)
-){
+);
+
+if(!areaSelect){
 
 return;
 
 }
 
 let current=
-plannerArea.value
+areaSelect.value
 ||
 "all";
 
-plannerArea.innerHTML=
+areaSelect.innerHTML=
 `
 <option value="all">All Areas</option>
 <option value="unassigned">Unassigned</option>
@@ -4212,7 +4200,7 @@ a=>
 )
 .join("");
 
-plannerArea.value=
+areaSelect.value=
 areas.includes(
 current
 )
@@ -4353,30 +4341,32 @@ renderCustomers();
 
 function newCustomer(){
 
-customerForm.classList.add(
+let form=document.getElementById("customerForm");
+
+form.classList.add(
 "show"
 );
 
-customerFormTitle.innerText=
+document.getElementById("customerFormTitle").innerText=
 "Add Customer";
 
-customerId.value="";
-customerName.value="";
-customerAddress.value="";
-customerPostcode.value="";
-customerRoundArea.value="";
-customerPreferredDay.value="";
-customerPhone.value="";
-customerEmail.value="";
-customerPrice.value="";
-customerFrequency.value="4";
-customerNextClean.value=today();
-customerServices.value="Window Cleaning";
-customerNotes.value="";
+document.getElementById("customerId").value="";
+document.getElementById("customerName").value="";
+document.getElementById("customerAddress").value="";
+document.getElementById("customerPostcode").value="";
+document.getElementById("customerRoundArea").value="";
+document.getElementById("customerPreferredDay").value="";
+document.getElementById("customerPhone").value="";
+document.getElementById("customerEmail").value="";
+document.getElementById("customerPrice").value="";
+document.getElementById("customerFrequency").value="4";
+document.getElementById("customerNextClean").value=today();
+document.getElementById("customerServices").value="Window Cleaning";
+document.getElementById("customerNotes").value="";
 
 setTimeout(()=>{
 
-customerForm.scrollIntoView({
+form.scrollIntoView({
 behavior:"smooth",
 block:"start"
 });
@@ -4387,7 +4377,7 @@ block:"start"
 
 function closeCustomerForm(){
 
-customerForm.classList.remove(
+document.getElementById("customerForm").classList.remove(
 "show"
 );
 
@@ -4410,7 +4400,7 @@ email
 function saveCustomer(){
 
 let name=
-customerName.value.trim();
+document.getElementById("customerName").value.trim();
 
 if(!name){
 
@@ -4423,7 +4413,7 @@ return;
 }
 
 let email=
-customerEmail.value
+document.getElementById("customerEmail").value
 .trim()
 .toLowerCase();
 
@@ -4444,20 +4434,23 @@ return;
 }
 
 let id=
-customerId.value;
+document.getElementById("customerId").value;
 
 let old=
 customers.find(
 c=>c.id===id
 );
 
+let frequencySelect=
+document.getElementById("customerFrequency");
+
 let frequency=
-customerFrequency.value===""
+frequencySelect.value===""
 ?
 4
 :
 Number(
-customerFrequency.value
+frequencySelect.value
 );
 
 let c={
@@ -4471,41 +4464,41 @@ name:
 name,
 
 address:
-customerAddress.value.trim(),
+document.getElementById("customerAddress").value.trim(),
 
 postcode:
-customerPostcode.value
+document.getElementById("customerPostcode").value
 .trim()
 .toUpperCase(),
 
 roundArea:
-customerRoundArea.value.trim(),
+document.getElementById("customerRoundArea").value.trim(),
 
 preferredDay:
-customerPreferredDay.value,
+document.getElementById("customerPreferredDay").value,
 
 phone:
-customerPhone.value.trim(),
+document.getElementById("customerPhone").value.trim(),
 
 email:
 email,
 
 price:
 Number(
-customerPrice.value || 0
+document.getElementById("customerPrice").value || 0
 ),
 
 frequency:
 frequency,
 
 nextClean:
-customerNextClean.value,
+document.getElementById("customerNextClean").value,
 
 services:
-customerServices.value.trim(),
+document.getElementById("customerServices").value.trim(),
 
 notes:
-customerNotes.value.trim(),
+document.getElementById("customerNotes").value.trim(),
 
 archived:
 old
@@ -4575,29 +4568,34 @@ return;
 
 }
 
-customerForm.classList.add(
+let form=
+document.getElementById(
+"customerForm"
+);
+
+form.classList.add(
 "show"
 );
 
-customerFormTitle.innerText=
+document.getElementById("customerFormTitle").innerText=
 "Edit Customer";
 
-customerId.value=
+document.getElementById("customerId").value=
 c.id || "";
 
-customerName.value=
+document.getElementById("customerName").value=
 c.name || "";
 
-customerAddress.value=
+document.getElementById("customerAddress").value=
 c.address || "";
 
-customerPostcode.value=
+document.getElementById("customerPostcode").value=
 c.postcode || "";
 
-customerRoundArea.value=
+document.getElementById("customerRoundArea").value=
 c.roundArea || "";
 
-customerPreferredDay.value=
+document.getElementById("customerPreferredDay").value=
 typeof c.preferredDay==="undefined"
 ?
 ""
@@ -4606,20 +4604,20 @@ String(
 c.preferredDay
 );
 
-customerPhone.value=
+document.getElementById("customerPhone").value=
 c.phone || "";
 
-customerEmail.value=
+document.getElementById("customerEmail").value=
 c.email || "";
 
-customerPrice.value=
+document.getElementById("customerPrice").value=
 typeof c.price==="undefined"
 ?
 ""
 :
 c.price;
 
-customerFrequency.value=
+document.getElementById("customerFrequency").value=
 typeof c.frequency==="undefined"
 ||
 c.frequency===null
@@ -4630,23 +4628,23 @@ String(
 c.frequency
 );
 
-customerNextClean.value=
+document.getElementById("customerNextClean").value=
 c.nextClean || "";
 
-customerServices.value=
+document.getElementById("customerServices").value=
 c.services || "";
 
-customerNotes.value=
+document.getElementById("customerNotes").value=
 c.notes || "";
 
 setTimeout(()=>{
 
-customerForm.scrollIntoView({
+form.scrollIntoView({
 behavior:"smooth",
 block:"start"
 });
 
-customerName.focus();
+document.getElementById("customerName").focus();
 
 },120);
 
@@ -4698,12 +4696,6 @@ renderCustomers();
 
 }
 
-/*
-BUG FIX:
-If a converted customer is permanently deleted,
-remove the old quote link so the quote can be
-converted again later.
-*/
 function deleteCustomerPermanently(id){
 
 let c=
@@ -4978,20 +4970,28 @@ text
 
 function renderCustomers(){
 
-if(
-!document.getElementById(
+let listHolder=
+document.getElementById(
 "customerList"
-)
-){
+);
+
+if(!listHolder){
 
 return;
 
 }
 
+let searchInput=
+document.getElementById(
+"customerSearch"
+);
+
 let search=
 (
-customerSearch.value
-||
+searchInput
+?
+searchInput.value
+:
 ""
 )
 .toLowerCase();
@@ -5035,14 +5035,14 @@ if(
 !list.length
 ){
 
-customerList.innerHTML=
+listHolder.innerHTML=
 '<div class="item empty">No customers found.</div>';
 
 return;
 
 }
 
-customerList.innerHTML=
+listHolder.innerHTML=
 list.map(
 c=>{
 
@@ -5215,7 +5215,7 @@ Delete
 
 function plannerToday(){
 
-plannerDate.value=
+document.getElementById("plannerDate").value=
 today();
 
 renderPlanner();
@@ -5224,7 +5224,7 @@ renderPlanner();
 
 function openPlannerToday(){
 
-plannerDate.value=
+document.getElementById("plannerDate").value=
 today();
 
 openPage(
@@ -5237,9 +5237,12 @@ renderPlanner();
 
 function changePlannerDay(amount){
 
-plannerDate.value=
+let dateInput=
+document.getElementById("plannerDate");
+
+dateInput.value=
 addDays(
-plannerDate.value
+dateInput.value
 ||
 today(),
 amount
@@ -5249,11 +5252,9 @@ renderPlanner();
 
 }
 
-/* NEXT 7 DAYS */
-
 function openPlannerDate(date){
 
-plannerDate.value=
+document.getElementById("plannerDate").value=
 date;
 
 renderPlanner();
@@ -5383,8 +5384,11 @@ html.join("");
 
 function updatePlannerDateHeader(){
 
+let dateInput=
+document.getElementById("plannerDate");
+
 let date=
-plannerDate.value
+dateInput.value
 ||
 today();
 
@@ -5402,14 +5406,14 @@ weekday:"long"
 }
 );
 
-plannerDateTitle.innerText=
+document.getElementById("plannerDateTitle").innerText=
 date===today()
 ?
 "Today — "+day
 :
 day;
 
-plannerDateSubtitle.innerText=
+document.getElementById("plannerDateSubtitle").innerText=
 d.toLocaleDateString(
 "en-GB",
 {
@@ -5423,8 +5427,11 @@ year:"numeric"
 
 function plannerMessageDate(){
 
+let date=
+document.getElementById("plannerDate").value;
+
 if(
-plannerDate.value===today()
+date===today()
 ){
 
 return "today";
@@ -5433,7 +5440,7 @@ return "today";
 
 let d=
 new Date(
-plannerDate.value+
+date+
 "T12:00:00"
 );
 
@@ -5525,11 +5532,14 @@ function renderPlanner(){
 
 refreshRoundAreas();
 
+let dateInput=
+document.getElementById("plannerDate");
+
 if(
-!plannerDate.value
+!dateInput.value
 ){
 
-plannerDate.value=
+dateInput.value=
 today();
 
 }
@@ -5539,10 +5549,13 @@ renderNext7Days();
 updatePlannerDateHeader();
 
 let date=
-plannerDate.value;
+dateInput.value;
+
+let areaSelect=
+document.getElementById("plannerArea");
 
 let area=
-plannerArea.value
+areaSelect.value
 ||
 "all";
 
@@ -5581,10 +5594,10 @@ c.roundArea || ""
 }
 );
 
-plannerJobCount.innerText=
+document.getElementById("plannerJobCount").innerText=
 jobs.length;
 
-plannerRoundTotal.innerText=
+document.getElementById("plannerRoundTotal").innerText=
 "£"
 +
 jobs
@@ -5597,18 +5610,21 @@ c.price || 0
 )
 .toFixed(2);
 
+let jobsHolder=
+document.getElementById("plannerJobs");
+
 if(
 !jobs.length
 ){
 
-plannerJobs.innerHTML=
+jobsHolder.innerHTML=
 '<div class="item empty">No jobs scheduled for this day.</div>';
 
 return;
 
 }
 
-plannerJobs.innerHTML=
+jobsHolder.innerHTML=
 jobs.map(
 (c,index)=>`
 
@@ -5794,10 +5810,10 @@ if(!c)return;
 completingCustomerId=
 id;
 
-paymentCustomerName.innerText=
+document.getElementById("paymentCustomerName").innerText=
 c.name;
 
-paymentAmount.innerText=
+document.getElementById("paymentAmount").innerText=
 "£"
 +
 Number(
@@ -5805,7 +5821,7 @@ c.price || 0
 )
 .toFixed(2);
 
-paymentModalOverlay.classList.add(
+document.getElementById("paymentModalOverlay").classList.add(
 "show"
 );
 
@@ -5813,7 +5829,7 @@ paymentModalOverlay.classList.add(
 
 function closePaymentModal(){
 
-paymentModalOverlay.classList.remove(
+document.getElementById("paymentModalOverlay").classList.remove(
 "show"
 );
 
@@ -5822,10 +5838,6 @@ null;
 
 }
 
-/*
-BUG FIX:
-Use the planner date being viewed as the invoice/job date.
-*/
 function finishCompletedJob(method){
 
 let c=
@@ -5839,7 +5851,7 @@ let paid=
 method!=="Unpaid";
 
 let date=
-plannerDate.value
+document.getElementById("plannerDate").value
 ||
 today();
 
@@ -5949,7 +5961,7 @@ input
 input.value=
 c.nextClean
 ||
-plannerDate.value
+document.getElementById("plannerDate").value
 ||
 today();
 
@@ -5974,7 +5986,7 @@ return;
 c.nextClean=
 nextRecurringDate(
 c,
-c.nextClean || plannerDate.value || today()
+c.nextClean || document.getElementById("plannerDate").value || today()
 );
 
 saveData();
@@ -6110,7 +6122,7 @@ return;
 
 renderTomorrowTextQueue();
 
-tomorrowTextOverlay.classList.add(
+document.getElementById("tomorrowTextOverlay").classList.add(
 "show"
 );
 
@@ -6125,7 +6137,7 @@ tomorrowTextIndex
 
 if(!c)return;
 
-tomorrowQueueProgress.innerText=
+document.getElementById("tomorrowQueueProgress").innerText=
 "Customer "
 +
 (
@@ -6136,10 +6148,10 @@ tomorrowTextIndex+1
 +
 tomorrowTextQueue.length;
 
-tomorrowQueueName.innerText=
+document.getElementById("tomorrowQueueName").innerText=
 c.name;
 
-tomorrowQueueAddress.innerHTML=
+document.getElementById("tomorrowQueueAddress").innerHTML=
 safe(
 c.address || ""
 )
@@ -6152,13 +6164,13 @@ c.postcode
 ""
 );
 
-tomorrowQueueMessage.innerText=
+document.getElementById("tomorrowQueueMessage").innerText=
 makePreCleanMessage(
 c,
 tomorrowDateText()
 );
 
-tomorrowNextButton.innerText=
+document.getElementById("tomorrowNextButton").innerText=
 tomorrowTextIndex
 ===
 tomorrowTextQueue.length-1
@@ -6218,7 +6230,7 @@ renderTomorrowTextQueue();
 
 function closeTomorrowTextQueue(){
 
-tomorrowTextOverlay.classList.remove(
+document.getElementById("tomorrowTextOverlay").classList.remove(
 "show"
 );
 
@@ -6297,41 +6309,41 @@ price:price
 }
 
 addChecked(
-quoteWindowCheck,
+document.getElementById("quoteWindowCheck"),
 "Window Cleaning",
-quoteWindowPrice
+document.getElementById("quoteWindowPrice")
 );
 
 addChecked(
-quoteGutterCheck,
+document.getElementById("quoteGutterCheck"),
 "Gutter Clearance",
-quoteGutterPrice
+document.getElementById("quoteGutterPrice")
 );
 
 addChecked(
-quoteFasciaCheck,
+document.getElementById("quoteFasciaCheck"),
 "Fascia & Soffits",
-quoteFasciaPrice
+document.getElementById("quoteFasciaPrice")
 );
 
 addChecked(
-quoteConservatoryCheck,
+document.getElementById("quoteConservatoryCheck"),
 "Conservatory",
-quoteConservatoryPrice
+document.getElementById("quoteConservatoryPrice")
 );
 
 addChecked(
-quoteRoofCheck,
+document.getElementById("quoteRoofCheck"),
 "Roof Cleaning",
-quoteRoofPrice
+document.getElementById("quoteRoofPrice")
 );
 
 let customName=
-quoteCustomDescription.value.trim();
+document.getElementById("quoteCustomDescription").value.trim();
 
 let customPrice=
 Number(
-quoteCustomPrice.value || 0
+document.getElementById("quoteCustomPrice").value || 0
 );
 
 if(
@@ -6365,7 +6377,7 @@ item.price || 0
 0
 );
 
-quoteTotal.innerText=
+document.getElementById("quoteTotal").innerText=
 "£"
 +
 total.toFixed(2);
@@ -6374,20 +6386,20 @@ total.toFixed(2);
 
 function clearQuoteServices(){
 
-quoteWindowCheck.checked=false;
-quoteGutterCheck.checked=false;
-quoteFasciaCheck.checked=false;
-quoteConservatoryCheck.checked=false;
-quoteRoofCheck.checked=false;
+document.getElementById("quoteWindowCheck").checked=false;
+document.getElementById("quoteGutterCheck").checked=false;
+document.getElementById("quoteFasciaCheck").checked=false;
+document.getElementById("quoteConservatoryCheck").checked=false;
+document.getElementById("quoteRoofCheck").checked=false;
 
-quoteWindowPrice.value="0";
-quoteGutterPrice.value="0";
-quoteFasciaPrice.value="0";
-quoteConservatoryPrice.value="0";
-quoteRoofPrice.value="0";
+document.getElementById("quoteWindowPrice").value="0";
+document.getElementById("quoteGutterPrice").value="0";
+document.getElementById("quoteFasciaPrice").value="0";
+document.getElementById("quoteConservatoryPrice").value="0";
+document.getElementById("quoteRoofPrice").value="0";
 
-quoteCustomDescription.value="";
-quoteCustomPrice.value="0";
+document.getElementById("quoteCustomDescription").value="";
+document.getElementById("quoteCustomPrice").value="0";
 
 updateQuoteTotal();
 
@@ -6395,27 +6407,30 @@ updateQuoteTotal();
 
 function newQuote(){
 
-quoteForm.classList.add(
+let form=
+document.getElementById("quoteForm");
+
+form.classList.add(
 "show"
 );
 
-quoteFormTitle.innerText=
+document.getElementById("quoteFormTitle").innerText=
 "New Quote";
 
-quoteId.value="";
+document.getElementById("quoteId").value="";
 
-quoteCustomerName.value="";
-quoteAddress.value="";
-quotePostcode.value="";
-quoteEmail.value="";
-quotePhone.value="";
-quoteNotes.value="";
+document.getElementById("quoteCustomerName").value="";
+document.getElementById("quoteAddress").value="";
+document.getElementById("quotePostcode").value="";
+document.getElementById("quoteEmail").value="";
+document.getElementById("quotePhone").value="";
+document.getElementById("quoteNotes").value="";
 
 clearQuoteServices();
 
 setTimeout(()=>{
 
-quoteForm.scrollIntoView({
+form.scrollIntoView({
 behavior:"smooth",
 block:"start"
 });
@@ -6426,7 +6441,7 @@ block:"start"
 
 function closeQuoteForm(){
 
-quoteForm.classList.remove(
+document.getElementById("quoteForm").classList.remove(
 "show"
 );
 
@@ -6435,7 +6450,7 @@ quoteForm.classList.remove(
 function saveQuote(){
 
 let name=
-quoteCustomerName.value.trim();
+document.getElementById("quoteCustomerName").value.trim();
 
 if(!name){
 
@@ -6448,7 +6463,7 @@ return;
 }
 
 let email=
-quoteEmail.value
+document.getElementById("quoteEmail").value
 .trim()
 .toLowerCase();
 
@@ -6488,2118 +6503,7 @@ items.reduce(
 (s,item)=>
 s+Number(
 item.price || 0
-),
-0
-);
-
-let id=
-quoteId.value;
-
-let existing=
-quotes.find(
-q=>q.id===id
-);
-
-let q={
-
-id:
-id
-||
-"quote_"+
-Date.now(),
-
-quoteNumber:
-existing
-?
-existing.quoteNumber
-:
-getNextQuoteNumber(),
-
-customerName:
-name,
-
-address:
-quoteAddress.value.trim(),
-
-postcode:
-quotePostcode.value
-.trim()
-.toUpperCase(),
-
-email:
-email,
-
-phone:
-quotePhone.value.trim(),
-
-items:
-items,
-
-total:
-total,
-
-notes:
-quoteNotes.value.trim(),
-
-date:
-existing
-?
-existing.date || today()
-:
-today(),
-
-status:
-existing
-?
-existing.status || "Pending"
-:
-"Pending",
-
-acceptedDate:
-existing
-?
-existing.acceptedDate || ""
-:
-"",
-
-convertedCustomerId:
-existing
-?
-existing.convertedCustomerId || ""
-:
-""
-
-};
-
-let index=
-quotes.findIndex(
-x=>x.id===q.id
-);
-
-if(
-index>=0
-){
-
-quotes[index]=q;
-
-}else{
-
-quotes.push(
-q
-);
-
-}
-
-saveData();
-
-closeQuoteForm();
-
-renderQuotes();
-
-alert(
-"Quote saved."
-);
-
-}
-
-function quoteItemByName(
-q,
-name
-){
-
-return(
-Array.isArray(
-q.items
-)
-?
-q.items.find(
-x=>x.name===name
-)
-:
-null
-);
-
-}
-
-function editQuote(id){
-
-let q=
-quotes.find(
-x=>x.id===id
-);
-
-if(!q)return;
-
-quoteForm.classList.add(
-"show"
-);
-
-quoteFormTitle.innerText=
-"Edit Quote #Q"+
-quoteNumber(q);
-
-quoteId.value=
-q.id;
-
-quoteCustomerName.value=
-q.customerName || "";
-
-quoteAddress.value=
-q.address || "";
-
-quotePostcode.value=
-q.postcode || "";
-
-quoteEmail.value=
-q.email || "";
-
-quotePhone.value=
-q.phone || "";
-
-quoteNotes.value=
-q.notes || "";
-
-clearQuoteServices();
-
-let windowItem=
-quoteItemByName(
-q,
-"Window Cleaning"
-);
-
-if(windowItem){
-
-quoteWindowCheck.checked=true;
-
-quoteWindowPrice.value=
-Number(
-windowItem.price || 0
-);
-
-}
-
-let gutterItem=
-quoteItemByName(
-q,
-"Gutter Clearance"
-);
-
-if(gutterItem){
-
-quoteGutterCheck.checked=true;
-
-quoteGutterPrice.value=
-Number(
-gutterItem.price || 0
-);
-
-}
-
-let fasciaItem=
-quoteItemByName(
-q,
-"Fascia & Soffits"
-);
-
-if(fasciaItem){
-
-quoteFasciaCheck.checked=true;
-
-quoteFasciaPrice.value=
-Number(
-fasciaItem.price || 0
-);
-
-}
-
-let conservatoryItem=
-quoteItemByName(
-q,
-"Conservatory"
-);
-
-if(conservatoryItem){
-
-quoteConservatoryCheck.checked=true;
-
-quoteConservatoryPrice.value=
-Number(
-conservatoryItem.price || 0
-);
-
-}
-
-let roofItem=
-quoteItemByName(
-q,
-"Roof Cleaning"
-);
-
-if(roofItem){
-
-quoteRoofCheck.checked=true;
-
-quoteRoofPrice.value=
-Number(
-roofItem.price || 0
-);
-
-}
-
-let standardNames=[
-"Window Cleaning",
-"Gutter Clearance",
-"Fascia & Soffits",
-"Conservatory",
-"Roof Cleaning"
-];
-
-let customItem=
-Array.isArray(
-q.items
-)
-?
-q.items.find(
-x=>
-!standardNames.includes(
-x.name
-)
-)
-:
-null;
-
-if(customItem){
-
-quoteCustomDescription.value=
-customItem.name || "";
-
-quoteCustomPrice.value=
-Number(
-customItem.price || 0
-);
-
-}
-
-updateQuoteTotal();
-
-setTimeout(()=>{
-
-quoteForm.scrollIntoView({
-behavior:"smooth",
-block:"start"
-});
-
-},100);
-
-}
-
-function setQuoteFilter(
-filter,
-button
-){
-
-quoteFilter=
-filter;
-
-document
-.querySelectorAll(
-"#quotes .filterbar button"
-)
-.forEach(
-b=>{
-
-b.classList.remove(
-"selected"
-);
-
-b.classList.add(
-"secondary"
-);
-
-}
-);
-
-button.classList.add(
-"selected"
-);
-
-button.classList.remove(
-"secondary"
-);
-
-renderQuotes();
-
-}
-
-function quoteStatusClass(status){
-
-if(
-status==="Accepted"
-){
-
-return "quote-status-accepted";
-
-}
-
-if(
-status==="Declined"
-){
-
-return "quote-status-declined";
-
-}
-
-return "quote-status-pending";
-
-}
-
-function quoteItemsHtml(q){
-
-if(
-!Array.isArray(
-q.items
-)
-||
-!q.items.length
-){
-
-return "";
-
-}
-
-return q.items
-.map(
-item=>
-safe(
-item.name
-)
-+
-" — £"
-+
-Number(
-item.price || 0
-)
-.toFixed(2)
-)
-.join(
-"<br>"
-);
-
-}
-
-function renderQuotes(){
-
-if(
-!document.getElementById(
-"quoteList"
-)
-){
-
-return;
-
-}
-
-let search=
-(
-quoteSearch.value
-||
-""
-)
-.toLowerCase();
-
-let list=
-quotes
-.filter(
-q=>{
-
-if(
-quoteFilter!=="all"
-&&
-(q.status || "Pending")!==quoteFilter
-){
-
-return false;
-
-}
-
-let text=
-[
-q.customerName,
-q.address,
-q.postcode,
-q.email,
-q.phone,
-q.notes,
-String(
-quoteNumber(q)
-),
-
-...(Array.isArray(q.items)
-?
-q.items.map(
-x=>x.name
-)
-:
-[])
-]
-.join(
-" "
-)
-.toLowerCase();
-
-return text.includes(
-search
-);
-
-}
-)
-.sort(
-(a,b)=>
-String(
-b.date || ""
-)
-.localeCompare(
-String(
-a.date || ""
-)
-)
-);
-
-if(
-!list.length
-){
-
-quoteList.innerHTML=
-'<div class="item empty">No quotes found.</div>';
-
-return;
-
-}
-
-quoteList.innerHTML=
-list.map(
-q=>{
-
-let status=
-q.status || "Pending";
-
-return`
-
-<div class="item">
-
-<div class="row">
-
-<div>
-
-<div class="customer-name">
-${safe(q.customerName)}
-</div>
-
-<div class="muted">
-
-Quote #Q${safe(quoteNumber(q))}
-
-<br>
-
-${formatDate(q.date)}
-
-${q.address
-?
-"<br>"+safe(q.address)
-:
-""
-}
-
-${q.postcode
-?
-"<br>"+safe(q.postcode)
-:
-""
-}
-
-</div>
-
-</div>
-
-<div class="price">
-£${Number(q.total || 0).toFixed(2)}
-</div>
-
-</div>
-
-<div style="margin-top:9px">
-
-<span class="badge ${quoteStatusClass(status)}">
-${safe(status.toUpperCase())}
-</span>
-
-</div>
-
-<div class="quote-items-summary">
-
-${quoteItemsHtml(q)}
-
-</div>
-
-${q.notes
-?
-`
-<div class="quote-note-box muted">
-
-<strong>
-Notes:
-</strong>
-
-<br>
-
-${safe(q.notes)}
-
-</div>
-`
-:
-""
-}
-
-<button
-class="action small"
-onclick="editQuote('${q.id}')">
-
-Edit
-
-</button>
-
-<button
-class="action small emailbtn"
-onclick="emailQuote('${q.id}')">
-
-Email Quote
-
-</button>
-
-${status!=="Accepted"
-?
-`
-<button
-class="action small quoteacceptbtn"
-onclick="markQuoteAccepted('${q.id}')">
-
-Accept
-
-</button>
-`
-:
-""
-}
-
-${status!=="Declined"
-?
-`
-<button
-class="action small quotedeclinebtn"
-onclick="markQuoteDeclined('${q.id}')">
-
-Decline
-
-</button>
-`
-:
-""
-}
-
-${status==="Accepted"
-&&
-!q.convertedCustomerId
-?
-`
-<button
-class="action small quotebtn"
-onclick="convertQuoteToCustomer('${q.id}')">
-
-Add as Customer
-
-</button>
-`
-:
-""
-}
-
-<button
-class="action small danger"
-onclick="deleteQuote('${q.id}')">
-
-Delete
-
-</button>
-
-</div>
-
-`;
-
-}
-)
-.join("");
-
-}
-
-function markQuoteAccepted(id){
-
-let q=
-quotes.find(
-x=>x.id===id
-);
-
-if(!q)return;
-
-q.status=
-"Accepted";
-
-q.acceptedDate=
-today();
-
-saveData();
-
-renderQuotes();
-
-}
-
-function markQuoteDeclined(id){
-
-let q=
-quotes.find(
-x=>x.id===id
-);
-
-if(!q)return;
-
-q.status=
-"Declined";
-
-q.acceptedDate="";
-
-saveData();
-
-renderQuotes();
-
-}
-
-function deleteQuote(id){
-
-let q=
-quotes.find(
-x=>x.id===id
-);
-
-if(!q)return;
-
-if(
-!confirm(
-"Delete Quote #Q"+
-quoteNumber(q)+
-" for "+
-(q.customerName || "this customer")+
-"?"
-)
-){
-
-return;
-
-}
-
-quotes=
-quotes.filter(
-x=>x.id!==id
-);
-
-saveData();
-
-renderQuotes();
-
-}
-
-function quoteServiceNames(q){
-
-return(
-Array.isArray(
-q.items
-)
-?
-q.items
-.map(
-x=>x.name
-)
-.join(
-", "
-)
-:
-""
-);
-
-}
-
-/*
-BUG FIX:
-Better duplicate checking:
-1. Email
-2. Phone
-3. Name + postcode
-*/
-function findExistingCustomerForQuote(q){
-
-let quoteEmail=
-String(
-q.email || ""
-)
-.trim()
-.toLowerCase();
-
-let quotePhone=
-String(
-q.phone || ""
-)
-.replace(
-/\D/g,
-""
-);
-
-let quoteName=
-String(
-q.customerName || ""
-)
-.trim()
-.toLowerCase();
-
-let quotePostcode=
-String(
-q.postcode || ""
-)
-.replace(
-/\s+/g,
-""
-)
-.toUpperCase();
-
-return customers.find(
-c=>{
-
-let customerEmail=
-String(
-c.email || ""
-)
-.trim()
-.toLowerCase();
-
-if(
-quoteEmail
-&&
-customerEmail
-&&
-quoteEmail===customerEmail
-){
-
-return true;
-
-}
-
-let customerPhone=
-String(
-c.phone || ""
-)
-.replace(
-/\D/g,
-""
-);
-
-if(
-quotePhone
-&&
-customerPhone
-&&
-quotePhone===customerPhone
-){
-
-return true;
-
-}
-
-let customerName=
-String(
-c.name || ""
-)
-.trim()
-.toLowerCase();
-
-let customerPostcode=
-String(
-c.postcode || ""
-)
-.replace(
-/\s+/g,
-""
-)
-.toUpperCase();
-
-if(
-quoteName
-&&
-quotePostcode
-&&
-customerName===quoteName
-&&
-customerPostcode===quotePostcode
-){
-
-return true;
-
-}
-
-return false;
-
-}
-);
-
-}
-
-function convertQuoteToCustomer(id){
-
-let q=
-quotes.find(
-x=>x.id===id
-);
-
-if(!q)return;
-
-if(
-q.convertedCustomerId
-){
-
-let converted=
-customers.find(
-c=>c.id===q.convertedCustomerId
-);
-
-if(converted){
-
-alert(
-"This quote has already been added as a customer."
-);
-
-return;
-
-}
-
-/*
-If the old customer was deleted,
-clear the broken quote link.
-*/
-q.convertedCustomerId="";
-
-}
-
-let existing=
-findExistingCustomerForQuote(
-q
-);
-
-if(existing){
-
-q.convertedCustomerId=
-existing.id;
-
-saveData();
-
-renderQuotes();
-
-alert(
-existing.name+
-" is already saved as a customer."
-);
-
-return;
-
-}
-
-let isOneOff=
-confirm(
-"Is this a ONE-OFF job?\n\n"+
-"OK = One-off\n"+
-"Cancel = Regular 4-weekly"
-);
-
-let chosenFrequency=
-isOneOff
-?
-0
-:
-4;
-
-let c={
-
-id:
-Date.now().toString(),
-
-name:
-q.customerName || "",
-
-address:
-q.address || "",
-
-postcode:
-q.postcode || "",
-
-roundArea:
-"",
-
-preferredDay:
-"",
-
-phone:
-q.phone || "",
-
-email:
-q.email || "",
-
-price:
-Number(
-q.total || 0
-),
-
-frequency:
-chosenFrequency,
-
-nextClean:
-today(),
-
-services:
-quoteServiceNames(
-q
-),
-
-notes:
-q.notes || "",
-
-archived:
-false,
-
-createdDate:
-today()
-
-};
-
-customers.push(
-c
-);
-
-q.convertedCustomerId=
-c.id;
-
-q.status=
-"Accepted";
-
-if(
-!q.acceptedDate
-){
-
-q.acceptedDate=
-today();
-
-}
-
-saveData();
-
-renderQuotes();
-
-renderCustomers();
-
-alert(
-isOneOff
-?
-"Customer added as a One-off job.\n\nYou can edit the next clean date and round area."
-:
-"Customer added as a 4-weekly customer.\n\nYou can edit the frequency, next clean date and round area."
-);
-
-}
-
-function quoteEmailDescription(q){
-
-if(
-!Array.isArray(
-q.items
-)
-){
-
-return "";
-
-}
-
-return q.items
-.map(
-item=>
-item.name+
-" - £"+
-Number(
-item.price || 0
-)
-.toFixed(2)
-)
-.join(
-"\n"
-);
-
-}
-
-function emailQuote(id){
-
-let q=
-quotes.find(
-x=>x.id===id
-);
-
-if(!q)return;
-
-if(
-!q.email
-){
-
-alert(
-"No email address is saved on this quote."
-);
-
-return;
-
-}
-
-if(
-typeof Android!=="undefined"
-&&
-Android.emailQuoteWithAddress
-){
-
-Android.emailQuoteWithAddress(
-
-q.email || "",
-
-q.customerName || "",
-
-q.address || "",
-
-q.postcode || "",
-
-String(
-quoteNumber(q)
-),
-
-formatDate(
-q.date
-),
-
-Number(
-q.total || 0
-)
-.toFixed(2),
-
-quoteEmailDescription(
-q
-),
-
-q.notes || ""
-
-);
-
-return;
-
-}
-
-alert(
-"The Quote is saved correctly.\n\nWe just need to add the Quote PDF email function to MainActivity.java."
-);
-
-}
-
-/* INVOICES */
-
-function getNextInvoiceNumber(){
-
-let next=
-Number(
-localStorage.getItem(
-"pcNextInvoiceNumber"
-)
-||
-1001
-);
-
-localStorage.setItem(
-"pcNextInvoiceNumber",
-String(
-next+1
-)
-);
-
-return next;
-
-}
-
-function invoiceNumber(inv){
-
-return(
-inv.invoiceNumber
-||
-inv.id
-);
-
-}
-
-function invoiceDueDate(inv){
-
-return(
-inv.dueDate
-||
-addDays(
-inv.date,
-7
-)
-);
-
-}
-
-function invoiceStatus(inv){
-
-if(
-inv.paid
-){
-
-return "paid";
-
-}
-
-return(
-invoiceDueDate(
-inv
-)
-<
-today()
-)
-?
-"overdue"
-:
-"unpaid";
-
-}
-
-function openInvoiceForm(){
-
-invoiceForm.classList.add(
-"show"
-);
-
-invoiceCustomer.innerHTML=
-activeCustomers()
-.map(
-c=>
-`<option value="${c.id}">${safe(c.name)}</option>`
-)
-.join("");
-
-invoiceAmount.value="";
-
-invoiceDescription.value="";
-
-}
-
-function closeInvoiceForm(){
-
-invoiceForm.classList.remove(
-"show"
-);
-
-}
-
-function saveInvoice(){
-
-let c=
-customers.find(
-x=>x.id===invoiceCustomer.value
-);
-
-if(!c)return;
-
-let amount=
-Number(
-invoiceAmount.value || 0
-);
-
-if(
-amount<=0
-){
-
-alert(
-"Enter the invoice amount."
-);
-
-return;
-
-}
-
-let date=
-today();
-
-invoices.push({
-
-id:
-Date.now().toString(),
-
-invoiceNumber:
-getNextInvoiceNumber(),
-
-customerId:
-c.id,
-
-customerName:
-c.name,
-
-amount:
-amount,
-
-description:
-invoiceDescription.value.trim(),
-
-date:
-date,
-
-dueDate:
-addDays(
-date,
-7
-),
-
-paid:
-false,
-
-paidDate:
-"",
-
-paymentMethod:
-"",
-
-lastReminderDate:
-"",
-
-reminderCount:
-0
-
-});
-
-saveData();
-
-closeInvoiceForm();
-
-renderInvoices();
-
-renderOwes();
-
-}
-
-function setInvoiceFilter(
-filter,
-button
-){
-
-invoiceFilter=
-filter;
-
-document
-.querySelectorAll(
-"[data-filter]"
-)
-.forEach(
-b=>{
-
-b.classList.remove(
-"selected"
-);
-
-b.classList.add(
-"secondary"
-);
-
-}
-);
-
-button.classList.add(
-"selected"
-);
-
-button.classList.remove(
-"secondary"
-);
-
-renderInvoices();
-
-}
-
-function renderInvoices(){
-
-let outstanding=
-invoices
-.filter(
-i=>!i.paid
-)
-.reduce(
-(s,i)=>
-s+Number(
-i.amount || 0
-),
-0
-);
-
-let overdue=
-invoices
-.filter(
-i=>
-invoiceStatus(
-i
-)
-===
-"overdue"
-)
-.reduce(
-(s,i)=>
-s+Number(
-i.amount || 0
-),
-0
-);
-
-invoiceOutstanding.innerText=
-"£"
-+
-outstanding.toFixed(2);
-
-invoiceOverdueTotal.innerText=
-"£"
-+
-overdue.toFixed(2);
-
-let search=
-(
-invoiceSearch.value
-||
-""
-)
-.toLowerCase();
-
-let list=
-invoices
-.filter(
-i=>{
-
-if(
-invoiceFilter!=="all"
-&&
-invoiceStatus(i)!==invoiceFilter
-){
-
-return false;
-
-}
-
-return(
-
-(i.customerName || "")
-.toLowerCase()
-.includes(search)
-
-||
-
-String(
-invoiceNumber(i)
-)
-.includes(search)
-
-||
-
-(i.description || "")
-.toLowerCase()
-.includes(search)
-
-);
-
-}
-)
-.sort(
-(a,b)=>
-String(
-b.date || ""
-)
-.localeCompare(
-String(
-a.date || ""
-)
-)
-);
-
-if(
-!list.length
-){
-
-invoiceList.innerHTML=
-'<div class="item empty">No invoices found.</div>';
-
-return;
-
-}
-
-invoiceList.innerHTML=
-list.map(
-inv=>{
-
-let status=
-invoiceStatus(
-inv
-);
-
-return`
-
-<div class="item">
-
-<div class="row">
-
-<div>
-
-<div class="customer-name">
-${safe(inv.customerName)}
-</div>
-
-<div class="muted">
-
-Invoice #${safe(invoiceNumber(inv))}
-
-<br>
-
-${formatDate(inv.date)}
-
-<br>
-
-Due ${formatDate(invoiceDueDate(inv))}
-
-</div>
-
-</div>
-
-<div class="price">
-
-£${Number(inv.amount || 0).toFixed(2)}
-
-</div>
-
-</div>
-
-<div style="margin-top:8px">
-
-<span class="badge ${status}">
-${status.toUpperCase()}
-</span>
-
-${inv.lastReminderDate
-?
-`
-<span class="badge reminderBadge">
-
-REMINDER ${Number(inv.reminderCount || 0)}
-
-</span>
-`
-:
-""
-}
-
-</div>
-
-${!inv.paid
-?
-`
-<button
-class="action small"
-onclick="markPaid('${inv.id}')">
-
-Mark Paid
-
-</button>
-
-<button
-class="action small reminderbtn"
-onclick="sendReminder('${inv.id}')">
-
-Send Reminder
-
-</button>
-`
-:
-`
-<button
-class="action small secondary"
-onclick="undoPaid('${inv.id}')">
-
-Undo Paid
-
-</button>
-`
-}
-
-<button
-class="action small emailbtn"
-onclick="emailInvoice('${inv.id}')">
-
-Email Customer
-
-</button>
-
-<button
-class="action small danger"
-onclick="deleteInvoice('${inv.id}')">
-
-Delete Invoice
-
-</button>
-
-</div>
-
-`;
-
-}
-)
-.join("");
-
-  }
-  function deleteInvoice(id){
-
-let inv=
-invoices.find(
-x=>x.id===id
-);
-
-if(!inv)return;
-
-let message=
-"Permanently delete Invoice #"
-+
-invoiceNumber(inv)
-+
-" for "
-+
-(
-inv.customerName
-||
-"this customer"
-)
-+
-"?";
-
-if(
-inv.paid
-){
-
-message+=
-"\n\nThis invoice is marked PAID. Deleting it will also remove £"
-+
-Number(
-inv.amount || 0
-)
-.toFixed(2)
-+
-" from your income/profit figures.";
-
-}else{
-
-message+=
-"\n\nThis will remove £"
-+
-Number(
-inv.amount || 0
-)
-.toFixed(2)
-+
-" from the amount owed.";
-
-}
-
-if(
-!confirm(
-message
-)
-){
-
-return;
-
-}
-
-invoices=
-invoices.filter(
-x=>x.id!==id
-);
-
-saveData();
-
-renderInvoices();
-renderOwes();
-renderCustomers();
-updateDashboard();
-updateEarnings();
-
-alert(
-"Invoice deleted."
-);
-
-}
-
-function markPaid(id){
-
-let inv=
-invoices.find(
-x=>x.id===id
-);
-
-if(!inv)return;
-
-let choice=
-prompt(
-"How was payment received?\n\n"+
-"1 = Bank Transfer\n"+
-"2 = Cash\n\n"+
-"Press Cancel to go back."
-);
-
-if(
-choice===null
-){
-
-return;
-
-}
-
-choice=
-String(
-choice
-)
-.trim();
-
-if(
-choice!=="1"
-&&
-choice!=="2"
-){
-
-alert(
-"Enter 1 for Bank Transfer or 2 for Cash."
-);
-
-return;
-
-}
-
-inv.paid=true;
-
-inv.paidDate=
-today();
-
-inv.paymentMethod=
-choice==="1"
-?
-"Bank Transfer"
-:
-"Cash";
-
-saveData();
-
-renderInvoices();
-renderOwes();
-renderCustomers();
-
-}
-
-function undoPaid(id){
-
-let inv=
-invoices.find(
-x=>x.id===id
-);
-
-if(!inv)return;
-
-inv.paid=false;
-inv.paidDate="";
-inv.paymentMethod="";
-
-saveData();
-
-renderInvoices();
-renderOwes();
-renderCustomers();
-
-}
-
-function emailInvoice(id){
-
-let inv=
-invoices.find(
-x=>x.id===id
-);
-
-if(!inv)return;
-
-let c=
-customers.find(
-x=>x.id===inv.customerId
-);
-
-if(
-!c
-||
-!c.email
-){
-
-alert(
-"Customer has no email address saved."
-);
-
-return;
-
-}
-
-if(
-typeof Android!=="undefined"
-&&
-Android.emailCustomerWithAddress
-){
-
-Android.emailCustomerWithAddress(
-
-c.email,
-
-c.name,
-
-c.address || "",
-
-c.postcode || "",
-
-String(
-invoiceNumber(inv)
-),
-
-formatDate(
-inv.date
-),
-
-formatDate(
-invoiceDueDate(inv)
-),
-
-Number(
-inv.amount || 0
-)
-.toFixed(2),
-
-inv.description || ""
-
-);
-
-}
-
-}
-
-/*
-BUG FIX:
-The reminder is no longer counted immediately.
-
-MainActivity.java will open the email, wait until you
-return to the app, then ask whether you actually sent it.
-
-Only when you press Yes will Android call
-reminderConfirmedFromAndroid().
-*/
-function sendReminder(id){
-
-let inv=
-invoices.find(
-x=>x.id===id
-);
-
-if(!inv)return;
-
-let c=
-customers.find(
-x=>x.id===inv.customerId
-);
-
-if(
-!c
-||
-!c.email
-){
-
-alert(
-"Customer has no email address saved."
-);
-
-return;
-
-}
-
-if(
-typeof Android!=="undefined"
-&&
-Android.sendReminderWithId
-){
-
-pendingReminderInvoiceId=
-id;
-
-Android.sendReminderWithId(
-
-id,
-
-c.email,
-
-c.name,
-
-String(
-invoiceNumber(inv)
-),
-
-formatDate(
-inv.date
-),
-
-formatDate(
-invoiceDueDate(inv)
-),
-
-Number(
-inv.amount || 0
-)
-.toFixed(2),
-
-inv.description || "",
-
-invoiceStatus(inv)==="overdue"
-
-);
-
-return;
-
-}
-
-alert(
-"Reminder sending is not available in this version of the app."
-);
-
-}
-
-function reminderConfirmedFromAndroid(id){
-
-let inv=
-invoices.find(
-x=>x.id===id
-);
-
-if(!inv){
-
-pendingReminderInvoiceId="";
-
-return;
-
-}
-
-inv.lastReminderDate=
-today();
-
-inv.reminderCount=
-Number(
-inv.reminderCount || 0
-)
-+
-1;
-
-pendingReminderInvoiceId="";
-
-saveData();
-
-renderInvoices();
-
-alert(
-"Reminder recorded as sent."
-);
-
-}
-
-function reminderCancelledFromAndroid(id){
-
-if(
-pendingReminderInvoiceId===id
-){
-
-pendingReminderInvoiceId="";
-
-}
-
-}
-
-/* MONEY OWED */
-
-function openOwesPage(){
-
-openPage(
-"owes"
-);
-
-renderOwes();
-
-}
-
-function renderOwes(){
-
-let unpaid=
-invoices.filter(
-i=>!i.paid
-);
-
-owesTotal.innerText=
-"£"
-+
-unpaid
-.reduce(
-(s,i)=>
-s+Number(
-i.amount || 0
-),
-0
-)
-.toFixed(2);
-
-let customerIds=
-[
-...new Set(
-unpaid.map(
-i=>i.customerId
-)
-)
-];
-
-owesCustomers.innerText=
-customerIds.length;
-
-let search=
-(
-owesSearch.value
-||
-""
-)
-.toLowerCase();
-
-let html=[];
-
-customerIds.forEach(
-id=>{
-
-let c=
-customers.find(
-x=>x.id===id
-);
-
-if(!c)return;
-
-if(
-!(c.name || "")
-.toLowerCase()
-.includes(search)
-){
-
-return;
-
-}
-
-let records=
-unpaid.filter(
-i=>i.customerId===id
-);
-
-let total=
-records.reduce(
-(s,i)=>
-s+Number(
-i.amount || 0
-),
-0
-);
-
-html.push(`
-
-<div class="item">
-
-<div class="row">
-
-<div class="customer-name">
-${safe(c.name)}
-</div>
-
-<div class="expense-cost">
-
-£${total.toFixed(2)}
-
-</div>
-
-</div>
-
-<div class="muted" style="margin-top:8px">
-
-${records.length}
-unpaid invoice${records.length===1 ? "" : "s"}
-
-</div>
-
-${c.phone
-?
-`
-<button
-class="action small callbtn"
-onclick="callCustomer('${c.id}')">
-
-Call
-
-</button>
-
-<button
-class="action small textbtn"
-onclick="textCustomer('${c.id}')">
-
-Text
-
-</button>
-`
-:
-""
-}
-
-</div>
-
-`);
-
-}
-);
-
-owesList.innerHTML=
-html.length
-?
-html.join("")
-:
-'<div class="item empty">Nobody owes money.</div>';
-
-}
-
-/* EXPENSES */
-
-function deleteExpenseReceiptFile(name){
+   function deleteExpenseReceiptFile(name){
 
 if(!name)return;
 
@@ -8646,10 +6550,27 @@ clearExpenseReceiptTracking();
 
 }
 
+/* EXPENSE BUTTON FIX */
+
 function newExpense(){
 
+let form=
+document.getElementById(
+"expenseForm"
+);
+
+if(!form){
+
+alert(
+"Expense form could not be opened."
+);
+
+return;
+
+}
+
 if(
-expenseForm.classList.contains(
+form.classList.contains(
 "show"
 )
 ){
@@ -8658,33 +6579,72 @@ cleanupUnsavedExpenseReceipts();
 
 }
 
-expenseForm.classList.add(
+form.classList.add(
 "show"
 );
 
-expenseFormTitle.innerText=
+document.getElementById(
+"expenseFormTitle"
+).innerText=
 "Add Expense";
 
-expenseId.value=
+document.getElementById(
+"expenseId"
+).value=
 "exp_"
 +
 Date.now();
 
-expenseDate.value=
+document.getElementById(
+"expenseDate"
+).value=
 today();
 
-expenseSupplier.value="";
-expenseCategory.value="Fuel";
-expenseDescription.value="";
-expenseTotal.value="";
-expenseVat.value="0";
-expenseNet.value="0.00";
-expensePaymentMethod.value="Bank Card";
-expenseNotes.value="";
+document.getElementById(
+"expenseSupplier"
+).value="";
+
+document.getElementById(
+"expenseCategory"
+).value="Fuel";
+
+document.getElementById(
+"expenseDescription"
+).value="";
+
+document.getElementById(
+"expenseTotal"
+).value="";
+
+document.getElementById(
+"expenseVat"
+).value="0";
+
+document.getElementById(
+"expenseNet"
+).value="0.00";
+
+document.getElementById(
+"expensePaymentMethod"
+).value=
+"Bank Card";
+
+document.getElementById(
+"expenseNotes"
+).value="";
 
 clearExpenseReceiptTracking();
 
 renderExpenseReceiptPreviews();
+
+setTimeout(()=>{
+
+form.scrollIntoView({
+behavior:"smooth",
+block:"start"
+});
+
+},100);
 
 }
 
@@ -8697,8 +6657,15 @@ x=>x.id===id
 
 if(!exp)return;
 
+let form=
+document.getElementById(
+"expenseForm"
+);
+
+if(!form)return;
+
 if(
-expenseForm.classList.contains(
+form.classList.contains(
 "show"
 )
 ){
@@ -8707,54 +6674,76 @@ cleanupUnsavedExpenseReceipts();
 
 }
 
-expenseForm.classList.add(
+form.classList.add(
 "show"
 );
 
-expenseFormTitle.innerText=
+document.getElementById(
+"expenseFormTitle"
+).innerText=
 "Edit Expense";
 
-expenseId.value=
+document.getElementById(
+"expenseId"
+).value=
 exp.id;
 
-expenseDate.value=
+document.getElementById(
+"expenseDate"
+).value=
 exp.date
 ||
 today();
 
-expenseSupplier.value=
+document.getElementById(
+"expenseSupplier"
+).value=
 exp.supplier || "";
 
-expenseCategory.value=
+document.getElementById(
+"expenseCategory"
+).value=
 exp.category || "Other";
 
-expenseDescription.value=
+document.getElementById(
+"expenseDescription"
+).value=
 exp.description || "";
 
-expenseTotal.value=
+document.getElementById(
+"expenseTotal"
+).value=
 Number(
 exp.total || 0
 )
 .toFixed(2);
 
-expenseVat.value=
+document.getElementById(
+"expenseVat"
+).value=
 Number(
 exp.vat || 0
 )
 .toFixed(2);
 
-expenseNet.value=
+document.getElementById(
+"expenseNet"
+).value=
 Number(
 exp.net || 0
 )
 .toFixed(2);
 
-expensePaymentMethod.value=
+document.getElementById(
+"expensePaymentMethod"
+).value=
 exp.paymentMethod
 ||
 "Bank Card";
 
-expenseNotes.value=
+document.getElementById(
+"expenseNotes"
+).value=
 exp.notes || "";
 
 originalExpenseReceipts=
@@ -8781,7 +6770,7 @@ renderExpenseReceiptPreviews();
 
 setTimeout(()=>{
 
-expenseForm.scrollIntoView({
+form.scrollIntoView({
 behavior:"smooth",
 block:"start"
 });
@@ -8792,9 +6781,36 @@ block:"start"
 
 function calculateExpenseNet(){
 
+let totalInput=
+document.getElementById(
+"expenseTotal"
+);
+
+let vatInput=
+document.getElementById(
+"expenseVat"
+);
+
+let netInput=
+document.getElementById(
+"expenseNet"
+);
+
+if(
+!totalInput
+||
+!vatInput
+||
+!netInput
+){
+
+return;
+
+}
+
 let total=
 Number(
-expenseTotal.value || 0
+totalInput.value || 0
 );
 
 if(
@@ -8811,7 +6827,7 @@ total=0;
 
 let vat=
 Number(
-expenseVat.value || 0
+vatInput.value || 0
 );
 
 if(
@@ -8834,10 +6850,10 @@ vat=total;
 
 }
 
-expenseVat.value=
+vatInput.value=
 vat.toFixed(2);
 
-expenseNet.value=
+netInput.value=
 Math.max(
 0,
 total-vat
@@ -8848,8 +6864,15 @@ total-vat
 
 function takeExpensePhoto(){
 
+let idInput=
+document.getElementById(
+"expenseId"
+);
+
 if(
-!expenseId.value
+!idInput
+||
+!idInput.value
 ){
 
 alert(
@@ -8867,7 +6890,7 @@ Android.takeExpenseReceipt
 ){
 
 Android.takeExpenseReceipt(
-expenseId.value
+idInput.value
 );
 
 }
@@ -8876,8 +6899,15 @@ expenseId.value
 
 function chooseExpensePhoto(){
 
+let idInput=
+document.getElementById(
+"expenseId"
+);
+
 if(
-!expenseId.value
+!idInput
+||
+!idInput.value
 ){
 
 alert(
@@ -8895,7 +6925,7 @@ Android.chooseExpenseReceipt
 ){
 
 Android.chooseExpenseReceipt(
-expenseId.value
+idInput.value
 );
 
 }
@@ -8909,12 +6939,26 @@ fileName
 
 if(!fileName)return;
 
+let form=
+document.getElementById(
+"expenseForm"
+);
+
+let idInput=
+document.getElementById(
+"expenseId"
+);
+
 if(
-!expenseForm.classList.contains(
+!form
+||
+!idInput
+||
+!form.classList.contains(
 "show"
 )
 ||
-expenseId.value!==expenseIdFromAndroid
+idInput.value!==expenseIdFromAndroid
 ){
 
 deleteExpenseReceiptFile(
@@ -8982,18 +7026,29 @@ return "";
 
 function renderExpenseReceiptPreviews(){
 
+let holder=
+document.getElementById(
+"expenseReceiptPreviews"
+);
+
+if(!holder){
+
+return;
+
+}
+
 if(
 !draftExpenseReceipts.length
 ){
 
-expenseReceiptPreviews.innerHTML=
+holder.innerHTML=
 '<div class="muted">No receipt photos saved yet.</div>';
 
 return;
 
 }
 
-expenseReceiptPreviews.innerHTML=
+holder.innerHTML=
 draftExpenseReceipts
 .map(
 (name,index)=>{
@@ -9121,13 +7176,58 @@ renderExpenseReceiptPreviews();
 
 function saveExpense(){
 
-let total=
-Number(
-expenseTotal.value || 0
+let dateInput=
+document.getElementById(
+"expenseDate"
+);
+
+let supplierInput=
+document.getElementById(
+"expenseSupplier"
+);
+
+let totalInput=
+document.getElementById(
+"expenseTotal"
+);
+
+let vatInput=
+document.getElementById(
+"expenseVat"
+);
+
+let netInput=
+document.getElementById(
+"expenseNet"
 );
 
 if(
-!expenseDate.value
+!dateInput
+||
+!supplierInput
+||
+!totalInput
+||
+!vatInput
+||
+!netInput
+){
+
+alert(
+"Expense form could not be read."
+);
+
+return;
+
+}
+
+let total=
+Number(
+totalInput.value || 0
+);
+
+if(
+!dateInput.value
 ){
 
 alert(
@@ -9139,7 +7239,7 @@ return;
 }
 
 if(
-!expenseSupplier.value.trim()
+!supplierInput.value.trim()
 ){
 
 alert(
@@ -9170,7 +7270,7 @@ calculateExpenseNet();
 
 let correctedVat=
 Number(
-expenseVat.value || 0
+vatInput.value || 0
 );
 
 if(
@@ -9193,34 +7293,43 @@ correctedVat=total;
 
 }
 
-expenseVat.value=
+vatInput.value=
 correctedVat.toFixed(2);
 
-expenseNet.value=
+netInput.value=
 Math.max(
 0,
 total-correctedVat
 )
 .toFixed(2);
 
+let idInput=
+document.getElementById(
+"expenseId"
+);
+
 let exp={
 
 id:
-expenseId.value
+idInput.value
 ||
 "exp_"+Date.now(),
 
 date:
-expenseDate.value,
+dateInput.value,
 
 supplier:
-expenseSupplier.value.trim(),
+supplierInput.value.trim(),
 
 category:
-expenseCategory.value,
+document.getElementById(
+"expenseCategory"
+).value,
 
 description:
-expenseDescription.value.trim(),
+document.getElementById(
+"expenseDescription"
+).value.trim(),
 
 total:
 total,
@@ -9230,14 +7339,18 @@ correctedVat,
 
 net:
 Number(
-expenseNet.value || 0
+netInput.value || 0
 ),
 
 paymentMethod:
-expensePaymentMethod.value,
+document.getElementById(
+"expensePaymentMethod"
+).value,
 
 notes:
-expenseNotes.value.trim(),
+document.getElementById(
+"expenseNotes"
+).value.trim(),
 
 receipts:
 [
@@ -9286,7 +7399,9 @@ name
 }
 );
 
-expenseForm.classList.remove(
+document.getElementById(
+"expenseForm"
+).classList.remove(
 "show"
 );
 
@@ -9313,9 +7428,18 @@ name
 }
 );
 
-expenseForm.classList.remove(
+let form=
+document.getElementById(
+"expenseForm"
+);
+
+if(form){
+
+form.classList.remove(
 "show"
 );
+
+}
 
 clearExpenseReceiptTracking();
 
@@ -9370,15 +7494,26 @@ renderExpenses();
 
 function renderMonthlyExpenseCategories(){
 
-if(
-!document.getElementById(
+let listHolder=
+document.getElementById(
 "monthCategoryList"
-)
-){
+);
+
+if(!listHolder){
 
 return;
 
 }
+
+let subtitle=
+document.getElementById(
+"monthCategorySubtitle"
+);
+
+let totalHolder=
+document.getElementById(
+"monthCategoryTotal"
+);
 
 let now=
 new Date();
@@ -9417,7 +7552,9 @@ month+1,
 0
 );
 
-monthCategorySubtitle.innerText=
+if(subtitle){
+
+subtitle.innerText=
 first.toLocaleDateString(
 "en-GB",
 {
@@ -9437,6 +7574,8 @@ month:"short",
 year:"numeric"
 }
 );
+
+}
 
 let monthExpenses=
 expenses.filter(
@@ -9526,17 +7665,21 @@ if(
 !rows.length
 ){
 
-monthCategoryList.innerHTML=
+listHolder.innerHTML=
 '<div class="empty">No expenses recorded this month.</div>';
 
-monthCategoryTotal.innerText=
+if(totalHolder){
+
+totalHolder.innerText=
 "£0.00";
+
+}
 
 return;
 
 }
 
-monthCategoryList.innerHTML=
+listHolder.innerHTML=
 rows.map(
 category=>`
 
@@ -9585,24 +7728,44 @@ exp.total || 0
 0
 );
 
-monthCategoryTotal.innerText=
+if(totalHolder){
+
+totalHolder.innerText=
 "£"
 +
 total.toFixed(2);
 
 }
 
+}
+
 function renderExpenseTotals(){
 
-if(
-!document.getElementById(
+let monthHolder=
+document.getElementById(
 "expenseMonthTotal"
-)
-){
+);
+
+if(!monthHolder){
 
 return;
 
 }
+
+let yearHolder=
+document.getElementById(
+"expenseYearTotal"
+);
+
+let vatHolder=
+document.getElementById(
+"expenseYearVat"
+);
+
+let receiptHolder=
+document.getElementById(
+"expenseReceiptCount"
+);
 
 let now=
 new Date();
@@ -9687,23 +7850,35 @@ e.receipts.length
 0
 );
 
-expenseMonthTotal.innerText=
+monthHolder.innerText=
 "£"
 +
 monthTotal.toFixed(2);
 
-expenseYearTotal.innerText=
+if(yearHolder){
+
+yearHolder.innerText=
 "£"
 +
 yearTotal.toFixed(2);
 
-expenseYearVat.innerText=
+}
+
+if(vatHolder){
+
+vatHolder.innerText=
 "£"
 +
 yearVat.toFixed(2);
 
-expenseReceiptCount.innerText=
+}
+
+if(receiptHolder){
+
+receiptHolder.innerText=
 receiptCount;
+
+}
 
 renderMonthlyExpenseCategories();
 
@@ -9712,6 +7887,17 @@ renderExpenseCategoryTotals();
 }
 
 function renderExpenseCategoryTotals(){
+
+let holder=
+document.getElementById(
+"expenseCategorySummary"
+);
+
+if(!holder){
+
+return;
+
+}
 
 let totals={};
 
@@ -9750,7 +7936,7 @@ totals
 b[1]-a[1]
 );
 
-expenseCategorySummary.innerHTML=
+holder.innerHTML=
 entries.length
 ?
 "<strong style='color:#9bd600'>All-Time Category Totals</strong><br>"
@@ -9781,10 +7967,17 @@ function renderExpenses(){
 
 renderExpenseTotals();
 
+let searchInput=
+document.getElementById(
+"expenseSearch"
+);
+
 let search=
 (
-expenseSearch.value
-||
+searchInput
+?
+searchInput.value
+:
 ""
 )
 .toLowerCase();
@@ -9825,18 +8018,29 @@ a.date || ""
 )
 );
 
+let holder=
+document.getElementById(
+"expenseList"
+);
+
+if(!holder){
+
+return;
+
+}
+
 if(
 !list.length
 ){
 
-expenseList.innerHTML=
+holder.innerHTML=
 '<div class="item empty">No expenses recorded yet.</div>';
 
 return;
 
 }
 
-expenseList.innerHTML=
+holder.innerHTML=
 list.map(
 exp=>{
 
@@ -9965,8 +8169,28 @@ Delete
 
 function updateExpenseExportDates(){
 
-expenseExportDates.style.display=
-expenseExportRange.value==="custom"
+let range=
+document.getElementById(
+"expenseExportRange"
+);
+
+let dates=
+document.getElementById(
+"expenseExportDates"
+);
+
+if(
+!range
+||
+!dates
+){
+
+return;
+
+}
+
+dates.style.display=
+range.value==="custom"
 ?
 "grid"
 :
@@ -10033,9 +8257,16 @@ value ?? ""
 
 function getExpenseExportRange(){
 
+let rangeSelect=
+document.getElementById(
+"expenseExportRange"
+);
+
 let range=
-expenseExportRange.value
-||
+rangeSelect
+?
+rangeSelect.value
+:
 "all";
 
 if(
@@ -10105,10 +8336,14 @@ range==="custom"
 ){
 
 let from=
-expenseExportFrom.value;
+document.getElementById(
+"expenseExportFrom"
+).value;
 
 let to=
-expenseExportTo.value;
+document.getElementById(
+"expenseExportTo"
+).value;
 
 if(
 !from
@@ -10157,9 +8392,16 @@ getExpenseExportRange();
 
 if(!range)return;
 
+let categorySelect=
+document.getElementById(
+"expenseExportCategory"
+);
+
 let category=
-expenseExportCategory.value
-||
+categorySelect
+?
+categorySelect.value
+:
 "all";
 
 let rows=
@@ -10459,11 +8701,12 @@ csv.join(
 
 function updateDashboard(){
 
-if(
-!document.getElementById(
+let customersHolder=
+document.getElementById(
 "dashCustomers"
-)
-){
+);
+
+if(!customersHolder){
 
 return;
 
@@ -10472,7 +8715,7 @@ return;
 let active=
 activeCustomers();
 
-dashCustomers.innerText=
+customersHolder.innerText=
 active.length;
 
 let unpaid=
@@ -10488,7 +8731,9 @@ i.amount || 0
 0
 );
 
-dashUnpaid.innerText=
+document.getElementById(
+"dashUnpaid"
+).innerText=
 "£"
 +
 unpaid.toFixed(2);
@@ -10531,7 +8776,9 @@ i.amount || 0
 0
 );
 
-dashPaid.innerText=
+document.getElementById(
+"dashPaid"
+).innerText=
 "£"
 +
 paidMonth.toFixed(2);
@@ -10554,7 +8801,9 @@ e.total || 0
 0
 );
 
-dashExpenses.innerText=
+document.getElementById(
+"dashExpenses"
+).innerText=
 "£"
 +
 expenseMonth.toFixed(2);
@@ -10564,7 +8813,9 @@ active.filter(
 c=>c.nextClean===today()
 );
 
-todayJobs.innerHTML=
+document.getElementById(
+"todayJobs"
+).innerHTML=
 todays.length
 ?
 todays
@@ -10599,7 +8850,9 @@ c.price || 0
 0
 );
 
-tomorrowSummary.innerHTML=
+document.getElementById(
+"tomorrowSummary"
+).innerHTML=
 tomorrowJobs.length
 ?
 tomorrowJobs.length
@@ -10625,7 +8878,9 @@ invoices.filter(
 i=>!i.paid
 );
 
-dashInvoices.innerHTML=
+document.getElementById(
+"dashInvoices"
+).innerHTML=
 unpaidInvoices.length
 ?
 unpaidInvoices
@@ -10690,11 +8945,12 @@ element.classList.add(
 
 function updateEarnings(){
 
-if(
-!document.getElementById(
+let monthIncome=
+document.getElementById(
 "earnPaidMonth"
-)
-){
+);
+
+if(!monthIncome){
 
 return;
 
@@ -10910,67 +9166,94 @@ c.price || 0
 0
 );
 
-earnPaidMonth.innerText=
+monthIncome.innerText=
 "£"
 +
 paidMonth.toFixed(2);
 
-earnExpensesMonth.innerText=
+document.getElementById(
+"earnExpensesMonth"
+).innerText=
 "£"
 +
 expenseMonth.toFixed(2);
 
-earnProfitMonth.innerText=
+let profitMonthHolder=
+document.getElementById(
+"earnProfitMonth"
+);
+
+profitMonthHolder.innerText=
 "£"
 +
 monthProfit.toFixed(2);
 
 setProfitColour(
-earnProfitMonth,
+profitMonthHolder,
 monthProfit
 );
 
-earnPaidYear.innerText=
+document.getElementById(
+"earnPaidYear"
+).innerText=
 "£"
 +
 paidYear.toFixed(2);
 
-earnExpensesYear.innerText=
+document.getElementById(
+"earnExpensesYear"
+).innerText=
 "£"
 +
 expenseYear.toFixed(2);
 
-earnProfitYear.innerText=
+let profitYearHolder=
+document.getElementById(
+"earnProfitYear"
+);
+
+profitYearHolder.innerText=
 "£"
 +
 yearProfit.toFixed(2);
 
 setProfitColour(
-earnProfitYear,
+profitYearHolder,
 yearProfit
 );
 
-earnTaxIncome.innerText=
+document.getElementById(
+"earnTaxIncome"
+).innerText=
 "£"
 +
 taxIncome.toFixed(2);
 
-earnTaxExpenses.innerText=
+document.getElementById(
+"earnTaxExpenses"
+).innerText=
 "£"
 +
 taxExpenses.toFixed(2);
 
-earnTaxProfit.innerText=
+let taxProfitHolder=
+document.getElementById(
+"earnTaxProfit"
+);
+
+taxProfitHolder.innerText=
 "£"
 +
 taxProfit.toFixed(2);
 
 setProfitColour(
-earnTaxProfit,
+taxProfitHolder,
 taxProfit
 );
 
-taxYearDates.innerText=
+document.getElementById(
+"taxYearDates"
+).innerText=
 "UK tax year: "
 +
 formatDate(
@@ -10983,12 +9266,16 @@ formatDate(
 tax.to
 );
 
-earnOutstanding.innerText=
+document.getElementById(
+"earnOutstanding"
+).innerText=
 "£"
 +
 outstanding.toFixed(2);
 
-earnNext7.innerText=
+document.getElementById(
+"earnNext7"
+).innerText=
 "£"
 +
 next7.toFixed(2);
@@ -10997,11 +9284,6 @@ next7.toFixed(2);
 
 /* MAP */
 
-/*
-BUG FIX:
-Postcodes are cached in localStorage after the first
-successful lookup, so future map refreshes are much faster.
-*/
 async function postcodeCoordinates(
 postcode
 ){
@@ -11167,7 +9449,12 @@ initialiseMap();
 
 if(!map)return;
 
-mapStatus.innerText=
+let status=
+document.getElementById(
+"mapStatus"
+);
+
+status.innerText=
 "Loading customer locations...";
 
 mapMarkers.forEach(
@@ -11264,7 +9551,7 @@ maxZoom:15
 
 }
 
-mapStatus.innerText=
+status.innerText=
 bounds.length
 +
 " customer location"
@@ -11303,12 +9590,6 @@ mapCustomers.length-bounds.length===1
 
 }
 
-/*
-BUG FIX:
-Directions are handed directly to Android.
-MainActivity will try a maps app first and fall back
-to the browser if needed.
-*/
 function openCustomerMap(id){
 
 let c=
@@ -11526,11 +9807,6 @@ q.convertedCustomerId="";
 
 }
 
-/*
-BUG FIX:
-Repair old converted quote links if the linked customer
-has since been permanently deleted.
-*/
 if(
 q.convertedCustomerId
 &&
@@ -11643,7 +9919,9 @@ correctedNextQuoteNumber
 
 /* START */
 
-plannerDate.value=
+document.getElementById(
+"plannerDate"
+).value=
 today();
 
 refreshRoundAreas();
