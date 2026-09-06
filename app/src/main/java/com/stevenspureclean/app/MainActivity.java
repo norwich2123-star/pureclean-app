@@ -85,12 +85,6 @@ public class MainActivity extends Activity {
 
     private File pendingCameraFile = null;
 
-    /*
-     * =========================================================
-     * PAYMENT REMINDER CONFIRMATION
-     * =========================================================
-     */
-
     private boolean waitingForReminderReturn = false;
     private boolean reminderAppActuallyOpened = false;
 
@@ -172,9 +166,7 @@ public class MainActivity extends Activity {
                             WebResourceRequest request) {
 
                         return openExternalLink(
-                                request
-                                        .getUrl()
-                                        .toString()
+                                request.getUrl().toString()
                         );
                     }
 
@@ -195,9 +187,7 @@ public class MainActivity extends Activity {
 
                         WebResourceResponse receipt =
                                 receiptResponse(
-                                        request
-                                                .getUrl()
-                                                .toString()
+                                        request.getUrl().toString()
                                 );
 
                         if (receipt != null) {
@@ -236,12 +226,6 @@ public class MainActivity extends Activity {
                 "file:///android_asset/pureclean.html"
         );
     }
-
-    /*
-     * =========================================================
-     * REMINDER RETURN CHECK
-     * =========================================================
-     */
 
     @Override
     protected void onResume() {
@@ -382,12 +366,6 @@ public class MainActivity extends Activity {
         );
     }
 
-    /*
-     * =========================================================
-     * EXTERNAL LINKS
-     * =========================================================
-     */
-
     private boolean openExternalLink(
             String url) {
 
@@ -441,12 +419,6 @@ public class MainActivity extends Activity {
 
         return false;
     }
-
-    /*
-     * =========================================================
-     * ANDROID BRIDGE
-     * =========================================================
-     */
 
     public class AndroidBridge {
 
@@ -529,9 +501,6 @@ public class MainActivity extends Activity {
             );
         }
 
-        /*
-         * Kept for compatibility with older HTML versions.
-         */
         @JavascriptInterface
         public void sendReminder(
                 String email,
@@ -559,12 +528,6 @@ public class MainActivity extends Activity {
             );
         }
 
-        /*
-         * New reminder method.
-         *
-         * HTML sends the invoice ID so the reminder is only
-         * recorded after Steven confirms that it was sent.
-         */
         @JavascriptInterface
         public void sendReminderWithId(
                 String reminderId,
@@ -593,9 +556,6 @@ public class MainActivity extends Activity {
             );
         }
 
-        /*
-         * Opens customer directions using an Android maps app.
-         */
         @JavascriptInterface
         public void openMapDirections(
                 String query) {
@@ -794,12 +754,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    /*
-     * =========================================================
-     * DIRECTIONS
-     * =========================================================
-     */
-
     private void openDirections(
             String query) {
 
@@ -821,11 +775,6 @@ public class MainActivity extends Activity {
         String cleanQuery =
                 query.trim();
 
-        /*
-         * First try a normal Android geo intent.
-         * This lets Google Maps, Waze or another mapping app
-         * handle the address.
-         */
         try {
 
             Uri geoUri =
@@ -859,9 +808,6 @@ public class MainActivity extends Activity {
         } catch (Exception ignored) {
         }
 
-        /*
-         * Browser fallback.
-         */
         try {
 
             Uri webUri =
@@ -892,12 +838,6 @@ public class MainActivity extends Activity {
             ).show();
         }
     }
-
-    /*
-     * =========================================================
-     * RECEIPT FILES
-     * =========================================================
-     */
 
     private File receiptFolder() {
 
@@ -1161,12 +1101,6 @@ public class MainActivity extends Activity {
 
         dialog.show();
     }
-
-    /*
-     * =========================================================
-     * CAMERA
-     * =========================================================
-     */
 
     private void startExpenseCamera(
             String expenseId) {
@@ -1787,12 +1721,6 @@ public class MainActivity extends Activity {
         );
     }
 
-    /*
-     * =========================================================
-     * PHONE / TEXT
-     * =========================================================
-     */
-
     private void openDialler(
             String phone) {
 
@@ -1885,9 +1813,8 @@ public class MainActivity extends Activity {
                     Toast.LENGTH_SHORT
             ).show();
         }
-    }
-
-    /*
+            }
+        /*
      * =========================================================
      * CSV
      * =========================================================
@@ -1918,8 +1845,7 @@ public class MainActivity extends Activity {
                             )
             ) {
 
-                safeFileName +=
-                        ".csv";
+                safeFileName += ".csv";
             }
 
             File folder =
@@ -2047,8 +1973,7 @@ public class MainActivity extends Activity {
                             )
             ) {
 
-                safeFileName +=
-                        ".csv";
+                safeFileName += ".csv";
             }
 
             File csv =
@@ -2471,11 +2396,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    /*
-     * BUG FIX:
-     * Android only tells the HTML that the backup completed
-     * AFTER the ZIP has actually been written successfully.
-     */
     private void saveFullBackup(
             Uri uri) {
 
@@ -2593,23 +2513,12 @@ public class MainActivity extends Activity {
                     Toast.LENGTH_LONG
             ).show();
         }
-        }
-        private void restoreFullBackup(
+    }
+
+    private void restoreFullBackup(
             Uri uri) {
 
-        File restoreFolder =
-                new File(
-                        getCacheDir(),
-                        "full_restore"
-                );
-
         try {
-
-            deleteFolder(
-                    restoreFolder
-            );
-
-            restoreFolder.mkdirs();
 
             InputStream rawInput =
                     getContentResolver()
@@ -2621,7 +2530,7 @@ public class MainActivity extends Activity {
 
                 Toast.makeText(
                         this,
-                        "Backup could not be opened.",
+                        "Could not open backup.",
                         Toast.LENGTH_LONG
                 ).show();
 
@@ -2635,7 +2544,7 @@ public class MainActivity extends Activity {
 
             ZipEntry entry;
 
-            String businessJson = null;
+            String businessJson = "";
 
             while (
                     (entry = zip.getNextEntry()) != null
@@ -2645,22 +2554,12 @@ public class MainActivity extends Activity {
                         entry.getName();
 
                 if (
-                        entryName == null
-                                ||
-                        entryName.trim().isEmpty()
-                ) {
-
-                    zip.closeEntry();
-                    continue;
-                }
-
-                if (
-                        entryName.equals(
-                                "business.json"
+                        "business.json".equals(
+                                entryName
                         )
                 ) {
 
-                    StringBuilder text =
+                    StringBuilder builder =
                             new StringBuilder();
 
                     BufferedReader reader =
@@ -2671,26 +2570,27 @@ public class MainActivity extends Activity {
                                     )
                             );
 
-                    char[] buffer =
-                            new char[4096];
-
-                    int length;
+                    String line;
 
                     while (
-                            (length = reader.read(buffer)) > 0
+                            (line = reader.readLine()) != null
                     ) {
 
-                        text.append(
-                                buffer,
-                                0,
-                                length
+                        builder.append(
+                                line
+                        );
+
+                        builder.append(
+                                "\n"
                         );
                     }
 
                     businessJson =
-                            text.toString();
+                            builder.toString();
 
                 } else if (
+                        entryName != null
+                                &&
                         entryName.startsWith(
                                 "receipts/"
                         )
@@ -2742,82 +2642,36 @@ public class MainActivity extends Activity {
             zip.close();
 
             if (
-                    businessJson == null
-                            ||
                     businessJson.trim().isEmpty()
             ) {
 
                 Toast.makeText(
                         this,
-                        "This does not look like a Pure Clean full backup.",
+                        "No business data was found in this backup.",
                         Toast.LENGTH_LONG
                 ).show();
 
                 return;
             }
 
-            JSONObject test =
-                    new JSONObject(
-                            businessJson
-                    );
-
-            if (
-                    test.optJSONArray(
-                            "customers"
-                    ) == null
-                            ||
-                    test.optJSONArray(
-                            "invoices"
-                    ) == null
-            ) {
-
-                Toast.makeText(
-                        this,
-                        "Backup business data is invalid.",
-                        Toast.LENGTH_LONG
-                ).show();
-
-                return;
-            }
-
-            String finalBusinessJson =
+            final String finalJson =
                     businessJson;
 
-            new AlertDialog.Builder(
-                    this
-            )
-                    .setTitle(
-                            "Restore Full Backup"
-                    )
-                    .setMessage(
-                            "This will replace the business data currently stored in the app.\n\nContinue?"
-                    )
-                    .setNegativeButton(
-                            "Cancel",
-                            null
-                    )
-                    .setPositiveButton(
-                            "Restore",
-                            (dialog, which) -> {
+            callJavascript(
+                    "restoreBusinessBackup("
+                            +
+                            JSONObject.quote(
+                                    finalJson
+                            )
+                            +
+                            ");"
+            );
 
-                                callJavascript(
-                                        "restoreBusinessBackup("
-                                                +
-                                                JSONObject.quote(
-                                                        finalBusinessJson
-                                                )
-                                                +
-                                                ");"
-                                );
-
-                                Toast.makeText(
-                                        this,
-                                        "Full backup restored.",
-                                        Toast.LENGTH_LONG
-                                ).show();
-                            }
-                    )
-                    .show();
+            Toast.makeText(
+                    this,
+                    "Full backup restored.",
+                    Toast.LENGTH_LONG
+            ).show();
 
         } catch (Exception e) {
 
@@ -2831,38 +2685,19 @@ public class MainActivity extends Activity {
 
     /*
      * =========================================================
-     * STANDARD DATA BACKUP
+     * NORMAL BACKUP
      * =========================================================
      */
 
     private void startBackup(
             String json) {
 
-        if (
-                json == null
-                        ||
-                json.trim().isEmpty()
-        ) {
-
-            Toast.makeText(
-                    this,
-                    "No data to back up.",
-                    Toast.LENGTH_LONG
-            ).show();
-
-            return;
-        }
-
         backupJson =
-                json;
-
-        String stamp =
-                new SimpleDateFormat(
-                        "yyyy-MM-dd-HHmmss",
-                        Locale.UK
-                ).format(
-                        new Date()
-                );
+                json == null
+                        ?
+                        ""
+                        :
+                        json;
 
         Intent intent =
                 new Intent(
@@ -2881,28 +2716,20 @@ public class MainActivity extends Activity {
                 Intent.EXTRA_TITLE,
                 "PureClean-Backup-"
                         +
-                        stamp
+                        new SimpleDateFormat(
+                                "yyyy-MM-dd-HHmmss",
+                                Locale.UK
+                        ).format(
+                                new Date()
+                        )
                         +
                         ".json"
         );
 
-        try {
-
-            startActivityForResult(
-                    intent,
-                    SAVE_BACKUP
-            );
-
-        } catch (Exception e) {
-
-            backupJson = "";
-
-            Toast.makeText(
-                    this,
-                    "Could not open backup screen.",
-                    Toast.LENGTH_LONG
-            ).show();
-        }
+        startActivityForResult(
+                intent,
+                SAVE_BACKUP
+        );
     }
 
     private void startRestore() {
@@ -2920,21 +2747,10 @@ public class MainActivity extends Activity {
                 "application/json"
         );
 
-        try {
-
-            startActivityForResult(
-                    intent,
-                    RESTORE_BACKUP
-            );
-
-        } catch (Exception e) {
-
-            Toast.makeText(
-                    this,
-                    "Could not open restore screen.",
-                    Toast.LENGTH_LONG
-            ).show();
-        }
+        startActivityForResult(
+                intent,
+                RESTORE_BACKUP
+        );
     }
 
     private void saveBackup(
@@ -2949,13 +2765,6 @@ public class MainActivity extends Activity {
                             );
 
             if (output == null) {
-
-                Toast.makeText(
-                        this,
-                        "Backup could not be saved.",
-                        Toast.LENGTH_LONG
-                ).show();
-
                 return;
             }
 
@@ -3030,20 +2839,12 @@ public class MainActivity extends Activity {
             }
 
             reader.close();
-            input.close();
-
-            String json =
-                    builder.toString();
-
-            new JSONObject(
-                    json
-            );
 
             callJavascript(
                     "restoreBusinessBackup("
                             +
                             JSONObject.quote(
-                                    json
+                                    builder.toString()
                             )
                             +
                             ");"
@@ -3077,9 +2878,6 @@ public class MainActivity extends Activity {
                 data
         );
 
-        /*
-         * Camera receipt
-         */
         if (
                 requestCode
                         ==
@@ -3119,9 +2917,6 @@ public class MainActivity extends Activity {
             return;
         }
 
-        /*
-         * Existing receipt photo
-         */
         if (
                 requestCode
                         ==
@@ -3132,9 +2927,9 @@ public class MainActivity extends Activity {
                     resultCode
                             ==
                     RESULT_OK
-                    &&
+                            &&
                     data != null
-                    &&
+                            &&
                     data.getData() != null
             ) {
 
@@ -3148,17 +2943,11 @@ public class MainActivity extends Activity {
             return;
         }
 
-        /*
-         * BUG FIX:
-         * If Full Backup Save is cancelled,
-         * throw away the pending JSON rather than leaving it
-         * hanging around for a future backup.
-         */
         if (
                 requestCode
                         ==
                 SAVE_FULL_BACKUP
-                &&
+                        &&
                 resultCode
                         !=
                 RESULT_OK
@@ -3172,9 +2961,9 @@ public class MainActivity extends Activity {
                 resultCode
                         !=
                 RESULT_OK
-                ||
+                        ||
                 data == null
-                ||
+                        ||
                 data.getData() == null
         ) {
 
@@ -3230,6 +3019,14 @@ public class MainActivity extends Activity {
      * =========================================================
      * PAYMENT REMINDER EMAIL
      * =========================================================
+     *
+     * IMPORTANT FIX:
+     *
+     * Gmail can ignore EXTRA_SUBJECT and EXTRA_TEXT when an
+     * ACTION_VIEW mailto intent is used.
+     *
+     * This version puts recipient, subject and body directly
+     * into the mailto URI and uses ACTION_SENDTO.
      */
 
     private void reminderEmail(
@@ -3421,30 +3218,32 @@ public class MainActivity extends Activity {
 
         try {
 
-            Uri uri =
-                    Uri.parse(
-                            "mailto:"
-                                    +
-                                    Uri.encode(
-                                            email.trim()
-                                    )
-                    );
+            String mailto =
+                    "mailto:"
+                            +
+                            Uri.encode(
+                                    email.trim()
+                            )
+                            +
+                            "?subject="
+                            +
+                            Uri.encode(
+                                    subject
+                            )
+                            +
+                            "&body="
+                            +
+                            Uri.encode(
+                                    body.toString()
+                            );
 
             Intent intent =
                     new Intent(
-                            Intent.ACTION_VIEW,
-                            uri
+                            Intent.ACTION_SENDTO,
+                            Uri.parse(
+                                    mailto
+                            )
                     );
-
-            intent.putExtra(
-                    Intent.EXTRA_SUBJECT,
-                    subject
-            );
-
-            intent.putExtra(
-                    Intent.EXTRA_TEXT,
-                    body.toString()
-            );
 
             if (
                     intent.resolveActivity(
@@ -3777,9 +3576,6 @@ public class MainActivity extends Activity {
                             Paint.ANTI_ALIAS_FLAG
                     );
 
-            /*
-             * Black top banner
-             */
             paint.setColor(
                     Color.rgb(
                             8,
@@ -3801,18 +3597,15 @@ public class MainActivity extends Activity {
 
             if (logo != null) {
 
-                RectF logoRect =
+                canvas.drawBitmap(
+                        logo,
+                        null,
                         new RectF(
                                 34,
                                 28,
                                 144,
                                 138
-                        );
-
-                canvas.drawBitmap(
-                        logo,
-                        null,
-                        logoRect,
+                        ),
                         paint
                 );
             }
@@ -3881,13 +3674,6 @@ public class MainActivity extends Activity {
                     paint
             );
 
-            paint.setFakeBoldText(
-                    false
-            );
-
-            /*
-             * Quote details
-             */
             paint.setColor(
                     Color.rgb(
                             35,
@@ -3898,6 +3684,10 @@ public class MainActivity extends Activity {
 
             paint.setTextSize(
                     11
+            );
+
+            paint.setFakeBoldText(
+                    false
             );
 
             canvas.drawText(
@@ -3956,27 +3746,12 @@ public class MainActivity extends Activity {
                     paint
             );
 
-            paint.setFakeBoldText(
-                    false
-            );
-
-            /*
-             * Customer
-             */
             paint.setColor(
                     Color.rgb(
                             155,
                             214,
                             0
                     )
-            );
-
-            paint.setTextSize(
-                    14
-            );
-
-            paint.setFakeBoldText(
-                    true
             );
 
             canvas.drawText(
@@ -4015,8 +3790,7 @@ public class MainActivity extends Activity {
                     12
             );
 
-            int customerY =
-                    332;
+            int customerY = 332;
 
             if (
                     customerAddress != null
@@ -4033,8 +3807,7 @@ public class MainActivity extends Activity {
                         paint
                 );
 
-                customerY +=
-                        20;
+                customerY += 20;
             }
 
             if (
@@ -4053,11 +3826,7 @@ public class MainActivity extends Activity {
                 );
             }
 
-            /*
-             * Services table
-             */
-            int tableTop =
-                    386;
+            int tableTop = 386;
 
             paint.setColor(
                     Color.rgb(
@@ -4109,8 +3878,7 @@ public class MainActivity extends Activity {
                     false
             );
 
-            int lineY =
-                    448;
+            int lineY = 448;
 
             String[] lines =
                     (
@@ -4154,15 +3922,13 @@ public class MainActivity extends Activity {
                     price =
                             service.substring(
                                     separator + 4
-                            )
-                                    .trim();
+                            ).trim();
 
                     service =
                             service.substring(
                                     0,
                                     separator
-                            )
-                                    .trim();
+                            ).trim();
                 }
 
                 paint.setColor(
@@ -4220,20 +3986,13 @@ public class MainActivity extends Activity {
                         paint
                 );
 
-                lineY +=
-                        22;
+                lineY += 22;
 
-                /*
-                 * Fits six service rows on the existing PDF.
-                 */
                 if (lineY > 580) {
                     break;
                 }
             }
 
-            /*
-             * Total
-             */
             int totalTop =
                     Math.max(
                             lineY + 18,
@@ -4310,9 +4069,6 @@ public class MainActivity extends Activity {
                     false
             );
 
-            /*
-             * Notes
-             */
             if (
                     notes != null
                             &&
@@ -4358,9 +4114,6 @@ public class MainActivity extends Activity {
                 );
             }
 
-            /*
-             * Footer
-             */
             paint.setColor(
                     Color.rgb(
                             155,
@@ -4635,10 +4388,6 @@ public class MainActivity extends Activity {
                 folder.mkdirs();
             }
 
-            /*
-             * Remove old temporary invoice PDFs so Samsung/Gmail
-             * does not accidentally show a stale version.
-             */
             File[] oldFiles =
                     folder.listFiles();
 
@@ -4699,9 +4448,6 @@ public class MainActivity extends Activity {
                             Paint.ANTI_ALIAS_FLAG
                     );
 
-            /*
-             * Header
-             */
             paint.setColor(
                     Color.rgb(
                             8,
@@ -4800,9 +4546,6 @@ public class MainActivity extends Activity {
                     paint
             );
 
-            /*
-             * Invoice data
-             */
             paint.setColor(
                     Color.rgb(
                             35,
@@ -4877,19 +4620,12 @@ public class MainActivity extends Activity {
                     paint
             );
 
-            /*
-             * Bill to
-             */
             paint.setColor(
                     Color.rgb(
                             155,
                             214,
                             0
                     )
-            );
-
-            paint.setTextSize(
-                    14
             );
 
             canvas.drawText(
@@ -4928,8 +4664,7 @@ public class MainActivity extends Activity {
                     false
             );
 
-            int y =
-                    332;
+            int y = 332;
 
             if (
                     customerAddress != null
@@ -4946,8 +4681,7 @@ public class MainActivity extends Activity {
                         paint
                 );
 
-                y +=
-                        20;
+                y += 20;
             }
 
             if (
@@ -4966,9 +4700,6 @@ public class MainActivity extends Activity {
                 );
             }
 
-            /*
-             * Invoice table
-             */
             paint.setColor(
                     Color.rgb(
                             20,
@@ -5066,9 +4797,6 @@ public class MainActivity extends Activity {
                     paint
             );
 
-            /*
-             * Total
-             */
             paint.setColor(
                     Color.rgb(
                             240,
@@ -5131,9 +4859,6 @@ public class MainActivity extends Activity {
                     paint
             );
 
-            /*
-             * Payment terms
-             */
             paint.setColor(
                     Color.rgb(
                             55,
@@ -5172,9 +4897,6 @@ public class MainActivity extends Activity {
                     paint
             );
 
-            /*
-             * Footer
-             */
             paint.setColor(
                     Color.rgb(
                             155,
@@ -5258,7 +4980,7 @@ public class MainActivity extends Activity {
 
     /*
      * =========================================================
-     * PDF HELPERS
+     * HELPERS
      * =========================================================
      */
 
@@ -5292,7 +5014,7 @@ public class MainActivity extends Activity {
             Paint paint,
             String text,
             float x,
-            float startY,
+            float y,
             float maxWidth,
             float lineHeight,
             int maxLines) {
@@ -5305,75 +5027,53 @@ public class MainActivity extends Activity {
             return;
         }
 
-        String clean =
-                text.replace(
-                        "\r",
-                        " "
-                )
-                        .replace(
-                                "\n",
-                                " "
-                        )
-                        .trim();
-
         String[] words =
-                clean.split(
-                        "\\s+"
-                );
+                text.trim()
+                        .split(
+                                "\\s+"
+                        );
 
         StringBuilder line =
                 new StringBuilder();
 
-        float y =
-                startY;
-
-        int lines =
-                0;
+        int lineCount = 0;
 
         for (String word : words) {
 
-            String trial =
+            String test =
                     line.length() == 0
                             ?
                             word
                             :
-                            line
-                                    +
-                                    " "
-                                    +
-                                    word;
+                            line + " " + word;
 
             if (
                     paint.measureText(
-                            trial
+                            test
                     )
                             >
                     maxWidth
             ) {
 
+                canvas.drawText(
+                        safePdfText(
+                                line.toString()
+                        ),
+                        x,
+                        y,
+                        paint
+                );
+
+                y += lineHeight;
+
+                lineCount++;
+
                 if (
-                        line.length() > 0
+                        lineCount
+                                >=
+                        maxLines
                 ) {
-
-                    canvas.drawText(
-                            safePdfText(
-                                    line.toString()
-                            ),
-                            x,
-                            y,
-                            paint
-                    );
-
-                    y +=
-                            lineHeight;
-
-                    lines++;
-
-                    if (
-                            lines >= maxLines
-                    ) {
-                        return;
-                    }
+                    return;
                 }
 
                 line =
@@ -5385,7 +5085,7 @@ public class MainActivity extends Activity {
 
                 line =
                         new StringBuilder(
-                                trial
+                                test
                         );
             }
         }
@@ -5393,7 +5093,7 @@ public class MainActivity extends Activity {
         if (
                 line.length() > 0
                         &&
-                lines < maxLines
+                lineCount < maxLines
         ) {
 
             canvas.drawText(
@@ -5405,25 +5105,6 @@ public class MainActivity extends Activity {
                     paint
             );
         }
-    }
-
-    private String safePdfText(
-            String value) {
-
-        if (value == null) {
-            return "";
-        }
-
-        return value
-                .replace(
-                        "\n",
-                        " "
-                )
-                .replace(
-                        "\r",
-                        " "
-                )
-                .trim();
     }
 
     private String safePersonName(
@@ -5448,23 +5129,43 @@ public class MainActivity extends Activity {
 
         if (space > 0) {
 
-            clean =
-                    clean.substring(
-                            0,
-                            space
-                    );
+            return clean.substring(
+                    0,
+                    space
+            );
         }
 
         return clean;
     }
 
-    /*
-     * Prevents the double-£ problem.
-     */
+    private String safePdfText(
+            String text) {
+
+        if (text == null) {
+            return "";
+        }
+
+        return text
+                .replace(
+                        "\n",
+                        " "
+                )
+                .replace(
+                        "\r",
+                        " "
+                )
+                .trim();
+    }
+
     private String cleanMoney(
             String amount) {
 
-        if (amount == null) {
+        if (
+                amount == null
+                        ||
+                amount.trim().isEmpty()
+        ) {
+
             return "0.00";
         }
 
@@ -5495,43 +5196,28 @@ public class MainActivity extends Activity {
 
         } catch (Exception e) {
 
-            return clean.isEmpty()
-                    ?
-                    "0.00"
-                    :
-                    clean;
+            return clean;
         }
     }
 
     private String cleanFilePart(
             String value) {
 
-        if (value == null) {
+        if (
+                value == null
+                        ||
+                value.trim().isEmpty()
+        ) {
+
             return "file";
         }
 
-        String clean =
-                value.replaceAll(
+        return value
+                .replaceAll(
                         "[^A-Za-z0-9_-]",
                         "_"
                 );
-
-        if (
-                clean.trim().isEmpty()
-        ) {
-
-            clean =
-                    "file";
-        }
-
-        return clean;
     }
-
-    /*
-     * =========================================================
-     * FILE HELPERS
-     * =========================================================
-     */
 
     private void copyFile(
             File source,
@@ -5565,9 +5251,8 @@ public class MainActivity extends Activity {
         }
 
         output.flush();
-
-        input.close();
         output.close();
+        input.close();
     }
 
     private void deleteFolder(
@@ -5583,12 +5268,12 @@ public class MainActivity extends Activity {
 
         if (file.isDirectory()) {
 
-            File[] children =
+            File[] files =
                     file.listFiles();
 
-            if (children != null) {
+            if (files != null) {
 
-                for (File child : children) {
+                for (File child : files) {
 
                     deleteFolder(
                             child
@@ -5599,4 +5284,4 @@ public class MainActivity extends Activity {
 
         file.delete();
     }
-                                }
+                    }
