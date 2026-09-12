@@ -91,6 +91,17 @@ public class MainActivity extends Activity {
     private String pendingReminderId = "";
     private String pendingReminderCustomer = "";
 
+    /*
+     * =========================================================
+     * BANK DETAILS
+     * =========================================================
+     */
+
+    private static final String BANK_NAME = "Monzo";
+    private static final String BANK_ACCOUNT_NAME = "Steven Brian Attew";
+    private static final String BANK_SORT_CODE = "04-00-06";
+    private static final String BANK_ACCOUNT_NUMBER = "34121651";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -1813,8 +1824,9 @@ public class MainActivity extends Activity {
                     Toast.LENGTH_SHORT
             ).show();
         }
-            }
-        /*
+    }
+
+    /*
      * =========================================================
      * CSV
      * =========================================================
@@ -3019,14 +3031,6 @@ public class MainActivity extends Activity {
      * =========================================================
      * PAYMENT REMINDER EMAIL
      * =========================================================
-     *
-     * IMPORTANT FIX:
-     *
-     * Gmail can ignore EXTRA_SUBJECT and EXTRA_TEXT when an
-     * ACTION_VIEW mailto intent is used.
-     *
-     * This version puts recipient, subject and body directly
-     * into the mailto URI and uses ACTION_SENDTO.
      */
 
     private void reminderEmail(
@@ -3210,6 +3214,50 @@ public class MainActivity extends Activity {
 
         body.append(
                 "\n\nPlease make payment as soon as convenient."
+        );
+
+        body.append(
+                "\n\nPAYMENT DETAILS"
+        );
+
+        body.append(
+                "\nBank: "
+        );
+
+        body.append(
+                BANK_NAME
+        );
+
+        body.append(
+                "\nAccount name: "
+        );
+
+        body.append(
+                BANK_ACCOUNT_NAME
+        );
+
+        body.append(
+                "\nSort code: "
+        );
+
+        body.append(
+                BANK_SORT_CODE
+        );
+
+        body.append(
+                "\nAccount number: "
+        );
+
+        body.append(
+                BANK_ACCOUNT_NUMBER
+        );
+
+        body.append(
+                "\nReference: Invoice #"
+        );
+
+        body.append(
+                invoiceNumber
         );
 
         body.append(
@@ -4321,6 +4369,40 @@ public class MainActivity extends Activity {
                             +
                             "\n\n"
                             +
+                            "PAYMENT DETAILS"
+                            +
+                            "\n"
+                            +
+                            "Bank: "
+                            +
+                            BANK_NAME
+                            +
+                            "\n"
+                            +
+                            "Account name: "
+                            +
+                            BANK_ACCOUNT_NAME
+                            +
+                            "\n"
+                            +
+                            "Sort code: "
+                            +
+                            BANK_SORT_CODE
+                            +
+                            "\n"
+                            +
+                            "Account number: "
+                            +
+                            BANK_ACCOUNT_NUMBER
+                            +
+                            "\n"
+                            +
+                            "Reference: Invoice #"
+                            +
+                            invoiceNumber
+                            +
+                            "\n\n"
+                            +
                             "Many thanks,\n"
                             +
                             "Steven's Pure Clean Exteriors";
@@ -4859,6 +4941,10 @@ public class MainActivity extends Activity {
                     paint
             );
 
+            /*
+             * PAYMENT TERMS
+             */
+
             paint.setColor(
                     Color.rgb(
                             55,
@@ -4878,7 +4964,7 @@ public class MainActivity extends Activity {
             canvas.drawText(
                     "PAYMENT TERMS",
                     36,
-                    687,
+                    665,
                     paint
             );
 
@@ -4887,15 +4973,85 @@ public class MainActivity extends Activity {
             );
 
             paint.setTextSize(
-                    11
+                    10
             );
 
             canvas.drawText(
                     "Please make payment within 7 days.",
                     36,
-                    710,
+                    684,
                     paint
             );
+
+            /*
+             * PAYMENT DETAILS
+             */
+
+            paint.setFakeBoldText(
+                    true
+            );
+
+            paint.setTextSize(
+                    12
+            );
+
+            canvas.drawText(
+                    "PAYMENT DETAILS",
+                    36,
+                    714,
+                    paint
+            );
+
+            paint.setFakeBoldText(
+                    false
+            );
+
+            paint.setTextSize(
+                    10
+            );
+
+            canvas.drawText(
+                    "Bank: " + BANK_NAME,
+                    36,
+                    733,
+                    paint
+            );
+
+            canvas.drawText(
+                    "Account name: " + BANK_ACCOUNT_NAME,
+                    36,
+                    750,
+                    paint
+            );
+
+            canvas.drawText(
+                    "Sort code: " + BANK_SORT_CODE,
+                    300,
+                    733,
+                    paint
+            );
+
+            canvas.drawText(
+                    "Account number: " + BANK_ACCOUNT_NUMBER,
+                    300,
+                    750,
+                    paint
+            );
+
+            paint.setTextSize(
+                    9
+            );
+
+            canvas.drawText(
+                    "Please use invoice #" + safePdfText(invoiceNumber) + " as the payment reference.",
+                    36,
+                    771,
+                    paint
+            );
+
+            /*
+             * FOOTER
+             */
 
             paint.setColor(
                     Color.rgb(
@@ -5284,4 +5440,4 @@ public class MainActivity extends Activity {
 
         file.delete();
     }
-                    }
+        }
