@@ -91,12 +91,6 @@ public class MainActivity extends Activity {
     private String pendingReminderId = "";
     private String pendingReminderCustomer = "";
 
-    /*
-     * =========================================================
-     * BANK DETAILS
-     * =========================================================
-     */
-
     private static final String BANK_NAME = "Monzo";
     private static final String BANK_ACCOUNT_NAME = "Steven Brian Attew";
     private static final String BANK_SORT_CODE = "04-00-06";
@@ -2872,12 +2866,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    /*
-     * =========================================================
-     * ACTIVITY RESULTS
-     * =========================================================
-     */
-
     @Override
     protected void onActivityResult(
             int requestCode,
@@ -3115,26 +3103,15 @@ public class MainActivity extends Activity {
         StringBuilder body =
                 new StringBuilder();
 
-        body.append(
-                "Hi"
-        );
+        body.append("Hi");
 
-        if (
-                !firstName.isEmpty()
-        ) {
+        if (!firstName.isEmpty()) {
 
-            body.append(
-                    " "
-            );
-
-            body.append(
-                    firstName
-            );
+            body.append(" ");
+            body.append(firstName);
         }
 
-        body.append(
-                ",\n\n"
-        );
+        body.append(",\n\n");
 
         if (overdue) {
 
@@ -3149,13 +3126,8 @@ public class MainActivity extends Activity {
             );
         }
 
-        body.append(
-                "\n\nInvoice #"
-        );
-
-        body.append(
-                invoiceNumber
-        );
+        body.append("\n\nInvoice #");
+        body.append(invoiceNumber);
 
         if (
                 invoiceDate != null
@@ -3163,13 +3135,8 @@ public class MainActivity extends Activity {
                 !invoiceDate.trim().isEmpty()
         ) {
 
-            body.append(
-                    "\nInvoice date: "
-            );
-
-            body.append(
-                    invoiceDate
-            );
+            body.append("\nInvoice date: ");
+            body.append(invoiceDate);
         }
 
         if (
@@ -3178,24 +3145,12 @@ public class MainActivity extends Activity {
                 !dueDate.trim().isEmpty()
         ) {
 
-            body.append(
-                    "\nDue date: "
-            );
-
-            body.append(
-                    dueDate
-            );
+            body.append("\nDue date: ");
+            body.append(dueDate);
         }
 
-        body.append(
-                "\nAmount: £"
-        );
-
-        body.append(
-                cleanMoney(
-                        amount
-                )
-        );
+        body.append("\nAmount: £");
+        body.append(cleanMoney(amount));
 
         if (
                 description != null
@@ -3203,13 +3158,8 @@ public class MainActivity extends Activity {
                 !description.trim().isEmpty()
         ) {
 
-            body.append(
-                    "\n"
-            );
-
-            body.append(
-                    description.trim()
-            );
+            body.append("\nDescription: ");
+            body.append(description.trim());
         }
 
         body.append(
@@ -3223,42 +3173,27 @@ public class MainActivity extends Activity {
         body.append(
                 "\nBank: "
         );
-
-        body.append(
-                BANK_NAME
-        );
+        body.append(BANK_NAME);
 
         body.append(
                 "\nAccount name: "
         );
-
-        body.append(
-                BANK_ACCOUNT_NAME
-        );
+        body.append(BANK_ACCOUNT_NAME);
 
         body.append(
                 "\nSort code: "
         );
-
-        body.append(
-                BANK_SORT_CODE
-        );
+        body.append(BANK_SORT_CODE);
 
         body.append(
                 "\nAccount number: "
         );
-
-        body.append(
-                BANK_ACCOUNT_NUMBER
-        );
+        body.append(BANK_ACCOUNT_NUMBER);
 
         body.append(
                 "\nReference: Invoice #"
         );
-
-        body.append(
-                invoiceNumber
-        );
+        body.append(invoiceNumber);
 
         body.append(
                 "\n\nMany thanks,\nSteven's Pure Clean Exteriors"
@@ -3266,32 +3201,31 @@ public class MainActivity extends Activity {
 
         try {
 
-            String mailto =
-                    "mailto:"
-                            +
-                            Uri.encode(
-                                    email.trim()
-                            )
-                            +
-                            "?subject="
-                            +
-                            Uri.encode(
-                                    subject
-                            )
-                            +
-                            "&body="
-                            +
-                            Uri.encode(
-                                    body.toString()
-                            );
-
             Intent intent =
                     new Intent(
-                            Intent.ACTION_SENDTO,
-                            Uri.parse(
-                                    mailto
-                            )
+                            Intent.ACTION_SEND
                     );
+
+            intent.setType(
+                    "message/rfc822"
+            );
+
+            intent.putExtra(
+                    Intent.EXTRA_EMAIL,
+                    new String[]{
+                            email.trim()
+                    }
+            );
+
+            intent.putExtra(
+                    Intent.EXTRA_SUBJECT,
+                    subject
+            );
+
+            intent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    body.toString()
+            );
 
             if (
                     intent.resolveActivity(
@@ -3337,15 +3271,15 @@ public class MainActivity extends Activity {
                                 :
                                 customerName;
 
-                waitingForReminderReturn =
-                        true;
-
-                reminderAppActuallyOpened =
-                        true;
+                waitingForReminderReturn = true;
+                reminderAppActuallyOpened = true;
             }
 
             startActivity(
-                    intent
+                    Intent.createChooser(
+                            intent,
+                            "Send Payment Reminder"
+                    )
             );
 
         } catch (Exception e) {
@@ -4941,10 +4875,6 @@ public class MainActivity extends Activity {
                     paint
             );
 
-            /*
-             * PAYMENT TERMS
-             */
-
             paint.setColor(
                     Color.rgb(
                             55,
@@ -4982,10 +4912,6 @@ public class MainActivity extends Activity {
                     684,
                     paint
             );
-
-            /*
-             * PAYMENT DETAILS
-             */
 
             paint.setFakeBoldText(
                     true
@@ -5043,15 +4969,17 @@ public class MainActivity extends Activity {
             );
 
             canvas.drawText(
-                    "Please use invoice #" + safePdfText(invoiceNumber) + " as the payment reference.",
+                    "Please use invoice #"
+                            +
+                            safePdfText(
+                                    invoiceNumber
+                            )
+                            +
+                            " as the payment reference.",
                     36,
                     771,
                     paint
             );
-
-            /*
-             * FOOTER
-             */
 
             paint.setColor(
                     Color.rgb(
@@ -5440,4 +5368,4 @@ public class MainActivity extends Activity {
 
         file.delete();
     }
-        }
+                }
